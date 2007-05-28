@@ -8,7 +8,7 @@ local os			= os
 
 --------------------------------------------------------------------------------
 
-module "core.scsutils"
+module "scs.core.utils"
 
 --------------------------------------------------------------------------------
 
@@ -26,7 +26,7 @@ function verbosePrint(message)
 		print(message)
 	end
 	if fileVerbose then
-		local f = assert(io.open("../../../logs/lua/"..fileName.."/"..fileName..".log", "a"))
+		local f = assert(io.open("../../../../logs/lua/"..fileName.."/"..fileName..".log", "a"))
 		if newLog then
 			f:write("\n-----------------------------------------------------\n")
 			f:write(os.date().." "..os.time().."\n")

@@ -2,19 +2,20 @@ local verbose = require "oil.verbose"
 
 
 
-local error			= error
-local getmetatable	= getmetatable
-local ipairs		= ipairs
-local module		= module
-local require		= require
-local tonumber		= tonumber
-local tostring		= tostring
-local type			= type
+local error        	= error
+local getmetatable 	= getmetatable
+local ipairs       	= ipairs
+local module       	= module
+local require      	= require
+local tonumber     	= tonumber
+local tostring     	= tostring
+local type         	= type
 local io 			= io
 local string		= string
 local assert		= assert
 local os			= os
 local print			= print
+local pairs			= pairs
 
 local oo        = require "loop.base"
 local component = require "loop.component.base"
@@ -22,28 +23,57 @@ local ports     = require "loop.component.base"
 
 --------------------------------------------------------------------------------
 
-module "scs"
+module "core.scs"
 
 --------------------------------------------------------------------------------
 
-IComponent = oo.class{ context = false, __idltype = "IDL:SCS/IComponent:1.0" }
+local IsMultipleReceptacle = {
+	[ports.HashReceptacle] = true,
+	[ports.ListReceptacle] = true,
+	[ports.SetReceptacle] = true,
+}
 
-function IComponent:startup()
+function newComponent(template, descriptions)
+	local base = {}
+	base.facetDescs = {}
+	base.receptacleDescs = {}
+	base.receptsByConId = {}
+	base.numConnections = 0
+	base.nextConnId = 0
+	base.maxConnections = 100
+	for name, kind in component.ports(template) do
+		if kind == ports.Facet then
+			base[name] = descriptions[name].facet_ref
+			base.facetDescs[name] = descriptions[name]
+		elseif kind == ports.Receptacle or IsMultipleReceptacle[kind] then
+			if not descriptions[name].connections then
+				descriptions[name].connections = {}
+--				descriptions[name].keys = {}
+			end
+			base.receptacleDescs[name] = descriptions[name]
+		end
+	end
+	return template(base)
 end
 
-function IComponent:shutdown()
+Component = oo.class{ context = false }
+
+function Component:startup()
 end
 
-function IComponent:getFacet(interface)
+function Component:shutdown()
+end
+
+function Component:getFacet(interface)
 	self = self.context
 	for name, kind in component.ports(self) do
-		if kind == ports.Facet and self[name].__idltype == interface then
+		if kind == ports.Facet and self.facetDescs[name].interface_name == interface then
 			return self[name]
 		end
 	end
 end
 
-function IComponent:getFacetByName(name)
+function Component:getFacetByName(name)
 	self = self.context
 	if component.templateof(self)[name] == ports.Facet then
 		return self[name]
@@ -52,140 +82,122 @@ end
 
 --------------------------------------------------------------------------------
 
-IReceptacles = oo.class{ context = false, __idltype = "IDL:SCS/IReceptacles:1.0" }
+Receptacles = oo.class{ context = false }
 
-function IReceptacles:connect(receptacle, object)
-	if not object then error{ "IDL:SCS/InvalidConnection:1.0" } end
+function Receptacles:connect(receptacle, object)
+	if not object then error{ "IDL:scs::core/InvalidConnection:1.0" } end
 	self = self.context
-	if component.templateof(self)[receptacle] == ports.Receptacle then
+	local bindKey = 0
+	local port = component.templateof(self)[receptacle]
+	if port == ports.Receptacle then
+		-- this is a standard receptacle, which accepts only one connection
 		if self[receptacle] then
-			if self[receptacle].__bind then
-				local key = self[receptacle]:__bind(object)
-				if type(key) == "number" then
-					return key
-				else
-					return tonumber(tostring(key):match("%l+: (.+)")) or
-					       error{ "IDL:SCS/InvalidConnection:1.0" }
-				end
-			else
-				error{ "IDL:SCS/AlreadyConnected:1.0" }
-			end
+			error{ "IDL:scs::core/AlreadyConnected:1.0" }
 		else
+			-- this receptacle accepts only one connection
 			self[receptacle] = object
-			return 0
 		end
+	elseif IsMultipleReceptacle[port] then
+		-- this receptacle accepts multiple connections
+		bindKey = self[receptacle]:__bind(object)
 	else
-		error{ "IDL:SCS/InvalidName:1.0" }
+		error{ "IDL:scs::core/InvalidName:1.0" }
 	end
+	if (self.numConnections <= self.maxConnections) then
+		self.numConnections = self.numConnections + 1
+		self.nextConnId = self.nextConnId + 1
+		self.receptacleDescs[receptacle].connections[nextConnId] = {	id = nextConnId, 
+																				objref = object}
+		self.receptsByConId[nextConnId] = self.receptacleDescs[receptacle]
+--[[
+		if bindKey > 0 then
+			self.receptDescripts[receptacle].keys[nextConnId] = bindKey
+		end
+--]]
+		return nextConnId
+	end
+	error{ "IDL:scs::core/ExceededConnectionLimit:1.0" }
 end
 
-function IReceptacles:disconnect(receptacle, connid)
+function Receptacles:disconnect(connId)
 	self = self.context
-	if component.templateof(self)[receptacle] == ports.Receptacle then
+	receptacle = self.receptsByConId[connId].name
+	local port = component.templateof(self)[receptacle]
+	if port == ports.Receptacle then
 		if self[receptacle] then
-			if self[receptacle].__all then
-				for key in self[receptacle]:__all() do
-					if connid == tonumber(tostring(key):match("%l+: (.+)")) then
-						connid = key
-						break
-					end
-				end
-				if not connid then
-					error{ "IDL:SCS/InvalidConnection:1.0" }
-				end
-				return self[receptacle]:__unbind(key)
-			elseif key == 0 then
-				self[receptacle] = nil
-			else
-				error{ "IDL:SCS/InvalidConnection:1.0" }
-			end
+			self[receptacle] = nil
 		else
-			error{ "IDL:SCS/InvalidConnection:1.0" }
+			error{ "IDL:scs::core/InvalidConnection:1.0" }
+		end
+	elseif IsMultipleReceptacle[port] then
+		if self[receptacle]:__unbind(connId) then
+			self.numConnections = self.numConnections - 1
+			self.receptacleDescs[receptacle].connections[connId] = nil
+			self.receptsByConId[connId].connections[connId] = nil
+--			self.receptDescripts[receptacle].keys[connId] = nil
+		else
+			error{ "IDL:scs::core/InvalidConnection:1.0" }
 		end
 	else
-		error{ "IDL:SCS/InvalidName:1.0" }
+		error{ "IDL:scs::core/InvalidName:1.0", name = receptacle }
 	end
 end
 
-function IReceptacles:getConnections(receptacle)
+function Receptacles:getConnections(receptacle)
 	self = self.context
-	local connections = {}
-	if component.templateof(self)[receptacle] == ports.Receptacle then
-		if self[receptacle] then
-			if self[receptacle].__all then
-				for key, object in self[receptacle]:__all() do
-					connections[#connections+1] = {
-						objref = object,
-						id     = type(key) == "number" and key or
-						         tonumber(tostring(key):match("%l+: (.+)")),
-					}
-				end
-			else
-				connections[#connections+1] = {
-					objref = self[receptacle],
-					id     = 0,
-				}
-			end
-		end
+	if self.context.receptacleDescs[receptacle] then
+		return self.receptacleDescs[receptacle].connections
 	end
-	return connections
+	error{ "IDL:scs::core/InvalidName:1.0", name = receptacle }
 end
 
 --------------------------------------------------------------------------------
 
-IMetaInterface = oo.class{ context = false, __idltype = "IDL:SCS/IMetaInterface:1.0" }
+MetaInterface = oo.class{ context = false }
 
-function IMetaInterface:getFacets(selected)
+function MetaInterface:getDescriptions(portType, selected)
 	self = self.context
-	local facets = {}
-	for name, kind in component.ports(self) do
-		if kind == ports.Facet and (not selected or selected[name]) then
-			local object = self[name]
-			local meta = getmetatable(object)
-			facets[facets+1] = {
-				name = name,
-				interface_name = meta and meta.__idltype,
-				facet_ref = object,
-			}
+	if not selected then
+		if portType == "receptacle" then
+			return self.receptacleDescs
+		elseif portType == "facet" then
+			return self.facetDescs
 		end
 	end
-	return facets
-end
-
-function IMetaInterface:getFacetsByName(names)
-	for _, name in ipairs(names) do
-		names[name] = true
-	end
-	return self:getFacets(names)
-end
-
-function IMetaInterface:getReceptacles(selected)
-	self = self.context
-	local receptacles = {}
-	for name, kind in component.ports(self) do
-		if kind == ports.Receptacles and (not selected or selected[name]) then
-			local is_multiple
-			local connections = self[name]
-			if connections then
-				is_multiple = connections.__all
-				connections = Receptacles.getConnections(self, name)
+	local descs = {}
+	for _, name in ipairs(selected) do
+		if portType == "receptacle" then
+			if self.receptacleDescs[name] then
+				descs[name] = self.receptacleDescs[name]
+			else
+				error{ "IDL:scs::core/InvalidName:1.0", name = name }
 			end
-			receptacles[receptacles+1] = {
-				name = name,
-				interface_name = "CORBA::Object",
-				is_multiple = is_multiple,
-				connections = connections or {},
-			}
+		elseif portType == "facet" then
+			if self.facetDescs[name] then
+				descs[name] = self.facetDescs[name]
+			else
+				error{ "IDL:scs::core/InvalidName:1.0", name = name }
+			end
 		end
 	end
-	return receptacles
+	return descs
 end
 
-function IMetaInterface:getReceptaclesByName()
-	for _, name in ipairs(names) do
-		names[name] = true
-	end
-	return self:getReceptacles(names)
+
+function MetaInterface:getFacets()
+	return self:getDescriptions("facet")
+end
+
+function MetaInterface:getFacetsByName(names)
+	return self:getDescriptions("facet", names)
+end
+
+function MetaInterface:getReceptacles()
+	return self:getDescriptions("receptacle")
+end
+
+function MetaInterface:getReceptaclesByName(names)
+	return self:getDescriptions("receptacle", names)
 end
 
 --------------------------------------------------------------------------------

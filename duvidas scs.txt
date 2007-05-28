@@ -1,0 +1,19 @@
+se quiser armazenar novas tabelas, onde popula-las?
+-> inicialmente o valor fica apenas na metatable. Se for feita uma atribuicao, essa vai para a tabela da instancia. No caso de tabelas, tem que recriar as tabelas(ou seja, fazer uma nova atribuicao) para nao usar o valor default da classe.
+
+pq observer e fork nao tem __init?
+-> por causa do motivo acima.
+
+duvidas comentadas no scs.lua
+
+-----------------------------------------
+criar um metodo createComponent que recebe um template e as implementacoes de facetas adicionais. Este cria a FABRICA do componente a partir do template, q seta as novas implementacoes e cria as tabelas adicionais do scs(facetdescs, receptdescs, etc).
+componentes devem apenas setar o template e chamar este metodo, recebendo a fabrica. para executar, chamam a fabrica; para uso no scs, retornam a fabrica para o container.
+
+TEM QUE MODIFICAR A SCS.LUA TODA A PARTIR DO RECEPTACLES!!! NAO TEM MAIS __IDLTYPE!! VER TAMBEM OS MODULOS DE IDL!! tem que arrumar um lugar pra numconnections, etc do receptaculo
+
+-----------------------------------------
+problemas de usar o loop:
+- nao preve idl nem outras necessidades do scs(como infos intrinsecas de facetas e receptaculos, como name, interf_name, etc)
+- se usar o esquema de __idltype, essa regra de aplicacao impossibilita o uso de componentes legados sem modificacao
+- o trabalho acaba sendo o mesmo, pois tem que definir o template e ainda cuidar por fora de todas as tabelas adicionais, ou seja, nao prove um ganho real.

@@ -50,7 +50,7 @@ function newComponent(factory, descriptions)
 		elseif kind == ports.Receptacle or IsMultipleReceptacle[kind] then
 			if not descriptions[name].connections then
 				descriptions[name].connections = {}
---				descriptions[name].keys = {}
+				descriptions[name].keys = {}
 			end
 			instance.receptacleDescs[name] = descriptions[name]
 		end
@@ -103,7 +103,9 @@ function Receptacles:connect(receptacle, object)
 		end
 	elseif IsMultipleReceptacle[port] then
 		-- this receptacle accepts multiple connections
-		bindKey = self[receptacle]:__bind(object)
+		-- in the case of a HashReceptacle, we must provide an identifier, which will be the connection's id.
+		-- if it's not a HashReceptacle, it'll ignore the provided identifier
+		bindKey = self[receptacle]:__bind(object, (self.nextConnId + 1))
 	else
 		error{ "IDL:scs::core/InvalidName:1.0" }
 	end
@@ -113,11 +115,9 @@ function Receptacles:connect(receptacle, object)
 		self.receptacleDescs[receptacle].connections[nextConnId] = {	id = nextConnId, 
 																				objref = object}
 		self.receptsByConId[nextConnId] = self.receptacleDescs[receptacle]
---[[
 		if bindKey > 0 then
 			self.receptDescripts[receptacle].keys[nextConnId] = bindKey
 		end
---]]
 		return nextConnId
 	end
 	error{ "IDL:scs::core/ExceededConnectionLimit:1.0" }
@@ -134,11 +134,11 @@ function Receptacles:disconnect(connId)
 			error{ "IDL:scs::core/InvalidConnection:1.0" }
 		end
 	elseif IsMultipleReceptacle[port] then
-		if self[receptacle]:__unbind(connId) then
+		if self[receptacle]:__unbind(self.receptacleDescs[receptacle].keys[connId]) then
 			self.numConnections = self.numConnections - 1
 			self.receptacleDescs[receptacle].connections[connId] = nil
 			self.receptsByConId[connId].connections[connId] = nil
---			self.receptDescripts[receptacle].keys[connId] = nil
+			self.receptacleDescs[receptacle].keys[connId] = nil
 		else
 			error{ "IDL:scs::core/InvalidConnection:1.0" }
 		end

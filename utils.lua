@@ -6,22 +6,26 @@ local string		= string
 local assert		= assert
 local os			= os
 
---------------------------------------------------------------------------------
-
-module "scs.core.utils"
+local oo        	= require "loop.base"
 
 --------------------------------------------------------------------------------
 
-verbose 	= false
-fileVerbose = false
-fileName 	= ""
-newLog		= true
+module "scs.core"
+
+--------------------------------------------------------------------------------
+
+Utils = oo.class{ 	context 	= false,
+					verbose 	= false,
+					fileVerbose = false,
+					newLog		= true,
+					fileName 	= "",
+				}
 
 --
 -- Description: Prints a message to the standard output and/or to a file.
 -- Parameter message: Message to be delivered.
 --
-function verbosePrint(message)
+function Utils:verbosePrint(message)
 	if verbose then
 		print(message)
 	end
@@ -42,7 +46,7 @@ end
 -- Parameter t: Table that will receive the properties.
 -- Parameter file: File to be read.
 --
-function readProperties (t, file)
+function Utils:readProperties (t, file)
 	local f = assert(io.open(file, "r"), "Error opening properties file!")
 	while true do
 		prop = f:read("*line")
@@ -63,7 +67,7 @@ end
 --
 -- Description: Prints a table recursively.
 -- 
-function print_r (t, indent, done)
+function Utils:print_r (t, indent, done)
 	done = done or {}
 	indent = indent or 0
 	if type(t) == "table" then
@@ -74,7 +78,7 @@ function print_r (t, indent, done)
 			  io.write(string.format("[%s] => table\n", tostring (key)));
 			  io.write(string.rep (" ", indent+4)) -- indent it
 			  io.write("(\n");
-			  self:print_r (value, indent + 7, done)
+			  print_r (value, indent + 7, done)
 			  io.write(string.rep (" ", indent+4)) -- indent it
 			  io.write(")\n");
 			else
@@ -91,8 +95,8 @@ end
 -- Parameter message: Table to be converted.
 -- Return Value: The array.
 --
-function convertToArray(inputTable)
-	verbosePrint("SCSUtils::ConvertToArray")
+function Utils:convertToArray(inputTable)
+--	verbosePrint("SCSUtils::ConvertToArray")
 	local outputArray = {}
 	local i = 1
 	for index, item in pairs(inputTable) do
@@ -102,6 +106,6 @@ function convertToArray(inputTable)
 			i = i + 1
 		end
 	end
-	verbosePrint("SCSUtils::ConvertToArray : Finished.")
+--	verbosePrint("SCSUtils::ConvertToArray : Finished.")
 	return outputArray
 end

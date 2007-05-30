@@ -89,14 +89,14 @@ end
 Receptacles = oo.class{ context = false }
 
 function Receptacles:connect(receptacle, object)
-	if not object then error{ "IDL:scs::core/InvalidConnection:1.0" } end
+	if not object then error{ "IDL:scs/core/InvalidConnection:1.0" } end
 	self = self.context
 	local bindKey = 0
 	local port = component.templateof(self)[receptacle]
 	if port == ports.Receptacle then
 		-- this is a standard receptacle, which accepts only one connection
 		if self[receptacle] then
-			error{ "IDL:scs::core/AlreadyConnected:1.0" }
+			error{ "IDL:scs/core/AlreadyConnected:1.0" }
 		else
 			-- this receptacle accepts only one connection
 			self[receptacle] = object
@@ -107,20 +107,20 @@ function Receptacles:connect(receptacle, object)
 		-- if it's not a HashReceptacle, it'll ignore the provided identifier
 		bindKey = self[receptacle]:__bind(object, (self.nextConnId + 1))
 	else
-		error{ "IDL:scs::core/InvalidName:1.0" }
+		error{ "IDL:scs/core/InvalidName:1.0" }
 	end
 	if (self.numConnections <= self.maxConnections) then
 		self.numConnections = self.numConnections + 1
 		self.nextConnId = self.nextConnId + 1
-		self.receptacleDescs[receptacle].connections[nextConnId] = {	id = nextConnId, 
-																				objref = object}
-		self.receptsByConId[nextConnId] = self.receptacleDescs[receptacle]
+		self.receptacleDescs[receptacle].connections[self.nextConnId] = {	id = self.nextConnId, 
+																			objref = object }
+		self.receptsByConId[self.nextConnId] = self.receptacleDescs[receptacle]
 		if bindKey > 0 then
-			self.receptDescripts[receptacle].keys[nextConnId] = bindKey
+			self.receptacleDescs[receptacle].keys[self.nextConnId] = bindKey
 		end
-		return nextConnId
+		return self.nextConnId
 	end
-	error{ "IDL:scs::core/ExceededConnectionLimit:1.0" }
+	error{ "IDL:scs/core/ExceededConnectionLimit:1.0" }
 end
 
 function Receptacles:disconnect(connId)
@@ -131,7 +131,7 @@ function Receptacles:disconnect(connId)
 		if self[receptacle] then
 			self[receptacle] = nil
 		else
-			error{ "IDL:scs::core/InvalidConnection:1.0" }
+			error{ "IDL:scs/core/InvalidConnection:1.0" }
 		end
 	elseif IsMultipleReceptacle[port] then
 		if self[receptacle]:__unbind(self.receptacleDescs[receptacle].keys[connId]) then
@@ -140,10 +140,10 @@ function Receptacles:disconnect(connId)
 			self.receptsByConId[connId].connections[connId] = nil
 			self.receptacleDescs[receptacle].keys[connId] = nil
 		else
-			error{ "IDL:scs::core/InvalidConnection:1.0" }
+			error{ "IDL:scs/core/InvalidConnection:1.0" }
 		end
 	else
-		error{ "IDL:scs::core/InvalidName:1.0", name = receptacle }
+		error{ "IDL:scs/core/InvalidName:1.0", name = receptacle }
 	end
 end
 
@@ -152,7 +152,7 @@ function Receptacles:getConnections(receptacle)
 	if self.context.receptacleDescs[receptacle] then
 		return self.receptacleDescs[receptacle].connections
 	end
-	error{ "IDL:scs::core/InvalidName:1.0", name = receptacle }
+	error{ "IDL:scs/core/InvalidName:1.0", name = receptacle }
 end
 
 --------------------------------------------------------------------------------
@@ -174,13 +174,13 @@ function MetaInterface:getDescriptions(portType, selected)
 			if self.receptacleDescs[name] then
 				descs[name] = self.receptacleDescs[name]
 			else
-				error{ "IDL:scs::core/InvalidName:1.0", name = name }
+				error{ "IDL:scs/core/InvalidName:1.0", name = name }
 			end
 		elseif portType == "facet" then
 			if self.facetDescs[name] then
 				descs[name] = self.facetDescs[name]
 			else
-				error{ "IDL:scs::core/InvalidName:1.0", name = name }
+				error{ "IDL:scs/core/InvalidName:1.0", name = name }
 			end
 		end
 	end
@@ -202,4 +202,102 @@ end
 
 function MetaInterface:getReceptaclesByName(names)
 	return self:getDescriptions("receptacle", names)
+end
+
+--------------------------------------------------------------------------------
+
+Utils = oo.class{ 	context 	= false,
+					verbose 	= false,
+					fileVerbose = false,
+					newLog		= true,
+					fileName 	= "",
+				}
+
+--
+-- Description: Prints a message to the standard output and/or to a file.
+-- Parameter message: Message to be delivered.
+--
+function Utils:verbosePrint(message)
+	if self.verbose then
+		print(message)
+	end
+	if self.fileVerbose then
+		local f = assert(io.open("../../../../logs/lua/"..self.fileName.."/"..self.fileName..".log", "a"))
+		if self.newLog then
+			f:write("\n-----------------------------------------------------\n")
+			f:write(os.date().." "..os.time().."\n")
+			self.newLog = false
+		end
+		f:write(message.."\n")
+		f:close()
+	end
+end	
+
+--
+-- Description: Reads a file with properties and store them at a table.
+-- Parameter t: Table that will receive the properties.
+-- Parameter file: File to be read.
+--
+function Utils:readProperties (t, file)
+	local f = assert(io.open(file, "r"), "Error opening properties file!")
+	while true do
+		prop = f:read("*line")
+		if prop == nil then
+			break
+		end
+		-- substitutes spaces for nothing
+		local line = string.gsub(prop, " ", "")
+		local i = string.find(line, "=")
+		self:verbosePrint("SCSUtils::ReadProperties : Line: " .. line)
+		if i ~= 1 then
+			t[string.sub(line, 1, i - 1)] = string.sub(line, i + 1, string.len(line))
+		end
+	end
+	f:close()
+end
+
+--
+-- Description: Prints a table recursively.
+-- 
+function Utils:print_r (t, indent, done)
+	done = done or {}
+	indent = indent or 0
+	if type(t) == "table" then
+		for key, value in pairs (t) do
+			io.write(string.rep (" ", indent)) -- indent it
+			if type (value) == "table" and not done [value] then
+			  done [value] = true
+			  io.write(string.format("[%s] => table\n", tostring (key)));
+			  io.write(string.rep (" ", indent+4)) -- indent it
+			  io.write("(\n");
+			  self:print_r (value, indent + 7, done)
+			  io.write(string.rep (" ", indent+4)) -- indent it
+			  io.write(")\n");
+			else
+			  io.write(string.format("[%s] => %s\n", tostring (key),tostring(value)))
+			end
+		end
+	else
+		io.write(t .. "\n")
+	end
+end
+
+--
+-- Description: Converts a table with an alphanumeric indice to an array.
+-- Parameter message: Table to be converted.
+-- Return Value: The array.
+--
+function Utils:convertToArray(inputTable)
+	self:verbosePrint("SCSUtils::ConvertToArray")
+	local outputArray = {}
+	local i = 1
+	for index, item in pairs(inputTable) do
+--		table.insert(outputArray, item)
+		if index ~= "n" then
+			outputArray[i] = item
+			i = i + 1
+		end
+	end
+	self:verbosePrint("SCSUtils::ConvertToArray : Finished.")
+	return outputArray
 end

@@ -1,6 +1,9 @@
 local verbose = require "oil.verbose"
 
-
+local oo        = require "loop.base"
+local component = require "loop.component.base"
+local ports     = require "loop.component.base"
+local oil		= require "oil"
 
 local error        	= error
 local getmetatable 	= getmetatable
@@ -17,18 +20,13 @@ local os			= os
 local print			= print
 local pairs			= pairs
 
-local oo        = require "loop.base"
-local component = require "loop.component.base"
-local ports     = require "loop.component.base"
-local oil		= require "oil"
-
 --------------------------------------------------------------------------------
 
 module "scs.core.base"
 
 --------------------------------------------------------------------------------
 
-local IsMultipleReceptacle = {
+IsMultipleReceptacle = {
 	[ports.HashReceptacle] = true,
 	[ports.ListReceptacle] = true,
 	[ports.SetReceptacle] = true,
@@ -50,8 +48,8 @@ function newComponent(factory, descriptions)
 		elseif kind == ports.Receptacle or IsMultipleReceptacle[kind] then
 			if not descriptions[name].connections then
 				descriptions[name].connections = {}
-				descriptions[name].keys = {}
 			end
+			descriptions[name].keys = {}
 			instance.receptacleDescs[name] = descriptions[name]
 		end
 	end
@@ -248,7 +246,7 @@ function Utils:readProperties (t, file)
 		-- substitutes spaces for nothing
 		local line = string.gsub(prop, " ", "")
 		local i = string.find(line, "=")
-		self:verbosePrint("SCSUtils::ReadProperties : Line: " .. line)
+		self:verbosePrint("SCS::Utils::ReadProperties : Line: " .. line)
 		if i ~= 1 then
 			t[string.sub(line, 1, i - 1)] = string.sub(line, i + 1, string.len(line))
 		end
@@ -288,7 +286,7 @@ end
 -- Return Value: The array.
 --
 function Utils:convertToArray(inputTable)
-	self:verbosePrint("SCSUtils::ConvertToArray")
+	self:verbosePrint("SCS::Utils::ConvertToArray")
 	local outputArray = {}
 	local i = 1
 	for index, item in pairs(inputTable) do
@@ -298,6 +296,6 @@ function Utils:convertToArray(inputTable)
 			i = i + 1
 		end
 	end
-	self:verbosePrint("SCSUtils::ConvertToArray : Finished.")
+	self:verbosePrint("SCS::Utils::ConvertToArray : Finished.")
 	return outputArray
 end

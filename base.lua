@@ -229,7 +229,7 @@ MetaInterface = oo.class{ context = false }
 --					   returned.
 -- Return Value: The descriptions that apply.
 --
-local function MetaInterface:getDescriptions(portType, selected)
+function MetaInterface:getDescriptions(portType, selected)
 	self = self.context
 	if not selected then
 		if portType == "receptacle" then

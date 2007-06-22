@@ -165,6 +165,11 @@ function Receptacles:connect(receptacle, object)
 		self._receptacleDescs[receptacle]._connections[self._nextConnId] = { id = self._nextConnId, 
 																			 objref = object }
 		self._receptsByConId[self._nextConnId] = self._receptacleDescs[receptacle]
+		-- defining size of the table since we cannot use the operator #
+		if not self._receptacleDescs[receptacle]._numConnections then
+			self._receptacleDescs[receptacle]._numConnections = 0
+		end
+		self._receptacleDescs[receptacle]._numConnections = self._receptacleDescs[receptacle]._numConnections + 1
 		if bindKey > 0 then
 			self._receptacleDescs[receptacle]._keys[self._nextConnId] = bindKey
 		end
@@ -193,6 +198,8 @@ function Receptacles:disconnect(connId)
 			self._receptacleDescs[receptacle]._connections[connId] = nil
 			self._receptsByConId[connId]._connections[connId] = nil
 			self._receptacleDescs[receptacle]._keys[connId] = nil
+			-- defining size of the table for operator #
+			self._receptacleDescs[receptacle]._numConnections = self._receptacleDescs[receptacle]._numConnections - 1
 		else
 			error{ "IDL:scs/core/InvalidConnection:1.0" }
 		end

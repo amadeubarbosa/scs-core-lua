@@ -24,7 +24,6 @@ local assert		= assert
 local os			= os
 local print			= print
 local pairs			= pairs
-local table         = table
 
 --------------------------------------------------------------------------------
 
@@ -350,7 +349,7 @@ function Utils:readProperties (t, file)
 		local i = string.find(line, "=")
 		self:verbosePrint("SCS::Utils::ReadProperties : Line: " .. line)
 		if i ~= 1 then
-			t[(string.sub(line, 1, i - 1))] = tostring(string.sub(line, i + 1, string.len(line)))
+			t[string.sub(line, 1, i - 1)] = string.sub(line, i + 1, string.len(line))
 		end
 	end
 	f:close()

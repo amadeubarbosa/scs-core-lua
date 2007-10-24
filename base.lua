@@ -59,16 +59,19 @@ function newComponent(factory, descriptions)
 	instance._maxConnections = 100
 	for name, kind in component.ports(instance) do
 		if kind == ports.Facet then
-			instance._facetDescs[name] = descriptions[name]
+			instance._facetDescs[name] = {}
+			instance._facetDescs[name].name = descriptions[name].name
+			instance._facetDescs[name].interface_name = descriptions[name].interface_name
 			instance._facetDescs[name].facet_ref = oil.newobject(instance[name], 
 												   descriptions[name].interface_name)
 			instance[name] = instance._facetDescs[name].facet_ref
 		elseif kind == ports.Receptacle or IsMultipleReceptacle[kind] then
-			if not descriptions[name]._connections then
-				descriptions[name]._connections = {}
-			end
-			descriptions[name]._keys = {}
-			instance._receptacleDescs[name] = descriptions[name]
+			instance._receptacleDescs[name] = {}
+			instance._receptacleDescs[name].name = descriptions[name].name
+			instance._receptacleDescs[name].interface_name = descriptions[name].interface_name
+			instance._receptacleDescs[name].is_multiplex = descriptions[name].is_multiplex
+			instance._receptacleDescs[name]._connections = descriptions[name]._connections or {}
+			instance._receptacleDescs[name]._keys = {}
 		end
 	end
 	return instance

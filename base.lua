@@ -70,7 +70,7 @@ function newComponent(factory, descriptions)
 			instance._receptacleDescs[name].name = descriptions[name].name
 			instance._receptacleDescs[name].interface_name = descriptions[name].interface_name
 			instance._receptacleDescs[name].is_multiplex = descriptions[name].is_multiplex
-			instance._receptacleDescs[name]._connections = descriptions[name]._connections or {}
+			instance._receptacleDescs[name].connections = descriptions[name].connections or {}
 			instance._receptacleDescs[name]._keys = {}
 		end
 	end

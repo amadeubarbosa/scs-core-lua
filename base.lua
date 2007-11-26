@@ -165,7 +165,7 @@ function Receptacles:connect(receptacle, object)
 	if (self._numConnections <= self._maxConnections) then
 		self._numConnections = self._numConnections + 1
 		self._nextConnId = self._nextConnId + 1
-		self._receptacleDescs[receptacle]._connections[self._nextConnId] = { id = self._nextConnId, 
+		self._receptacleDescs[receptacle].connections[self._nextConnId] = { id = self._nextConnId, 
 																			 objref = object }
 		self._receptsByConId[self._nextConnId] = self._receptacleDescs[receptacle]
 		-- defining size of the table since we cannot use the operator #
@@ -198,8 +198,8 @@ function Receptacles:disconnect(connId)
 	elseif IsMultipleReceptacle[port] then
 		if self[receptacle]:__unbind(self._receptacleDescs[receptacle]._keys[connId]) then
 			self._numConnections = self._numConnections - 1
-			self._receptacleDescs[receptacle]._connections[connId] = nil
-			self._receptsByConId[connId]._connections[connId] = nil
+			self._receptacleDescs[receptacle].connections[connId] = nil
+			self._receptsByConId[connId].connections[connId] = nil
 			self._receptacleDescs[receptacle]._keys[connId] = nil
 			-- defining size of the table for operator #
 			self._receptacleDescs[receptacle]._numConnections = self._receptacleDescs[receptacle]._numConnections - 1
@@ -219,7 +219,7 @@ end
 function Receptacles:getConnections(receptacle)
 	self = self.context
 	if self.context._receptacleDescs[receptacle] then
-		return self._receptacleDescs[receptacle]._connections
+		return self._receptacleDescs[receptacle].connections
 	end
 	error{ "IDL:scs/core/InvalidName:1.0", name = receptacle }
 end

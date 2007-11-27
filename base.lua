@@ -219,7 +219,7 @@ end
 function Receptacles:getConnections(receptacle)
 	self = self.context
 	if self._receptacleDescs[receptacle] then
-		return self._receptacleDescs[receptacle].connections
+		return Utils:convertToArray(self._receptacleDescs[receptacle].connections)
 	end
 	error{ "IDL:scs/core/InvalidName:1.0", name = receptacle }
 end

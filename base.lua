@@ -24,6 +24,7 @@ local assert		= assert
 local os			= os
 local print			= print
 local pairs			= pairs
+local table			= table
 
 --------------------------------------------------------------------------------
 
@@ -143,6 +144,11 @@ Receptacles = oo.class{ context = false }
 function Receptacles:connect(receptacle, object)
 	if not object then error{ "IDL:scs/core/InvalidConnection:1.0" } end
 	self = self.context
+
+	if (self._numConnections > self._maxConnections) then
+		error{ "IDL:scs/core/ExceededConnectionLimit:1.0" }
+	end
+
 	local bindKey = 0
 	local port = component.templateof(self)[receptacle]
 	if port == ports.Receptacle then
@@ -162,23 +168,22 @@ function Receptacles:connect(receptacle, object)
 	else
 		error{ "IDL:scs/core/InvalidName:1.0" }
 	end
-	if (self._numConnections <= self._maxConnections) then
-		self._numConnections = self._numConnections + 1
-		self._nextConnId = self._nextConnId + 1
-		self._receptacleDescs[receptacle].connections[self._nextConnId] = { id = self._nextConnId, 
-																			 objref = object }
-		self._receptsByConId[self._nextConnId] = self._receptacleDescs[receptacle]
-		-- defining size of the table since we cannot use the operator #
-		if not self._receptacleDescs[receptacle]._numConnections then
-			self._receptacleDescs[receptacle]._numConnections = 0
-		end
-		self._receptacleDescs[receptacle]._numConnections = self._receptacleDescs[receptacle]._numConnections + 1
-		if bindKey > 0 then
-			self._receptacleDescs[receptacle]._keys[self._nextConnId] = bindKey
-		end
-		return self._nextConnId
+	
+	self._numConnections = self._numConnections + 1
+	self._nextConnId = self._nextConnId + 1
+	self._receptacleDescs[receptacle].connections[self._nextConnId] = { id = self._nextConnId, 
+																		 objref = object }
+	self._receptsByConId[self._nextConnId] = self._receptacleDescs[receptacle]
+	-- defining size of the table since we cannot use the operator #
+	if not self._receptacleDescs[receptacle]._numConnections then
+		self._receptacleDescs[receptacle]._numConnections = 0
 	end
-	error{ "IDL:scs/core/ExceededConnectionLimit:1.0" }
+	self._receptacleDescs[receptacle]._numConnections = 
+							self._receptacleDescs[receptacle]._numConnections + 1
+	if bindKey > 0 then
+		self._receptacleDescs[receptacle]._keys[self._nextConnId] = bindKey
+	end
+	return self._nextConnId
 end
 
 --
@@ -196,19 +201,19 @@ function Receptacles:disconnect(connId)
 			error{ "IDL:scs/core/InvalidConnection:1.0" }
 		end
 	elseif IsMultipleReceptacle[port] then
-		if self[receptacle]:__unbind(self._receptacleDescs[receptacle]._keys[connId]) then
-			self._numConnections = self._numConnections - 1
-			self._receptacleDescs[receptacle].connections[connId] = nil
-			self._receptsByConId[connId].connections[connId] = nil
-			self._receptacleDescs[receptacle]._keys[connId] = nil
-			-- defining size of the table for operator #
-			self._receptacleDescs[receptacle]._numConnections = self._receptacleDescs[receptacle]._numConnections - 1
-		else
+		if not self[receptacle]:__unbind(self._receptacleDescs[receptacle]._keys[connId]) then
 			error{ "IDL:scs/core/InvalidConnection:1.0" }
 		end
 	else
 		error{ "IDL:scs/core/InvalidName:1.0", name = receptacle }
 	end
+	self._numConnections = self._numConnections - 1
+	self._receptacleDescs[receptacle].connections[connId] = nil
+	self._receptsByConId[connId].connections[connId] = nil
+	self._receptacleDescs[receptacle]._keys[connId] = nil
+	-- defining size of the table for operator #
+	self._receptacleDescs[receptacle]._numConnections = 
+							self._receptacleDescs[receptacle]._numConnections - 1
 end
 
 --
@@ -243,22 +248,38 @@ function MetaInterface:getDescriptions(portType, selected)
 	self = self.context
 	if not selected then
 		if portType == "receptacle" then
-			return self._receptacleDescs
+			local descs = {}
+			for receptacle, desc in pairs(self._receptacleDescs) do
+				local connsArray = Utils:convertToArray(desc.connections)
+				local newDesc = {}
+				newDesc.name = desc.name
+				newDesc.interface_name = desc.interface_name
+				newDesc.is_multiplex = desc.is_multiplex
+				newDesc.connections = connsArray
+				table.insert(descs, newDesc)
+			end
+			return descs
 		elseif portType == "facet" then
-			return self._facetDescs
+			return Utils:convertToArray(self._facetDescs)
 		end
 	end
 	local descs = {}
 	for _, name in ipairs(selected) do
 		if portType == "receptacle" then
 			if self._receptacleDescs[name] then
-				descs[name] = self._receptacleDescs[name]
+				local connsArray = Utils:convertToArray(self._receptacleDescs[name].connections)
+				local newDesc = {}
+				newDesc.name = self._receptacleDescs[name].name
+				newDesc.interface_name = self._receptacleDescs[name].interface_name
+				newDesc.is_multiplex = self._receptacleDescs[name].is_multiplex
+				newDesc.connections = connsArray
+				table.insert(descs, newDesc)
 			else
 				error{ "IDL:scs/core/InvalidName:1.0", name = name }
 			end
 		elseif portType == "facet" then
 			if self._facetDescs[name] then
-				descs[name] = self._facetDescs[name]
+				table.insert(descs, self._facetDescs[name])
 			else
 				error{ "IDL:scs/core/InvalidName:1.0", name = name }
 			end

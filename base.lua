@@ -166,7 +166,7 @@ function Receptacles:connect(receptacle, object)
 		-- if it's not a HashReceptacle, it'll ignore the provided identifier
 		bindKey = self[receptacle]:__bind(object, (self._nextConnId + 1))
 	else
-		error{ "IDL:scs/core/InvalidName:1.0" }
+		error{ "IDL:scs/core/InvalidName:1.0", name = receptacle }
 	end
 	
 	self._numConnections = self._numConnections + 1
@@ -205,7 +205,7 @@ function Receptacles:disconnect(connId)
 			error{ "IDL:scs/core/InvalidConnection:1.0" }
 		end
 	else
-		error{ "IDL:scs/core/InvalidName:1.0", name = receptacle }
+		error{ "IDL:scs/core/NoConnection:1.0" }
 	end
 	self._numConnections = self._numConnections - 1
 	self._receptacleDescs[receptacle].connections[connId] = nil

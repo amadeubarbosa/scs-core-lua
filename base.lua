@@ -47,11 +47,12 @@ local IsMultipleReceptacle = {
 -- Return Value: New LOOP component as specified by the factory's template. Nil if something 
 --				 goes wrong.
 --
-function newComponent(factory, descriptions)
+function newComponent(factory, descriptions, componentId)
 	local instance = factory()
 	if not instance then
 		return nil
 	end
+    instance._componentId = componentId
 	instance._facetDescs = {}
 	instance._receptacleDescs = {}
 	instance._receptsByConId = {}
@@ -124,6 +125,14 @@ function Component:getFacetByName(name)
 	if component.templateof(self)[name] == ports.Facet then
 		return self[name]
 	end
+end
+
+--
+-- Description: Provides its own componentId (name and version).
+-- Return Value: The componentId. 
+--
+function Component:getClassId()
+    return self.context._componentId
 end
 
 --------------------------------------------------------------------------------
@@ -423,4 +432,21 @@ function Utils:convertToArray(inputTable)
 	end
 	self:verbosePrint("SCS::Utils::ConvertToArray : Finished.")
 	return outputArray
+end
+
+--
+-- Description: Converts a string to a boolean.
+-- Parameter str: String to be converted.
+-- Return Value: The boolean.
+--
+function Utils:toBoolean(inputString)
+    self:verbosePrint("SCS::Utils::StringToBoolean")
+    local inputString = tostring(inputString)
+    local result = false
+    if string.find(inputString, "true") and string.len(inputString) == 4 then
+        result = true
+    end
+    self:verbosePrint("SCS::Utils::StringToBoolean : " .. tostring(result) .. ".")
+    self:verbosePrint("SCS::Utils::StringToBoolean : Finished.")
+    return result
 end

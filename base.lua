@@ -48,6 +48,9 @@ local IsMultipleReceptacle = {
 --				 goes wrong.
 --
 function newComponent(factory, descriptions, componentId)
+ 	for name, impl in pairs(factory) do
+ 		impl.context = false
+ 	end
 	local instance = factory()
 	if not instance then
 		return nil
@@ -85,7 +88,7 @@ end
 -- Component Class
 -- Implementation of the IComponent Interface from scs.idl
 --
-Component = oo.class{ context = false }
+Component = oo.class{}
 
 --
 -- Description: Does nothing initially. Will probably receive another implementation by the
@@ -131,7 +134,7 @@ end
 -- Description: Provides its own componentId (name and version).
 -- Return Value: The componentId. 
 --
-function Component:getClassId()
+function Component:getComponentId()
     return self.context._componentId
 end
 
@@ -141,7 +144,7 @@ end
 -- Receptacles Class
 -- Implementation of the IReceptacles Interface from scs.idl
 --
-Receptacles = oo.class{ context = false }
+Receptacles = oo.class{}
 
 --
 -- Description: Connects an object to the specified receptacle.
@@ -244,7 +247,7 @@ end
 -- MetaInterface Class
 -- Implementation of the IMetaInterface Interface from scs.idl
 --
-MetaInterface = oo.class{ context = false }
+MetaInterface = oo.class{}
 
 --
 -- Description: Provides descriptions for one or more ports.
@@ -330,6 +333,110 @@ end
 --
 function MetaInterface:getReceptaclesByName(names)
 	return self:getDescriptions("receptacle", names)
+end
+
+--------------------------------------------------------------------------------
+
+--
+-- Interceptor Manager Class
+--
+-- Implementation of interceptor manager, used to allow the existence of 
+-- more than one interceptor for each port of a component.
+-- The actual implementation of interception in LOOP allow the insertion of
+-- only one interceptor for each port.
+--
+
+local InterceptorManager = oo.class{}
+
+--
+-- Description: Initialization method
+-- Return Value: A new InterceptorManager object
+--
+function InterceptorManager:__init(context)
+    local object = oo.rawnew(self, {})
+    object._interceptors = {}
+    object._interceptorId = 0
+    object._size = 0
+    return object
+end
+
+--
+-- Description: Get size of interceptors list
+-- Return Value: Size of list
+--
+function InterceptorManager:getSize()
+    return self._size
+end
+
+--
+-- Description: Adds an interceptor
+-- Parameter iceptor: Interceptor to be added
+-- Return Value: The id of the added interceptor or '-1' in case of interceptor doesn't
+--               provide after or before methods implementation (wrong implementation)
+--
+function InterceptorManager:addInterceptor( iceptor )  
+    -- chencking iceptor
+    if type(iceptor.before) ~= "function" and type(iceptor.after) ~= "function" then
+        -- Does not implement any necessary function: 'before' or 'after'.
+        --print("WARNING: Invalid interceptor to addInterceptor. Interceptor not added.")
+        return -1
+    end
+    
+    -- adding interceptor to list of interceptors
+    self._size = self._size + 1
+    self._interceptorId = self._interceptorId + 1
+    self._interceptors[self._interceptorId] = { before  = iceptor.before, 
+                                                after   = iceptor.after }
+    return self._interceptorId
+end
+
+--
+-- Description: Removes an interceptor
+-- Parameter id: Id of interceptor to be removed
+-- Return Value: True if remoed and false if interceptor doesn't exist
+--
+function InterceptorManager:removeInterceptor( id )
+    -- removing interceptor from list of interceptors
+    if self._interceptors[id] == nil then
+        --print("WARNING: Invalid id to removeInterceptor.")
+        return false
+    else
+        self._interceptors[id] = nil
+        self._size = self._size - 1
+        return true
+    end
+end
+
+--
+-- Description: Calls every "before" method from all interceptors that implement it
+-- Parameter request: Request table.
+-- Parameter ...: Parameters sent to intercepted method
+-- Return Value: Values that will be used as the parameters of the actual event being intercepted
+--
+function InterceptorManager:before( request, ... )
+    -- calling before methods for each interceptor
+    for _, iceptor in pairs(self._interceptors) do
+        if type(iceptor.before) == "function" then
+            iceptor.before( self.context, request, ... )
+        end
+    end
+    return ...
+end
+
+--
+-- Description: Calls every "after" method from all interceptors that implement it
+-- Parameter request: Request table.
+-- Parameter ...: Parameters sent to intercepted method
+-- Return Value: Values that will be used as the parameters of the actual event being intercepted
+--
+function InterceptorManager:after( request, ... )
+    -- calling after methods for each interceptor
+    for _, iceptor in pairs(self._interceptors) do
+        if type(iceptor.after) == "function" then
+            iceptor.after( self.context, request, ... )
+        end
+    end
+    return ...
 end
 
 --------------------------------------------------------------------------------

@@ -55,7 +55,7 @@ function newComponent(factory, descriptions, componentId)
 	if not instance then
 		return nil
 	end
-    instance._componentId = componentId
+  instance._componentId = componentId
 	instance._facetDescs = {}
 	instance._receptacleDescs = {}
 	instance._receptsByConId = {}

@@ -484,12 +484,10 @@ function Utils:readProperties (t, file)
 		if prop == nil then
 			break
 		end
-		-- substitutes spaces for nothing
-		local line = string.gsub(prop, " ", "")
-		local i = string.find(line, "=")
-		self:verbosePrint("SCS::Utils::ReadProperties : Line: " .. line)
-		if i ~= 1 then
-			t[string.sub(line, 1, i - 1)] = string.sub(line, i + 1, string.len(line))
+		self:verbosePrint("SCS::Utils::ReadProperties : Line: " .. prop)
+		local a,b = string.match(prop, "%s*(%S*)%s*[=]%s*(.*)%s*")
+		if a ~= nil then
+			t[a] = b
 		end
 	end
 	f:close()

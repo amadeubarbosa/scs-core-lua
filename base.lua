@@ -8,7 +8,7 @@
 local oo        = require "loop.base"
 local component = require "loop.component.base"
 local ports     = require "loop.component.base"
-local oil		= require "oil"
+local oil				= require "oil"
 
 local error        	= error
 local getmetatable 	= getmetatable
@@ -18,13 +18,14 @@ local require      	= require
 local tonumber     	= tonumber
 local tostring     	= tostring
 local type         	= type
-local io 			= io
+local io 				= io
 local string		= string
 local assert		= assert
-local os			= os
+local os				= os
 local print			= print
 local pairs			= pairs
 local table			= table
+local getmetatable	= getmetatable
 
 --------------------------------------------------------------------------------
 
@@ -90,6 +91,10 @@ end
 --
 Component = oo.class{}
 
+function Component:__init()
+	return oo.rawnew(self, {})
+end
+
 --
 -- Description: Does nothing initially. Will probably receive another implementation by the
 -- 				application component's developer.
@@ -146,6 +151,10 @@ end
 --
 Receptacles = oo.class{}
 
+function Receptacles:__init()
+	return oo.rawnew(self, {})
+end
+
 --
 -- Description: Connects an object to the specified receptacle.
 -- Parameter receptacle: The receptacle's name that corresponds to the interface implemented by the
@@ -156,6 +165,7 @@ Receptacles = oo.class{}
 function Receptacles:connect(receptacle, object)
 	if not object then error{ "IDL:scs/core/InvalidConnection:1.0" } end
 	self = self.context
+-- 	object = object:_narrow()
 
 	if (self._numConnections > self._maxConnections) then
 		error{ "IDL:scs/core/ExceededConnectionLimit:1.0" }
@@ -249,6 +259,10 @@ end
 --
 MetaInterface = oo.class{}
 
+function MetaInterface:__init()
+	return oo.rawnew(self, {})
+end
+
 --
 -- Description: Provides descriptions for one or more ports.
 -- Parameter portType: Type of the port. May be facet or receptacle.
@@ -338,110 +352,6 @@ end
 --------------------------------------------------------------------------------
 
 --
--- Interceptor Manager Class
---
--- Implementation of interceptor manager, used to allow the existence of 
--- more than one interceptor for each port of a component.
--- The actual implementation of interception in LOOP allow the insertion of
--- only one interceptor for each port.
---
-
-local InterceptorManager = oo.class{}
-
---
--- Description: Initialization method
--- Return Value: A new InterceptorManager object
---
-function InterceptorManager:__init(context)
-    local object = oo.rawnew(self, {})
-    object._interceptors = {}
-    object._interceptorId = 0
-    object._size = 0
-    return object
-end
-
---
--- Description: Get size of interceptors list
--- Return Value: Size of list
---
-function InterceptorManager:getSize()
-    return self._size
-end
-
---
--- Description: Adds an interceptor
--- Parameter iceptor: Interceptor to be added
--- Return Value: The id of the added interceptor or '-1' in case of interceptor doesn't
---               provide after or before methods implementation (wrong implementation)
---
-function InterceptorManager:addInterceptor( iceptor )  
-    -- chencking iceptor
-    if type(iceptor.before) ~= "function" and type(iceptor.after) ~= "function" then
-        -- Does not implement any necessary function: 'before' or 'after'.
-        --print("WARNING: Invalid interceptor to addInterceptor. Interceptor not added.")
-        return -1
-    end
-    
-    -- adding interceptor to list of interceptors
-    self._size = self._size + 1
-    self._interceptorId = self._interceptorId + 1
-    self._interceptors[self._interceptorId] = { before  = iceptor.before, 
-                                                after   = iceptor.after }
-    return self._interceptorId
-end
-
---
--- Description: Removes an interceptor
--- Parameter id: Id of interceptor to be removed
--- Return Value: True if remoed and false if interceptor doesn't exist
---
-function InterceptorManager:removeInterceptor( id )
-    -- removing interceptor from list of interceptors
-    if self._interceptors[id] == nil then
-        --print("WARNING: Invalid id to removeInterceptor.")
-        return false
-    else
-        self._interceptors[id] = nil
-        self._size = self._size - 1
-        return true
-    end
-end
-
---
--- Description: Calls every "before" method from all interceptors that implement it
--- Parameter request: Request table.
--- Parameter ...: Parameters sent to intercepted method
--- Return Value: Values that will be used as the parameters of the actual event being intercepted
---
-function InterceptorManager:before( request, ... )
-    -- calling before methods for each interceptor
-    for _, iceptor in pairs(self._interceptors) do
-        if type(iceptor.before) == "function" then
-            iceptor.before( self.context, request, ... )
-        end
-    end
-    return ...
-end
-
---
--- Description: Calls every "after" method from all interceptors that implement it
--- Parameter request: Request table.
--- Parameter ...: Parameters sent to intercepted method
--- Return Value: Values that will be used as the parameters of the actual event being intercepted
---
-function InterceptorManager:after( request, ... )
-    -- calling after methods for each interceptor
-    for _, iceptor in pairs(self._interceptors) do
-        if type(iceptor.after) == "function" then
-            iceptor.after( self.context, request, ... )
-        end
-    end
-    return ...
-end
-
---------------------------------------------------------------------------------
-
---
 -- Util Class
 -- Implementation of the utilitary class. It's use is not mandatory.
 --
@@ -450,6 +360,10 @@ Utils = oo.class{ 	verbose 	= false,
 					newLog		= true,
 					fileName 	= "",
 				}
+
+function Utils:__init()
+	return oo.rawnew(self, {})
+end
 
 --
 -- Description: Prints a message to the standard output and/or to a file.

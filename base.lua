@@ -163,9 +163,11 @@ end
 -- Return Value: The connection's identifier.
 --
 function Receptacles:connect(receptacle, object)
-	if not object then error{ "IDL:scs/core/InvalidConnection:1.0" } end
 	self = self.context
--- 	object = object:_narrow()
+	if not object or not object:_is_a(self._receptacleDescs[receptacle].interface_name) then 
+		error{ "IDL:scs/core/InvalidConnection:1.0" }
+	end
+ 	object = object:_narrow()
 
 	if (self._numConnections > self._maxConnections) then
 		error{ "IDL:scs/core/ExceededConnectionLimit:1.0" }
@@ -374,8 +376,13 @@ function Utils:verbosePrint(message)
 		print(message)
 	end
 	if self.fileVerbose then
-		local f = assert(io.open("../../../../logs/lua/"..self.fileName.."/"..self.fileName..".log",
-								 "a"))
+		local f = io.open("../../../../logs/lua/"..self.fileName.."/"..self.fileName..".log", "at")
+		if not f then
+			os.execute("mkdir \"../../../../logs/lua/" .. self.fileName .. "\"")
+			f = io.open("../../../../logs/lua/" .. self.fileName .. "/" .. self.fileName , "wt")
+			-- do not throw error if f is nil
+			if not f then return end
+		end
 		if self.newLog then
 			f:write("\n-----------------------------------------------------\n")
 			f:write(os.date().." "..os.time().."\n")

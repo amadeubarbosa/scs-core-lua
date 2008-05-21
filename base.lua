@@ -371,9 +371,9 @@ end
 -- Description: Prints a message to the standard output and/or to a file.
 -- Parameter message: Message to be delivered.
 --
-function Utils:verbosePrint(message)
+function Utils:verbosePrint(...)
 	if self.verbose then
-		print(message)
+		print(...)
 	end
 	if self.fileVerbose then
 		local f = io.open("../../../../logs/lua/"..self.fileName.."/"..self.fileName..".log", "at")
@@ -388,7 +388,8 @@ function Utils:verbosePrint(message)
 			f:write(os.date().." "..os.time().."\n")
 			self.newLog = false
 		end
-		f:write(message.."\n")
+		f:write(...)
+		f:write("\n")
 		f:close()
 	end
 end	
@@ -408,7 +409,13 @@ function Utils:readProperties (t, file)
 		self:verbosePrint("SCS::Utils::ReadProperties : Line: " .. prop)
 		local a,b = string.match(prop, "%s*(%S*)%s*[=]%s*(.*)%s*")
 		if a ~= nil then
-			t[a] = b
+			local readonly = false
+			local first = string.sub(a, 1, 1)
+			if first == '#' then
+				a = string.sub(a, 2)
+				readonly = true
+			end
+			t[a] = { name = a, value = b, read_only = readonly }
 		end
 	end
 	f:close()

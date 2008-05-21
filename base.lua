@@ -68,7 +68,7 @@ function newComponent(factory, descriptions, componentId)
 			instance._facetDescs[name] = {}
 			instance._facetDescs[name].name = descriptions[name].name
 			instance._facetDescs[name].interface_name = descriptions[name].interface_name
-			instance._facetDescs[name].facet_ref = oil.newobject(instance[name], 
+			instance._facetDescs[name].facet_ref = oil.newservant(instance[name], 
 												   descriptions[name].interface_name)
 			instance[name] = instance._facetDescs[name].facet_ref
 		elseif kind == ports.Receptacle or IsMultipleReceptacle[kind] then

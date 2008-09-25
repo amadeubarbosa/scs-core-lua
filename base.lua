@@ -5,10 +5,15 @@
 -- Version: 1.0
 --
 
-local oo        = require "loop.base"
-local component = require "loop.component.base"
-local ports     = require "loop.component.base"
-local oil				= require "oil"
+local oo        		= require "loop.base"
+local component 	= require "loop.component.base"
+local ports     		= require "loop.component.base"
+local oil			= require "oil"
+local utils			= require "scs.core.utils"
+utils = utils.Utils()
+
+-- If we stored a broker instance previously, use it. If not, use the default broker
+local orb = oil.orb or oil.init()
 
 local error        	= error
 local getmetatable 	= getmetatable
@@ -18,14 +23,13 @@ local require      	= require
 local tonumber     	= tonumber
 local tostring     	= tostring
 local type         	= type
-local io 				= io
+local io 			= io
 local string		= string
 local assert		= assert
-local os				= os
-local print			= print
-local pairs			= pairs
-local table			= table
-local getmetatable	= getmetatable
+local os			= os
+local print		= print
+local pairs		= pairs
+local table		= table
 
 --------------------------------------------------------------------------------
 
@@ -56,7 +60,7 @@ function newComponent(factory, descriptions, componentId)
 	if not instance then
 		return nil
 	end
-  instance._componentId = componentId
+	instance._componentId = componentId
 	instance._facetDescs = {}
 	instance._receptacleDescs = {}
 	instance._receptsByConId = {}
@@ -68,8 +72,7 @@ function newComponent(factory, descriptions, componentId)
 			instance._facetDescs[name] = {}
 			instance._facetDescs[name].name = descriptions[name].name
 			instance._facetDescs[name].interface_name = descriptions[name].interface_name
-			instance._facetDescs[name].facet_ref = oil.newservant(instance[name], 
-												   descriptions[name].interface_name)
+			instance._facetDescs[name].facet_ref = orb:newservant(instance[name], nil, descriptions[name].interface_name)
 			instance[name] = instance._facetDescs[name].facet_ref
 		elseif kind == ports.Receptacle or IsMultipleReceptacle[kind] then
 			instance._receptacleDescs[name] = {}
@@ -81,6 +84,20 @@ function newComponent(factory, descriptions, componentId)
 		end
 	end
 	return instance
+end
+
+--
+-- Description: Re-creates the component's facets. Useful for re-enabling a component after a shutdown.
+-- Parameter instance: Component instance.
+--
+function restoreFacets(instance)
+	for name, kind in component.ports(instance) do
+		if kind == ports.Facet and name ~= "IComponent" then
+			instance._facetDescs[name].facet_ref = orb:newservant(instance[name], 
+												   descriptions[name].interface_name)
+			instance[name] = instance._facetDescs[name].facet_ref
+		end
+	end
 end
 
 --------------------------------------------------------------------------------
@@ -167,7 +184,7 @@ function Receptacles:connect(receptacle, object)
 	if not object or not object:_is_a(self._receptacleDescs[receptacle].interface_name) then 
 		error{ "IDL:scs/core/InvalidConnection:1.0" }
 	end
- 	object = object:_narrow()
+ 	object = orb:narrow(object)
 
 	if (self._numConnections > self._maxConnections) then
 		error{ "IDL:scs/core/ExceededConnectionLimit:1.0" }
@@ -248,7 +265,7 @@ end
 function Receptacles:getConnections(receptacle)
 	self = self.context
 	if self._receptacleDescs[receptacle] then
-		return Utils:convertToArray(self._receptacleDescs[receptacle].connections)
+		return utils:convertToArray(self._receptacleDescs[receptacle].connections)
 	end
 	error{ "IDL:scs/core/InvalidName:1.0", name = receptacle }
 end
@@ -278,7 +295,7 @@ function MetaInterface:getDescriptions(portType, selected)
 		if portType == "receptacle" then
 			local descs = {}
 			for receptacle, desc in pairs(self._receptacleDescs) do
-				local connsArray = Utils:convertToArray(desc.connections)
+				local connsArray = utils:convertToArray(desc.connections)
 				local newDesc = {}
 				newDesc.name = desc.name
 				newDesc.interface_name = desc.interface_name
@@ -288,14 +305,14 @@ function MetaInterface:getDescriptions(portType, selected)
 			end
 			return descs
 		elseif portType == "facet" then
-			return Utils:convertToArray(self._facetDescs)
+			return utils:convertToArray(self._facetDescs)
 		end
 	end
 	local descs = {}
 	for _, name in ipairs(selected) do
 		if portType == "receptacle" then
 			if self._receptacleDescs[name] then
-				local connsArray = Utils:convertToArray(self._receptacleDescs[name].connections)
+				local connsArray = utils:convertToArray(self._receptacleDescs[name].connections)
 				local newDesc = {}
 				newDesc.name = self._receptacleDescs[name].name
 				newDesc.interface_name = self._receptacleDescs[name].interface_name
@@ -349,137 +366,4 @@ end
 --
 function MetaInterface:getReceptaclesByName(names)
 	return self:getDescriptions("receptacle", names)
-end
-
---------------------------------------------------------------------------------
-
---
--- Util Class
--- Implementation of the utilitary class. It's use is not mandatory.
---
-Utils = oo.class{ 	verbose 	= false,
-					fileVerbose = false,
-					newLog		= true,
-					fileName 	= "",
-				}
-
-function Utils:__init()
-	return oo.rawnew(self, {})
-end
-
---
--- Description: Prints a message to the standard output and/or to a file.
--- Parameter message: Message to be delivered.
---
-function Utils:verbosePrint(...)
-	if self.verbose then
-		print(...)
-	end
-	if self.fileVerbose then
-		local f = io.open("../../../../logs/lua/"..self.fileName.."/"..self.fileName..".log", "at")
-		if not f then
-			os.execute("mkdir \"../../../../logs/lua/" .. self.fileName .. "\"")
-			f = io.open("../../../../logs/lua/" .. self.fileName .. "/" .. self.fileName , "wt")
-			-- do not throw error if f is nil
-			if not f then return end
-		end
-		if self.newLog then
-			f:write("\n-----------------------------------------------------\n")
-			f:write(os.date().." "..os.time().."\n")
-			self.newLog = false
-		end
-		f:write(...)
-		f:write("\n")
-		f:close()
-	end
-end	
-
---
--- Description: Reads a file with properties and store them at a table.
--- Parameter t: Table that will receive the properties.
--- Parameter file: File to be read.
---
-function Utils:readProperties (t, file)
-	local f = assert(io.open(file, "r"), "Error opening properties file!")
-	while true do
-		prop = f:read("*line")
-		if prop == nil then
-			break
-		end
-		self:verbosePrint("SCS::Utils::ReadProperties : Line: " .. prop)
-		local a,b = string.match(prop, "%s*(%S*)%s*[=]%s*(.*)%s*")
-		if a ~= nil then
-			local readonly = false
-			local first = string.sub(a, 1, 1)
-			if first == '#' then
-				a = string.sub(a, 2)
-				readonly = true
-			end
-			t[a] = { name = a, value = b, read_only = readonly }
-		end
-	end
-	f:close()
-end
-
---
--- Description: Prints a table recursively.
--- 
-function Utils:print_r (t, indent, done)
-	done = done or {}
-	indent = indent or 0
-	if type(t) == "table" then
-		for key, value in pairs (t) do
-			io.write(string.rep (" ", indent)) -- indent it
-			if type (value) == "table" and not done [value] then
-			  done [value] = true
-			  io.write(string.format("[%s] => table\n", tostring (key)));
-			  io.write(string.rep (" ", indent+4)) -- indent it
-			  io.write("(\n");
-			  self:print_r (value, indent + 7, done)
-			  io.write(string.rep (" ", indent+4)) -- indent it
-			  io.write(")\n");
-			else
-			  io.write(string.format("[%s] => %s\n", tostring (key),tostring(value)))
-			end
-		end
-	else
-		io.write(t .. "\n")
-	end
-end
-
---
--- Description: Converts a table with an alphanumeric indice to an array.
--- Parameter message: Table to be converted.
--- Return Value: The array.
---
-function Utils:convertToArray(inputTable)
-	self:verbosePrint("SCS::Utils::ConvertToArray")
-	local outputArray = {}
-	local i = 1
-	for index, item in pairs(inputTable) do
---		table.insert(outputArray, item)
-		if index ~= "n" then
-			outputArray[i] = item
-			i = i + 1
-		end
-	end
-	self:verbosePrint("SCS::Utils::ConvertToArray : Finished.")
-	return outputArray
-end
-
---
--- Description: Converts a string to a boolean.
--- Parameter str: String to be converted.
--- Return Value: The boolean.
---
-function Utils:toBoolean(inputString)
-    self:verbosePrint("SCS::Utils::StringToBoolean")
-    local inputString = tostring(inputString)
-    local result = false
-    if string.find(inputString, "true") and string.len(inputString) == 4 then
-        result = true
-    end
-    self:verbosePrint("SCS::Utils::StringToBoolean : " .. tostring(result) .. ".")
-    self:verbosePrint("SCS::Utils::StringToBoolean : Finished.")
-    return result
 end

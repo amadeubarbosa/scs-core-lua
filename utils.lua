@@ -156,3 +156,13 @@ function Utils:toBoolean(inputString)
     self:verbosePrint("SCS::Utils::StringToBoolean : Finished.")
     return result
 end
+
+--
+-- Description: Converts a ComponentId to a stringified version of its name and version numbers.
+-- Parameter componentId: ComponentId to be converted.
+-- Return Value: A string containing the stringified version.
+--
+function Utils:getNameVersion(componentId)
+    return componentId.name .. componentId.major_version .. componentId.minor_version .. 
+		componentId.patch_version
+end

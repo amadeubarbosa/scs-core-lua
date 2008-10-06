@@ -181,10 +181,14 @@ end
 --
 function Receptacles:connect(receptacle, object)
 	self = self.context
-	if not object or not object:_is_a(self._receptacleDescs[receptacle].interface_name) then 
+	if not object then 
 		error{ "IDL:scs/core/InvalidConnection:1.0" }
 	end
- 	object = orb:narrow(object)
+	local status, err = oil.pcall(object._is_a, object, self._receptacleDescs[receptacle].interface_name)
+	if not status then
+		error{ "IDL:scs/core/InvalidConnection:1.0" }
+	end
+ 	object = orb:narrow(object, self._receptacleDescs[receptacle].interface_name)
 
 	if (self._numConnections > self._maxConnections) then
 		error{ "IDL:scs/core/ExceededConnectionLimit:1.0" }

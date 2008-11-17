@@ -44,22 +44,46 @@ local IsMultipleReceptacle = {
 	[ports.SetReceptacle] = true,
 }
 
+local ComponentContext = oo.class{}
+function ComponentContext:__init()
+	local inst = oo.rawnew(self, {})
+	return inst
+end
+
 local function _get_component(self)
   return self.context.IComponent
 end
 
 --
 -- Description: Creates a new component instance and prepares it to be used in the system.
--- Parameter factory: Factory object that will be used to create the instance.
--- Parameter descriptions: Table with the facet and receptacle descriptions for the component. 
--- 						   Indexed by the name of the port.
--- Return Value: New LOOP component as specified by the factory's template. Nil if something 
---				 goes wrong.
+-- Parameter facetDescs: Table with the facet descriptions for the component.
+-- Parameter descriptions: Table with the receptacle descriptions for the component.
+-- Return Value: New SCS component as specified by the descriptions. Nil if something goes wrong.
 --
-function newComponent(factory, descriptions, componentId)
- 	for name, impl in pairs(factory) do
- 		impl.context = false
+function newComponent(facetDescs, receptDescs, componentId)
+  -- template and factory objects are always re-created on purpose because
+  -- component files and descriptions may have changed.
+  -- in the future, better deployment features will be implemented.
+  local template = {}
+  local factory = {}
+  -- first item (key "1") in factory will be used as the component holder
+  table.insert(factory, ComponentContext)
+ 	for name, desc in pairs(facetDescs) do
+ 	  template[name] = ports.Facet
+ 	  desc.class.context = false
+ 	  factory[name] = desc.class
+ 	  if not factory[name] then
+ 	    return nil
+ 	  end
  	end
+ 	for name, desc in pairs(receptDescs) do
+ 	  template[name] = ports[desc.type]
+ 	  if not template[name] then
+ 	    return nil
+ 	  end
+ 	end
+  template = component.Template(template)
+  factory = template(factory)
 	local instance = factory()
 	if not instance then
 		return nil
@@ -71,28 +95,25 @@ function newComponent(factory, descriptions, componentId)
 	instance._numConnections = 0
 	instance._nextConnId = 0
 	instance._maxConnections = 100
-	for name, kind in component.ports(instance) do
-		if kind == ports.Facet then
-			instance._facetDescs[name] = {}
-			instance._facetDescs[name].name = descriptions[name].name
-			instance._facetDescs[name].interface_name = descriptions[name].interface_name
-			instance._facetDescs[name].facet_ref = orb:newservant(instance[name], nil, descriptions[name].interface_name)
-			instance[name] = instance._facetDescs[name].facet_ref
-		elseif kind == ports.Receptacle or IsMultipleReceptacle[kind] then
-			instance._receptacleDescs[name] = {}
-			instance._receptacleDescs[name].name = descriptions[name].name
-			instance._receptacleDescs[name].interface_name = descriptions[name].interface_name
-			instance._receptacleDescs[name].is_multiplex = descriptions[name].is_multiplex
-			instance._receptacleDescs[name].connections = descriptions[name].connections or {}
-			instance._receptacleDescs[name]._keys = {}
-		end
+ 	for name, desc in pairs(facetDescs) do
+		instance._facetDescs[name] = {}
+		instance._facetDescs[name].name = desc.name
+		instance._facetDescs[name].interface_name = desc.interface_name
+		instance._facetDescs[name].facet_ref = orb:newservant(instance[name], nil, desc.interface_name)
+		instance[name] = instance._facetDescs[name].facet_ref
+        end
+ 	for name, desc in pairs(receptDescs) do
+		instance._receptacleDescs[name] = {}
+		instance._receptacleDescs[name].name = desc.name
+		instance._receptacleDescs[name].interface_name = desc.interface_name
+		instance._receptacleDescs[name].is_multiplex = desc.is_multiplex
+		instance._receptacleDescs[name].connections = desc.connections or {}
+		instance._receptacleDescs[name]._keys = {}
 	end
-	for name, kind in component.ports(instance) do
-		if kind == ports.Facet then
-		  instance[name]._component = _get_component
-		end
+  for name, desc in pairs(facetDescs) do
+    instance._facetDescs[name].facet_ref._component = _get_component
   end
-	return instance
+  return instance
 end
 
 --
@@ -142,9 +163,9 @@ end
 --
 function Component:getFacet(interface)
 	self = self.context
-	for name, kind in component.ports(self) do
-		if kind == ports.Facet and self._facetDescs[name].interface_name == interface then
-			return self[name]
+	for name, desc in pairs(self._facetDescs) do
+		if desc.interface_name == interface then
+			return desc.facet_ref
 		end
 	end
 end
@@ -155,10 +176,7 @@ end
 -- Return Value: The CORBA object that implements the interface. 
 --
 function Component:getFacetByName(name)
-	self = self.context
-	if component.templateof(self)[name] == ports.Facet then
-		return self[name]
-	end
+	return self.context[name]
 end
 
 --
@@ -190,6 +208,9 @@ end
 --
 function Receptacles:connect(receptacle, object)
 	self = self.context
+	if not self._receptacleDescs[receptacle] then 
+		error{ "IDL:scs/core/InvalidName:1.0" }
+	end
 	if not object then 
 		error{ "IDL:scs/core/InvalidConnection:1.0" }
 	end

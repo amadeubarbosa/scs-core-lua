@@ -44,6 +44,10 @@ local IsMultipleReceptacle = {
 	[ports.SetReceptacle] = true,
 }
 
+local function _get_component(self)
+  return self.context.IComponent
+end
+
 --
 -- Description: Creates a new component instance and prepares it to be used in the system.
 -- Parameter factory: Factory object that will be used to create the instance.
@@ -83,6 +87,11 @@ function newComponent(factory, descriptions, componentId)
 			instance._receptacleDescs[name]._keys = {}
 		end
 	end
+	for name, kind in component.ports(instance) do
+		if kind == ports.Facet then
+		  instance[name]._component = _get_component
+		end
+  end
 	return instance
 end
 

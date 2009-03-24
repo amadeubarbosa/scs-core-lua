@@ -99,7 +99,8 @@ function newComponent(facetDescs, receptDescs, componentId)
     instance._facetDescs[name] = {}
     instance._facetDescs[name].name = desc.name
     instance._facetDescs[name].interface_name = desc.interface_name
-    instance._facetDescs[name].facet_ref = orb:newservant(instance[name], nil, desc.interface_name)
+    instance._facetDescs[name].key = desc.key
+    instance._facetDescs[name].facet_ref = orb:newservant(instance[name], desc.key, desc.interface_name)
     instance[name] = instance._facetDescs[name].facet_ref
   end
   for name, desc in pairs(receptDescs) do
@@ -123,7 +124,7 @@ end
 function restoreFacets(instance)
   for name, kind in component.ports(instance) do
     if kind == ports.Facet and name ~= "IComponent" then
-      instance._facetDescs[name].facet_ref = orb:newservant(instance[name], 
+      instance._facetDescs[name].facet_ref = orb:newservant(instance[name], descriptions[name].key,
                            descriptions[name].interface_name)
       instance[name] = instance._facetDescs[name].facet_ref
     end

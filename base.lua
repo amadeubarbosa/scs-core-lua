@@ -54,6 +54,55 @@ local function _get_component(self)
   return self.context.IComponent
 end
 
+local function fillBasicDescriptions(facetDescs)
+  local hasIC = false
+  local hasIR = false
+  local hasIM = false
+  for name, desc in pairs(facetDescs) do
+    if desc.interface_name == "IDL:scs/core/IComponent:1.0" then
+      hasIC = true
+    elseif desc.interface_name == "IDL:scs/core/IReceptacles:1.0" then
+      hasIR = true
+    elseif desc.interface_name == "IDL:scs/core/IMetaInterface:1.0" then
+      hasIM = true
+    end
+  end
+  -- did not include IComponent
+  if not hasIC then
+    -- checks if the name IComponent can be used
+    if facetDescs.IComponent then
+      return false
+    end
+    facetDescs.IComponent = {}
+    facetDescs.IComponent.name                      = "IComponent"
+    facetDescs.IComponent.interface_name            = "IDL:scs/core/IComponent:1.0"
+    facetDescs.IComponent.class                     = Component
+  end
+  -- did not include IReceptacles
+  if not hasIR then
+    -- checks if the name IReceptacles can be used
+    if facetDescs.IReceptacles then
+      return false
+    end
+    facetDescs.IReceptacles = {}
+    facetDescs.IReceptacles.name                    = "IReceptacles"
+    facetDescs.IReceptacles.interface_name          = "IDL:scs/core/IReceptacles:1.0"
+    facetDescs.IReceptacles.class                   = Receptacles
+  end
+  -- did not include IMetaInterface
+  if not hasIM then
+    -- checks if the name IMetaInterface can be used
+    if facetDescs.IMetaInterface then
+      return false
+    end
+    facetDescs.IMetaInterface = {}
+    facetDescs.IMetaInterface.name                  = "IMetaInterface"
+    facetDescs.IMetaInterface.interface_name        = "IDL:scs/core/IMetaInterface:1.0"
+    facetDescs.IMetaInterface.class                 = MetaInterface
+  end
+  return true
+end
+
 --
 -- Description: Creates a new component instance and prepares it to be used in the system.
 -- Parameter facetDescs: Table with the facet descriptions for the component.
@@ -61,11 +110,24 @@ end
 -- Return Value: New SCS component as specified by the descriptions. Nil if something goes wrong.
 --
 function newComponent(facetDescs, receptDescs, componentId)
+  if not componentId then
+    return nil
+  end
+  if not facetDescs then
+    facetDescs = {}
+  end
+  if not receptDescs then
+    receptDescs = {}
+  end
   -- template and factory objects are always re-created on purpose because
   -- component files and descriptions may have changed.
   -- in the future, better deployment features will be implemented.
   local template = {}
   local factory = {}
+  -- inserts IComponent, IReceptacles and IMetaInterface facets if needed
+  if not fillBasicDescriptions(facetDescs) then
+    return nil
+  end
   -- first item (key "1") in factory will be used as the component holder
   table.insert(factory, ComponentContext)
   for name, desc in pairs(facetDescs) do

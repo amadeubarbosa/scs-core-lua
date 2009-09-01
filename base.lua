@@ -13,7 +13,7 @@ local utils     = require "scs.core.utils"
 utils = utils.Utils()
 
 -- If we stored a broker instance previously, use it. If not, use the default broker
-local orb = oil.orb or oil.init()
+local _orb = oil.orb or oil.init()
 
 local error         = error
 local getmetatable  = getmetatable
@@ -107,9 +107,10 @@ end
 -- Description: Creates a new component instance and prepares it to be used in the system.
 -- Parameter facetDescs: Table with the facet descriptions for the component.
 -- Parameter descriptions: Table with the receptacle descriptions for the component.
+-- Parameter orb: Optional. The orb which will be used to create servants and other tasks.
 -- Return Value: New SCS component as specified by the descriptions. Nil if something goes wrong.
 --
-function newComponent(facetDescs, receptDescs, componentId)
+function newComponent(facetDescs, receptDescs, componentId, orb)
   if not componentId then
     return nil
   end
@@ -118,6 +119,9 @@ function newComponent(facetDescs, receptDescs, componentId)
   end
   if not receptDescs then
     receptDescs = {}
+  end
+  if not orb then
+    orb = _orb
   end
   -- template and factory objects are always re-created on purpose because
   -- component files and descriptions may have changed.
@@ -150,6 +154,7 @@ function newComponent(facetDescs, receptDescs, componentId)
   if not instance then
     return nil
   end
+  instance._orb = orb
   instance._componentId = componentId
   instance._facetDescs = {}
   instance._receptacleDescs = {}
@@ -186,7 +191,7 @@ end
 function restoreFacets(instance)
   for name, kind in component.ports(instance) do
     if kind == ports.Facet and name ~= "IComponent" then
-      instance._facetDescs[name].facet_ref = orb:newservant(instance[name], descriptions[name].key,
+      instance._facetDescs[name].facet_ref = instance._orb:newservant(instance[name], descriptions[name].key,
                            descriptions[name].interface_name)
       instance[name] = instance._facetDescs[name].facet_ref
     end
@@ -281,7 +286,7 @@ function Receptacles:connect(receptacle, object)
   if not status then
     error{ "IDL:scs/core/InvalidConnection:1.0" }
   end
-  object = orb:narrow(object, self._receptacleDescs[receptacle].interface_name)
+  object = self._orb:narrow(object, self._receptacleDescs[receptacle].interface_name)
 
   if (self._numConnections > self._maxConnections) then
     error{ "IDL:scs/core/ExceededConnectionLimit:1.0" }

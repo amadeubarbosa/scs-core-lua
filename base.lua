@@ -283,7 +283,7 @@ function Receptacles:connect(receptacle, object)
     error{ "IDL:scs/core/InvalidConnection:1.0" }
   end
   local status, err = oil.pcall(object._is_a, object, self._receptacleDescs[receptacle].interface_name)
-  if not status then
+  if not (status and err) then
     error{ "IDL:scs/core/InvalidConnection:1.0" }
   end
   object = self._orb:narrow(object, self._receptacleDescs[receptacle].interface_name)

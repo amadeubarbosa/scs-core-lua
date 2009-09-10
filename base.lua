@@ -37,13 +37,6 @@ module "scs.core.base"
 
 --------------------------------------------------------------------------------
 
--- This structure is used to check the type of the receptacle
-local IsMultipleReceptacle = {
-  [ports.HashReceptacle] = true,
-  [ports.ListReceptacle] = true,
-  [ports.SetReceptacle] = true,
-}
-
 local ComponentContext = oo.class{}
 function ComponentContext:__init()
   local inst = oo.rawnew(self, {})
@@ -142,12 +135,6 @@ function newComponent(facetDescs, receptDescs, componentId, orb)
       return nil
     end
   end
-  for name, desc in pairs(receptDescs) do
-    template[name] = ports[desc.type]
-    if not template[name] then
-      return nil
-    end
-  end
   template = component.Template(template)
   factory = template(factory)
   local instance = factory()
@@ -159,7 +146,6 @@ function newComponent(facetDescs, receptDescs, componentId, orb)
   instance._facetDescs = {}
   instance._receptacleDescs = {}
   instance._receptsByConId = {}
-  instance._numConnections = 0
   instance._nextConnId = 0
   instance._maxConnections = 100
   for name, desc in pairs(facetDescs) do
@@ -176,7 +162,9 @@ function newComponent(facetDescs, receptDescs, componentId, orb)
     instance._receptacleDescs[name].interface_name = desc.interface_name
     instance._receptacleDescs[name].is_multiplex = desc.is_multiplex
     instance._receptacleDescs[name].connections = desc.connections or {}
-    instance._receptacleDescs[name]._keys = {}
+    if desc.is_multiplex then
+      instance[name] = instance._receptacleDescs[name].connections
+    end
   end
   for name, desc in pairs(facetDescs) do
     instance._facetDescs[name].facet_ref._component = _get_component
@@ -288,44 +276,28 @@ function Receptacles:connect(receptacle, object)
   end
   object = self._orb:narrow(object, self._receptacleDescs[receptacle].interface_name)
 
-  if (self._numConnections > self._maxConnections) then
+  local desc = self._receptacleDescs[receptacle]
+  if (#(desc.connections) > self._maxConnections) then
     error{ "IDL:scs/core/ExceededConnectionLimit:1.0" }
   end
 
-  local bindKey = 0
-  local port = component.templateof(self)[receptacle]
-  if port == ports.Receptacle then
-    -- this is a standard receptacle, which accepts only one connection
-    if self[receptacle] then
-      error{ "IDL:scs/core/AlreadyConnected:1.0" }
-    else
-      -- this receptacle accepts only one connection
-      self[receptacle] = object
-    end
-  elseif IsMultipleReceptacle[port] then
-    -- this receptacle accepts multiple connections
-    -- in the case of a HashReceptacle, we must provide an identifier, which will be the 
-    -- connection's id.
-    -- if it's not a HashReceptacle, it'll ignore the provided identifier
-    bindKey = self[receptacle]:__bind(object, (self._nextConnId + 1))
-  else
+  if not desc then
     error{ "IDL:scs/core/InvalidName:1.0", name = receptacle }
   end
+
+  if not desc.is_multiplex and #(desc.connections) > 0 then
+    error{ "IDL:scs/core/AlreadyConnected:1.0" }
+  end
   
-  self._numConnections = self._numConnections + 1
   self._nextConnId = self._nextConnId + 1
-  self._receptacleDescs[receptacle].connections[self._nextConnId] = { id = self._nextConnId, 
-                                     objref = object }
-  self._receptsByConId[self._nextConnId] = self._receptacleDescs[receptacle]
-  -- defining size of the table since we cannot use the operator #
-  if not self._receptacleDescs[receptacle]._numConnections then
-    self._receptacleDescs[receptacle]._numConnections = 0
+  desc.connections[self._nextConnId] = {id = self._nextConnId, objref = object}
+  self._receptsByConId[self._nextConnId] = desc
+
+  -- helping the user
+  if not desc.is_multiplex then
+    self[receptacle] = object
   end
-  self._receptacleDescs[receptacle]._numConnections = 
-              self._receptacleDescs[receptacle]._numConnections + 1
-  if bindKey > 0 then
-    self._receptacleDescs[receptacle]._keys[self._nextConnId] = bindKey
-  end
+
   return self._nextConnId
 end
 
@@ -335,28 +307,21 @@ end
 --
 function Receptacles:disconnect(connId)
   self = self.context
-  receptacle = self._receptsByConId[connId].name
-  local port = component.templateof(self)[receptacle]
-  if port == ports.Receptacle then
-    if self[receptacle] then
-      self[receptacle] = nil
-    else
-      error{ "IDL:scs/core/InvalidConnection:1.0" }
-    end
-  elseif IsMultipleReceptacle[port] then
-    if not self[receptacle]:__unbind(self._receptacleDescs[receptacle]._keys[connId]) then
-      error{ "IDL:scs/core/InvalidConnection:1.0" }
-    end
-  else
+  local desc = self._receptsByConId[connId]
+
+  if not self._receptacleDescs[desc.name] then
     error{ "IDL:scs/core/NoConnection:1.0" }
   end
-  self._numConnections = self._numConnections - 1
-  self._receptacleDescs[receptacle].connections[connId] = nil
-  self._receptsByConId[connId].connections[connId] = nil
-  self._receptacleDescs[receptacle]._keys[connId] = nil
-  -- defining size of the table for operator #
-  self._receptacleDescs[receptacle]._numConnections = 
-              self._receptacleDescs[receptacle]._numConnections - 1
+
+  if not desc then
+    error{ "IDL:scs/core/InvalidConnection:1.0" }
+  end
+
+  if not desc.is_multiplex then
+    self[desc.name] = nil
+  end
+
+  desc.connections[connId] = nil
 end
 
 --

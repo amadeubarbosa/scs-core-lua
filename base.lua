@@ -146,8 +146,6 @@ function newComponent(facetDescs, receptDescs, componentId, orb)
   instance._facetDescs = {}
   instance._receptacleDescs = {}
   instance._receptsByConId = {}
-  instance._nextConnId = 0
-  instance._maxConnections = 100
   for name, desc in pairs(facetDescs) do
     instance._facetDescs[name] = {}
     instance._facetDescs[name].name = desc.name
@@ -252,7 +250,7 @@ end
 Receptacles = oo.class{}
 
 function Receptacles:__init()
-  return oo.rawnew(self, {})
+  return oo.rawnew(self, {_nextConnId = 0, _maxConnections = 100})
 end
 
 --
@@ -263,26 +261,22 @@ end
 -- Return Value: The connection's identifier.
 --
 function Receptacles:connect(receptacle, object)
-  self = self.context
-  if not self._receptacleDescs[receptacle] then 
-    error{ "IDL:scs/core/InvalidName:1.0" }
+  local context = self.context
+  local desc = context._receptacleDescs[receptacle]
+  if not desc then 
+    error{ "IDL:scs/core/InvalidName:1.0", name = receptacle }
   end
   if not object then 
     error{ "IDL:scs/core/InvalidConnection:1.0" }
   end
-  local status, err = oil.pcall(object._is_a, object, self._receptacleDescs[receptacle].interface_name)
+  local status, err = oil.pcall(object._is_a, object, desc.interface_name)
   if not (status and err) then
     error{ "IDL:scs/core/InvalidConnection:1.0" }
   end
-  object = self._orb:narrow(object, self._receptacleDescs[receptacle].interface_name)
+  object = context._orb:narrow(object, desc.interface_name)
 
-  local desc = self._receptacleDescs[receptacle]
   if (#(desc.connections) > self._maxConnections) then
     error{ "IDL:scs/core/ExceededConnectionLimit:1.0" }
-  end
-
-  if not desc then
-    error{ "IDL:scs/core/InvalidName:1.0", name = receptacle }
   end
 
   if not desc.is_multiplex and #(desc.connections) > 0 then
@@ -291,11 +285,11 @@ function Receptacles:connect(receptacle, object)
   
   self._nextConnId = self._nextConnId + 1
   desc.connections[self._nextConnId] = {id = self._nextConnId, objref = object}
-  self._receptsByConId[self._nextConnId] = desc
+  context._receptsByConId[self._nextConnId] = desc
 
   -- helping the user
   if not desc.is_multiplex then
-    self[receptacle] = object
+    context[receptacle] = object
   end
 
   return self._nextConnId

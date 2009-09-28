@@ -105,7 +105,7 @@ end
 --
 function newComponent(facetDescs, receptDescs, componentId, orb)
   if not componentId then
-    return nil
+    return nil, "ERROR: Missing ComponentId parameter"
   end
   if not facetDescs then
     facetDescs = {}
@@ -123,7 +123,7 @@ function newComponent(facetDescs, receptDescs, componentId, orb)
   local factory = {}
   -- inserts IComponent, IReceptacles and IMetaInterface facets if needed
   if not fillBasicDescriptions(facetDescs) then
-    return nil
+    return nil, "ERROR: Couldn't add basic facets (IComponent, IReceptacles and IMetaInterface)"
   end
   -- first item (key "1") in factory will be used as the component holder
   table.insert(factory, ComponentContext)
@@ -132,14 +132,14 @@ function newComponent(facetDescs, receptDescs, componentId, orb)
     desc.class.context = false
     factory[name] = desc.class
     if not factory[name] then
-      return nil
+      return nil, "ERROR: Missing the implementation of the facet "..name
     end
   end
   template = component.Template(template)
   factory = template(factory)
   local instance = factory()
   if not instance then
-    return nil
+    return nil, "ERROR: The load of the facets failed"
   end
   instance._orb = orb
   instance._componentId = componentId

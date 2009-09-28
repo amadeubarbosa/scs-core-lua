@@ -250,7 +250,7 @@ end
 Receptacles = oo.class{}
 
 function Receptacles:__init()
-  return oo.rawnew(self, {_nextConnId = 0, _maxConnections = 100})
+  return oo.rawnew(self, {_nextConnId = 0, _maxConnections = 100, _numConnections = 0})
 end
 
 --
@@ -275,10 +275,12 @@ function Receptacles:connect(receptacle, object)
   end
   object = context._orb:narrow(object, desc.interface_name)
 
-  if (#(desc.connections) > self._maxConnections) then
+  if (self._numConnections > self._maxConnections) then
     error{ "IDL:scs/core/ExceededConnectionLimit:1.0" }
   end
 
+  -- here we can find out the number of connections with the '#' operator
+  -- because there'll always be only one connection.
   if not desc.is_multiplex and #(desc.connections) > 0 then
     error{ "IDL:scs/core/AlreadyConnected:1.0" }
   end
@@ -286,6 +288,12 @@ function Receptacles:connect(receptacle, object)
   self._nextConnId = self._nextConnId + 1
   desc.connections[self._nextConnId] = {id = self._nextConnId, objref = object}
   context._receptsByConId[self._nextConnId] = desc
+  -- it's not possible to use the '#' operator to find out the number of
+  -- connections. There are 2 causes:
+  -- a) If a connection(ex: connId 3) is unmade the index sequence gets broken
+  --    (i.e. 1, 2, 4, 5, ...) and the operator may return a wrong size.
+  -- b) The number of connections is per component, not per receptacle.
+  self._numConnections = self._numConnections + 1
 
   -- helping the user
   if not desc.is_multiplex then
@@ -300,10 +308,10 @@ end
 -- Parameter connId: The connection's identifier.
 --
 function Receptacles:disconnect(connId)
-  self = self.context
-  local desc = self._receptsByConId[connId]
+  local context = self.context
+  local desc = context._receptsByConId[connId]
 
-  if not self._receptacleDescs[desc.name] then
+  if not context._receptacleDescs[desc.name] then
     error{ "IDL:scs/core/NoConnection:1.0" }
   end
 
@@ -312,10 +320,11 @@ function Receptacles:disconnect(connId)
   end
 
   if not desc.is_multiplex then
-    self[desc.name] = nil
+    context[desc.name] = nil
   end
 
   desc.connections[connId] = nil
+  self._numConnections = self._numConnections - 1
 end
 
 --

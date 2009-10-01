@@ -99,7 +99,7 @@ end
 --
 -- Description: Creates a new component instance and prepares it to be used in the system.
 -- Parameter facetDescs: Table with the facet descriptions for the component.
--- Parameter descriptions: Table with the receptacle descriptions for the component.
+-- Parameter receptDescs: Table with the receptacle descriptions for the component.
 -- Parameter orb: Optional. The orb which will be used to create servants and other tasks.
 -- Return Value: New SCS component as specified by the descriptions. Nil if something goes wrong.
 --

@@ -127,12 +127,15 @@ function newComponent(facetDescs, receptDescs, componentId, orb)
   end
   -- first item (key "1") in factory will be used as the component holder
   table.insert(factory, ComponentContext)
+  -- any nil CORBA Objects will be created
   for name, desc in pairs(facetDescs) do
-    template[name] = ports.Facet
-    desc.class.context = false
-    factory[name] = desc.class
-    if not factory[name] then
-      return nil, "ERROR: Missing the implementation of the facet "..name
+    if not desc.facet_ref then
+      template[name] = ports.Facet
+      desc.class.context = false
+      factory[name] = desc.class
+      if not factory[name] then
+        return nil, "ERROR: Missing the implementation of the facet "..name
+      end
     end
   end
   template = component.Template(template)
@@ -141,6 +144,14 @@ function newComponent(facetDescs, receptDescs, componentId, orb)
   if not instance then
     return nil, "ERROR: The load of the facets failed"
   end
+  -- CORBA objects that were already instantiated must be treated
+  for name, desc in pairs(facetDescs) do
+    if desc.facet_ref then
+      instance[name] = desc.facet_ref
+      instance[name].context = instance
+    end
+  end
+  -- inserting SCS structures
   instance._orb = orb
   instance._componentId = componentId
   instance._facetDescs = {}
@@ -151,7 +162,7 @@ function newComponent(facetDescs, receptDescs, componentId, orb)
     instance._facetDescs[name].name = desc.name
     instance._facetDescs[name].interface_name = desc.interface_name
     instance._facetDescs[name].key = desc.key
-    instance._facetDescs[name].facet_ref = orb:newservant(instance[name], desc.key, desc.interface_name)
+    instance._facetDescs[name].facet_ref = desc.facet_ref or orb:newservant(instance[name], desc.key, desc.interface_name)
     instance[name] = instance._facetDescs[name].facet_ref
   end
   for name, desc in pairs(receptDescs) do

@@ -182,6 +182,25 @@ function newComponent(facetDescs, receptDescs, componentId, orb)
 end
 
 --
+-- Description: Deactivate the component's facets.
+-- Parameter instance: Component instance.
+-- Return value: Table containing the names(indexes) and error messages(values)
+--               of the facets that could not be deactivated.
+--
+function deactivateComponent(instance)
+  local errFacets = {}
+  for name, desc in pairs(instance._facetDescs) do
+    local status, err = oil.pcall(instance._orb.deactivate, instance._orb, desc.facet_ref)
+    if not status then
+      errFacets[name] = err
+    else
+      desc.facet_ref = nil
+    end
+  end
+  return errFacets
+end
+
+--
 -- Description: Re-creates the component's facets. Useful for re-enabling a component after a shutdown.
 -- Parameter instance: Component instance.
 --

@@ -260,7 +260,12 @@ end
 -- Return Value: The CORBA object that implements the interface. 
 --
 function Component:getFacetByName(name)
-  return self.context[name]
+  self = self.context
+  for _, desc in pairs(self._facetDescs) do
+    if desc.name ==  name then
+      return desc.facet_ref
+    end
+  end
 end
 
 --

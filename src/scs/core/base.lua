@@ -182,7 +182,10 @@ function newComponent(facetDescs, receptDescs, componentId, orb)
 end
 
 --
--- Description: Deactivate the component's facets.
+-- Description: Deactivate the component's facets. The facet_ref references
+-- remain not null after the call, as to maintain the Lua table reachable.
+-- It's the user's responsibility to reactivate the facets when deemed
+-- appropriate. 
 -- Parameter instance: Component instance.
 -- Return value: Table containing the names(indexes) and error messages(values)
 --               of the facets that could not be deactivated.
@@ -193,8 +196,6 @@ function deactivateComponent(instance)
     local status, err = oil.pcall(instance._orb.deactivate, instance._orb, desc.facet_ref)
     if not status then
       errFacets[name] = err
-    else
-      desc.facet_ref = nil
     end
   end
   return errFacets

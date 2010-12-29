@@ -53,6 +53,7 @@ end
 -- Return Value: The connection's identifier.
 --
 function AdaptiveReceptacleFacet:connect(receptacle, object)
+  self.utils:verbosePrint("[AdaptiveReceptacleFacet:connect]")
 
   self.utils:verbosePrint("[AdaptiveReceptacleFacet:connect]")
 
@@ -118,9 +119,7 @@ function AdaptiveReceptacleFacet:updateConnections(receptacle)
         self.utils:verbosePrint("[AdaptiveReceptacleFacet:updateConnections] The service was not found. It will be disconnected from receptacle.")
         -- serviceRec esta com falha -> desconectar
         local succ, err = oil.pcall(self.disconnect, self, connId)
-oil.verbose:print(">>>>>>>>>>>>>>>>>>>>>>>>>>> succ:", succ)
         if not succ then
-oil.verbose:print("err:", err)
           self.utils:verbosePrint("[AdaptiveReceptacleFacet:updateConnections] Error:" .. err[1])
         end
         if self.activeConnId == connId and not alreadyUpdated then

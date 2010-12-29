@@ -53,12 +53,18 @@ end
 function PersistentReceptacleFacet:connect(receptacle, object)
   self.utils:verbosePrint("[PersistentReceptacleFacet:connect]")
 
-  local connId = AdaptiveReceptacle.AdaptiveReceptacleFacet.connect(self, receptacle, object)
-  if type(connId) == "number" then
-    if not self.connectionsDB:get(connId) then
-    --saves onle if it is not already saved
-      self.connectionsDB:save(tonumber(connId), orb:tostring(object))
+  local status, connId = oil.pcall(AdaptiveReceptacle.AdaptiveReceptacleFacet.connect,
+                                   self, receptacle, object)
+  if status then
+    if type(connId) == "number" then
+      if not self.connectionsDB:get(connId) then
+      --saves onle if it is not already saved
+        self.connectionsDB:save(tonumber(connId), orb:tostring(object))
+      end
     end
+  else
+    --couldnt connect, the error must be propagated
+    error{ connId[1] }
   end
   return connId
 end
@@ -75,7 +81,10 @@ function PersistentReceptacleFacet:disconnect(connId)
   --removes only if exists
     self.connectionsDB:remove(connId)
   end
-  return AdaptiveReceptacle.AdaptiveReceptacleFacet.disconnect(self,connId) -- calling inherited method
+  local status, err =oil.pcall(AdaptiveReceptacle.AdaptiveReceptacleFacet.disconnect, self,connId) -- calling inherited method
+  if not status then
+    error { err[1] }
+  end
 end
 
 function PersistentReceptacleFacet:getConnections(receptacle)
@@ -86,11 +95,13 @@ function PersistentReceptacleFacet:getConnections(receptacle)
     for connId, objIOR in ipairs(data) do
       local object = orb:newproxy(objIOR, "synchronous", oil.corba.idl.object)
       if OilUtilities:existent(object) then
-        local newConnId = self:connect(receptacle, object)
-        if newConnId ~= connId then
-          --update the connId only if the new one is different from the one saved
-          self.connectionsDB:remove(connId)
-          self.connectionsDB:save(tonumber(newConnId), objIOR)
+        local status, newConnId = oil.pcall(self.connect, self, receptacle, object)
+        if status then
+          if newConnId ~= connId then
+            --update the connId only if the new one is different from the one saved
+            self.connectionsDB:remove(connId)
+            self.connectionsDB:save(tonumber(newConnId), objIOR)
+          end
         end
       else
          self.connectionsDB:remove(connId)

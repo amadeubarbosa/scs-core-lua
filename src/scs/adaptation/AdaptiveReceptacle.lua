@@ -31,15 +31,14 @@ end
 
 function AdaptiveReceptacleFacet:updateActiveConnId(conns)
   self.utils:verbosePrint("[AdaptiveReceptacleFacet:updateActiveConnId]")
-
   if # conns == 0 then
   --if the list is empty, there aren't active receptacle
      self.activeConnId = 0
   else
     if self.activeConnId == # conns then
-      self.activeConnId = 1
-    else
-      self.activeConnId = self.activeConnId + 1
+        self.activeConnId = 1
+      else
+          self.activeConnId = self.activeConnId + 1
     end
   end
 end
@@ -71,6 +70,7 @@ function AdaptiveReceptacleFacet:connect(receptacle, object)
   end
   self.utils:verbosePrint("[AdaptiveReceptacleFacet:connect] Service was connected successefully")
   return connId
+
 end
 
 --
@@ -81,7 +81,7 @@ end
 --
 function AdaptiveReceptacleFacet:disconnect(connId)
   self.utils:verbosePrint("[AdaptiveReceptacleFacet:disconnect]")
-  return scs.Receptacles.disconnect(self,connId) -- calling inherited method
+  scs.Receptacles.disconnect(self,connId) -- calling inherited method
 end
 
 --
@@ -110,14 +110,16 @@ function AdaptiveReceptacleFacet:updateConnections(receptacle)
   -- each connected service is tested,
   -- if a communication failure happened, the service is disconnected
     local alreadyUpdated = false
-      for connId,conn in pairs(conns) do
+    for connId,conn in pairs(conns) do
       self.utils:verbosePrint("[AdaptiveReceptacleFacet:updateConnections] Testing conection [".. tostring(connId) .."]")
       local serviceRec = orb:narrow(conn.objref, "IDL:scs/core/IComponent:1.0")
       if not OilUtilities:existent(serviceRec) then
         self.utils:verbosePrint("[AdaptiveReceptacleFacet:updateConnections] The service was not found. It will be disconnected from receptacle.")
         -- serviceRec esta com falha -> desconectar
-        self:disconnect(connId)
-
+        local succ, err = oil.pcall(self.disconnect, self, connId)
+        if not succ then
+          self.utils:verbosePrint("[AdaptiveReceptacleFacet:updateConnections] Error:" .. err[1])
+        end
         if self.activeConnId == connId and not alreadyUpdated then
         --atualiza receptacle lider
           self:updateActiveConnId(conns)

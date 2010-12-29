@@ -31,7 +31,6 @@ end
 
 function AdaptiveReceptacleFacet:updateActiveConnId(conns)
   self.utils:verbosePrint("[AdaptiveReceptacleFacet:updateActiveConnId]")
-
   if # conns == 0 then
   --if the list is empty, there aren't active receptacle
      self.activeConnId = 0
@@ -83,7 +82,7 @@ end
 --
 function AdaptiveReceptacleFacet:disconnect(connId)
   self.utils:verbosePrint("[AdaptiveReceptacleFacet:disconnect]")
-  return scs.Receptacles.disconnect(self,connId) -- calling inherited method
+  scs.Receptacles.disconnect(self,connId) -- calling inherited method
 end
 
 --
@@ -118,8 +117,12 @@ function AdaptiveReceptacleFacet:updateConnections(receptacle)
       if not OilUtilities:existent(serviceRec) then
         self.utils:verbosePrint("[AdaptiveReceptacleFacet:updateConnections] The service was not found. It will be disconnected from receptacle.")
         -- serviceRec esta com falha -> desconectar
-        self:disconnect(connId)
-
+        local succ, err = oil.pcall(self.disconnect, self, connId)
+oil.verbose:print(">>>>>>>>>>>>>>>>>>>>>>>>>>> succ:", succ)
+        if not succ then
+oil.verbose:print("err:", err)
+          self.utils:verbosePrint("[AdaptiveReceptacleFacet:updateConnections] Error:" .. err[1])
+        end
         if self.activeConnId == connId and not alreadyUpdated then
         --atualiza receptacle lider
           self:updateActiveConnId(conns)

@@ -55,8 +55,6 @@ end
 function AdaptiveReceptacleFacet:connect(receptacle, object)
   self.utils:verbosePrint("[AdaptiveReceptacleFacet:connect]")
 
-  self.utils:verbosePrint("[AdaptiveReceptacleFacet:connect]")
-
   self:updateConnections(receptacle)
   -- Connects the service at the receptacle
   local connId = scs.Receptacles.connect(self,

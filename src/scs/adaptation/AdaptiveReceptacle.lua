@@ -9,7 +9,7 @@ local oil = require "oil"
 local orb = oil.orb
 
 local utils     = require "scs.core.utils"
-local OilUtilities = require "scs.adaptation.OilUtilities"
+local OilUtilities = require "scs.util.OilUtilities"
 
 module("scs.adaptation.AdaptiveReceptacle")
 

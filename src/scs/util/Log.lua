@@ -1,4 +1,4 @@
--- $Id: log.lua 99700 2009-12-04 20:51:35Z rodrigoh $
+-- $Id: Log.lua 99700 2009-12-04 20:51:35Z rodrigoh $
 
 local Viewer = require "loop.debug.Viewer"
 local Verbose = require "loop.debug.Verbose"
@@ -6,7 +6,7 @@ local Verbose = require "loop.debug.Verbose"
 ---
 --Mecanismo para debug do SCS baseado no módulo Verbose provido pelo LOOP
 ---
-module ("scs.core.log", Verbose)
+module ("scs.util.Log", Verbose)
 
 -- Coloca data e hora no log
 timed = "%d/%m %H:%M:%S"

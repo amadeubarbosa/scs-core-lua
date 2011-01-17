@@ -20,31 +20,31 @@ local pairs     = pairs
 
 --------------------------------------------------------------------------------
 
-module "scs.core.utils"
+module ("scs.core.utils", oo.class)
 
 --------------------------------------------------------------------------------
 
---------------------------------------------------------------------------------
+function __init(self)
+  local instance = oo.rawnew(self, {fileName = "",
+                          verbose = false,
+                          fileVerbose = false,
+                          newLog = true})
 
---
--- Util Class
--- Implementation of the utilitary class. It's use is not mandatory.
---
-Utils = oo.class{ verbose   = false,
-          fileVerbose = false,
-          newLog    = true,
-          fileName  = "",
-        }
+  instance.ICOMPONENT_NAME = "IComponent"
+  instance.ICOMPONENT_INTERFACE = "IDL:scs/core/IComponent:1.0"
+  instance.IRECEPTACLES_NAME = "IReceptacles"
+  instance.IRECEPTACLES_INTERFACE = "IDL:scs/core/IReceptacles:1.0"
+  instance.IMETAINTERFACE_NAME = "IMetaInterface"
+  instance.IMETAINTERFACE_INTERFACE = "IDL:scs/core/IMetaInterface:1.0"
 
-function Utils:__init()
-  return oo.rawnew(self, {})
+  return instance
 end
 
 --
 -- Description: Prints a message to the standard output and/or to a file.
 -- Parameter message: Message to be delivered.
 --
-function Utils:verbosePrint(...)
+function verbosePrint(self, ...)
   if self.verbose then
     print(...)
   end
@@ -65,14 +65,14 @@ function Utils:verbosePrint(...)
     f:write("\n")
     f:close()
   end
-end 
+end
 
 --
 -- Description: Reads a file with properties and store them at a table.
 -- Parameter t: Table that will receive the properties.
 -- Parameter file: File to be read.
 --
-function Utils:readProperties (t, file)
+function readProperties (self, t, file)
   local f = assert(io.open(file, "r"), "Error opening properties file!")
   while true do
     prop = f:read("*line")
@@ -96,8 +96,8 @@ end
 
 --
 -- Description: Prints a table recursively.
--- 
-function Utils:print_r (t, indent, done)
+--
+function print_r (self, t, indent, done)
   done = done or {}
   indent = indent or 0
   if type(t) == "table" then
@@ -125,7 +125,7 @@ end
 -- Parameter message: Table to be converted.
 -- Return Value: The array.
 --
-function Utils:convertToArray(inputTable)
+function convertToArray(self, inputTable)
   self:verbosePrint("SCS::Utils::ConvertToArray")
   local outputArray = {}
   local i = 1
@@ -145,7 +145,7 @@ end
 -- Parameter str: String to be converted.
 -- Return Value: The boolean.
 --
-function Utils:toBoolean(inputString)
+function toBoolean(self, inputString)
     self:verbosePrint("SCS::Utils::StringToBoolean")
     local inputString = tostring(inputString)
     local result = false
@@ -162,7 +162,7 @@ end
 -- Parameter componentId: ComponentId to be converted.
 -- Return Value: A string containing the stringified version.
 --
-function Utils:getNameVersion(componentId)
-    return componentId.name .. componentId.major_version .. componentId.minor_version .. 
+function getNameVersion(self, componentId)
+    return componentId.name .. componentId.major_version .. componentId.minor_version ..
     componentId.patch_version
 end

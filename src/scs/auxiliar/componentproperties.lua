@@ -20,7 +20,7 @@ module "scs.auxiliar.componentproperties"
 -- ComponentProperties Class
 --------------------------------------------------------------------------------
 
-CpnProperties = oo.class{ 
+CpnProperties = oo.class{
   context = false,
   componentName = "",
 }
@@ -28,7 +28,7 @@ CpnProperties = oo.class{
 function CpnProperties:__init()
   local inst = oo.rawnew(self, {})
   inst.props = inst.props or {}
-  inst.utils = utils.Utils()
+  inst.utils = utils()
   inst.utils.verbose = true
   inst.utils.fileVerbose = false
   return inst

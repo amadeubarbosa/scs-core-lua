@@ -20,6 +20,8 @@ local pairs  = pairs
 local table  = table
 local type   = type
 
+local idlpath = os.getenv("IDLPATH_DIR") or ""
+
 --------------------------------------------------------------------------------
 
 module ("scs.core.ComponentContext", oo.class)
@@ -32,6 +34,7 @@ function __init(self, orb, id, basicKeys)
   end
   local instance = oo.rawnew(self, {_orb = orb or oil.init(), _componentId = id,
     _facets = {}, _receptacles = {}})
+  instance._orb:loadidlfile(idlpath .. "/scs.idl")
   instance:_addBasicFacets(basicKeys)
   return instance
 end

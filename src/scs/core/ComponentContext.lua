@@ -85,7 +85,7 @@ function putReceptacle(self, name, interface, multiplex)
 end
 
 function removeFacet(self, name)
-  self.orb:deactivate(self._facets[name])
+  self._orb:deactivate(self._facets[name])
   self._facets[name] = nil
   self[name] = nil
   --TODO: logar que uma faceta foi removida

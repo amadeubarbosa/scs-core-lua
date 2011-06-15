@@ -149,7 +149,7 @@ function getReceptacleByName(self, name)
 end
 
 function getIComponent(self)
-  return self[utils.COMPONENT_NAME]
+  return self[utils.ICOMPONENT_NAME]
 end
 
 function stringifiedComponentId(self)

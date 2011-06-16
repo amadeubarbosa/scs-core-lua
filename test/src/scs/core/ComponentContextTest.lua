@@ -19,7 +19,7 @@ local ComponentId = {
 }
 
 oil.verbose:level(0)
-Log:level(3)
+Log:level(0)
 
 local orb = oil.init()
 

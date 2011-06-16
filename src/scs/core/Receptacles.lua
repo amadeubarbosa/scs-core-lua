@@ -84,12 +84,12 @@ function disconnect(self, connId)
   local context = self.context
   local desc = self._receptsByConId[connId]
 
-  if not context._receptacleDescs[desc.name] then
-    error{ "IDL:scs/core/NoConnection:1.0" }
+  if connId <= 0 then
+    error{ "IDL:scs/core/InvalidConnection:1.0" }
   end
 
   if not desc then
-    error{ "IDL:scs/core/InvalidConnection:1.0" }
+    error{ "IDL:scs/core/NoConnection:1.0" }
   end
 
   desc.connections[connId] = nil

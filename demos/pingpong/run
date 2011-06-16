@@ -1,0 +1,13 @@
+#!/bin/sh
+
+lua server.lua 1 &
+sleep 1
+SERVER1PID=$!
+lua server.lua 2 &
+sleep 1
+SERVER2PID=$!
+echo DEMO WILL RUN FOR 10 SECONDS AND THEN ABORT!
+lua client.lua 1 2 &
+sleep 10
+kill -9 $SERVER1PID
+kill -9 $SERVER2PID

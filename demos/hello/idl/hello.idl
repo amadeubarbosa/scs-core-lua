@@ -1,0 +1,9 @@
+module scs{
+  module demos{
+    module helloworld {
+      interface Hello {
+        void sayHello();
+      };
+    };
+  };
+};

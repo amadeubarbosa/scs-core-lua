@@ -28,19 +28,8 @@ module ("scs.core.ComponentContext", oo.class)
 
 --------------------------------------------------------------------------------
 
-function __init(self, orb, id, basicKeys)
-  if not id then
-    return nil, "ERROR: Missing ComponentId parameter"
-  end
-  local instance = oo.rawnew(self, {_orb = orb or oil.init(), _componentId = id,
-    _facets = {}, _receptacles = {}})
-  instance._orb:loadidlfile(idlpath .. "/scs.idl")
-  instance:_addBasicFacets(basicKeys)
-  return instance
-end
-
-function _addBasicFacets(self, basicKeys)
-  basicKeys = basicKeys or {}
+local function _addBasicFacets(self, basicKeys)
+  local basicKeys = basicKeys or {}
   self:putFacet(utils.ICOMPONENT_NAME, utils.ICOMPONENT_INTERFACE, Component(),
     basicKeys.IComponent)
   self:putFacet(utils.IRECEPTACLES_NAME, utils.IRECEPTACLES_INTERFACE,
@@ -49,8 +38,19 @@ function _addBasicFacets(self, basicKeys)
     MetaInterface(), basicKeys.IMetaInterface)
 end
 
-function _get_component(self)
+local function _get_component(self)
   return self.context.IComponent
+end
+
+function __init(self, orb, id, basicKeys)
+  if not id then
+    return nil, "ERROR: Missing ComponentId parameter"
+  end
+  local instance = oo.rawnew(self, {_orb = orb or oil.init(), _componentId = id,
+    _facets = {}, _receptacles = {}})
+  instance._orb:loadidlfile(idlpath .. "/scs.idl")
+  _addBasicFacets(instance, basicKeys)
+  return instance
 end
 
 function getComponentId(self)
@@ -59,7 +59,7 @@ end
 
 function putFacet(self, name, interface, implementation, key)
   if type(implementation._component) ~= "function" then
-    implementation._component = self._get_component
+    implementation._component = _get_component
   end
   implementation.context = implementation.context or self
   if self._facets[name] ~= nil then

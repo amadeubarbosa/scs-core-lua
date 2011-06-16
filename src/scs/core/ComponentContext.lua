@@ -20,7 +20,7 @@ local pairs  = pairs
 local table  = table
 local type   = type
 
-local idlpath = os.getenv("IDLPATH_DIR") or ""
+local idlpath = os.getenv("IDL_PATH") or ""
 
 --------------------------------------------------------------------------------
 

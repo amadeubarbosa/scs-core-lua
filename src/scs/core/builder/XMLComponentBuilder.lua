@@ -32,7 +32,7 @@ local io     = io
 local string = string
 local require = require
 
-local idlpath = os.getenv("IDLPATH_DIR")
+local idlpath = os.getenv("IDL_PATH")
 
 --------------------------------------------------------------------------------
 

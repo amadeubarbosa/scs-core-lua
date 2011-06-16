@@ -54,24 +54,23 @@ function connect(self, receptacle, object)
   end
   object = context._orb:narrow(object, desc.interface_name)
 
-  if (self._numConnections > self._maxConnections) then
+  if (self._numConnections >= self._maxConnections) then
     error{ "IDL:scs/core/ExceededConnectionLimit:1.0" }
   end
 
-  -- here we can find out the number of connections with the '#' operator
-  -- because there'll always be only one connection.
-  if not desc.is_multiplex and #(desc.connections) > 0 then
+  -- it's not possible to use the '#' operator to find out the number of
+  -- connections. There are 2 causes:
+  -- a) If a connection(ex: connId 3) is unmade the index sequence gets broken
+  --    (i.e. 1, 2, 4, 5, ...) and the operator may return a wrong size.
+  -- b) The number of connections is per component, not per receptacle.
+  if not desc.is_multiplex and self._numConnections > 0 then
     error{ "IDL:scs/core/AlreadyConnected:1.0" }
   end
 
   self._nextConnId = self._nextConnId + 1
   desc.connections[self._nextConnId] = {id = self._nextConnId, objref = object}
   self._receptsByConId[self._nextConnId] = desc
-  -- it's not possible to use the '#' operator to find out the number of
-  -- connections. There are 2 causes:
-  -- a) If a connection(ex: connId 3) is unmade the index sequence gets broken
-  --    (i.e. 1, 2, 4, 5, ...) and the operator may return a wrong size.
-  -- b) The number of connections is per component, not per receptacle.
+
   self._numConnections = self._numConnections + 1
 
   return self._nextConnId

@@ -186,5 +186,11 @@ Suite = {
       component:removeReceptacle(recName)
       Check.assertNil(component:getReceptacleByName(recName))
     end,
+
+    testGetComponentCCM = function(self)
+      local component = ComponentContext(orb, ComponentId)
+      local ir = component:getFacetByName(utils.IRECEPTACLES_NAME)
+      Check.assertNotNil(ir.facet_ref:_component())
+    end,
   },
 }

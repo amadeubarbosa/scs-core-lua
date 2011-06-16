@@ -92,11 +92,8 @@ function disconnect(self, connId)
     error{ "IDL:scs/core/InvalidConnection:1.0" }
   end
 
-  if not desc.is_multiplex then
-    context[desc.name] = nil
-  end
-
   desc.connections[connId] = nil
+  self._receptsByConId[connId] = nil
   self._numConnections = self._numConnections - 1
 end
 

@@ -39,7 +39,16 @@ function connect(self, receptacle, object)
   if not object then
     error{ "IDL:scs/core/InvalidConnection:1.0" }
   end
-  local status, err = oil.pcall(object._is_a, object, desc.interface_name)
+  local status, err
+  if not object._is_a then
+    -- This oil version does not provide an easy way to call the _is_a method on
+    -- local objects with collocation enabled.
+    -- Thus, the below two lines are a temporary workaround for this problem.
+    local impl, iface = self.context._orb.ServantManager.servants:retrieve(object.__key)
+    status, err = oil.pcall(iface.is_a, iface, desc.interface_name)
+  else
+    status, err = oil.pcall(object._is_a, object, desc.interface_name)
+  end
   if not (status and err) then
     error{ "IDL:scs/core/InvalidConnection:1.0" }
   end

@@ -68,7 +68,11 @@ Suite = {
       local component = ComponentContext(orb, ComponentId)
       local receptacles = component:getReceptacles()
       Check.assertNotNil(receptacles)
-      Check.assertEquals(0, #receptacles)
+      local i = 0
+      for k, v in pairs(receptacles) do
+        i = i + 1
+      end
+      Check.assertEquals(0, i)
     end,
 
     testGetComponentId = function(self)

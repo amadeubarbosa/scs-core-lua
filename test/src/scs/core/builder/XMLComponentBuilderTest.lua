@@ -12,7 +12,9 @@ builder = builder()
 oil.verbose:level(0)
 
 local orb = oil.init()
-local xmlFile = os.getenv("SCS_HOME") .. "/test/src/scs/core/builder/example.xml"
+local home = os.getenv("SCS_HOME")
+local xmlFile = home .. "/test/src/scs/core/builder/example.xml"
+local xmlFile2 = home .. "/test/src/scs/core/builder/example2.xml"
 
 Suite = {
   Test1 = {
@@ -47,6 +49,32 @@ Suite = {
         i = i + 1
       end
       Check.assertEquals(2, i)
+    end,
+
+    testEmptyComponentFromXML = function(self)
+      local cp = builder:build(orb, xmlFile2)
+      Check.assertNotNil(cp)
+
+      local fNames = {}
+      fNames[utils.ICOMPONENT_NAME] = true
+      fNames[utils.IRECEPTACLES_NAME] = true
+      fNames[utils.IMETAINTERFACE_NAME] = true
+
+      local facets = cp:getFacets()
+      local i = 0
+      for k, v in pairs(facets) do
+        Check.assertTrue(fNames[k])
+        i = i + 1
+      end
+      Check.assertEquals(3, i)
+
+      local receptacles = cp:getReceptacles()
+      i = 0
+      for k, v in pairs(receptacles) do
+        Check.assertTrue(rNames[k])
+        i = i + 1
+      end
+      Check.assertEquals(0, i)
     end,
   },
 }

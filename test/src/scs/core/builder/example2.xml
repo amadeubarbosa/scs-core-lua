@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="iso-8859-1" ?>
+<component xmlns="tecgraf.scs.core">
+  <id>
+    <name>XMLComponentBuilderTest</name>
+    <version>1.0.0</version>
+    <platformSpec>Lua</platformSpec>
+  </id>
+</component>

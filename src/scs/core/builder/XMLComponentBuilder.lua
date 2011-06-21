@@ -13,6 +13,7 @@ local COMPONENT_ID_NAME = "name"
 local COMPONENT_ID_VERSION = "version"
 local COMPONENT_ID_PLATFORM_SPEC = "platformSpec"
 local COMPONENT_CONTEXT_ELEMENT = "context"
+local COMPONENT_CONTEXT_TYPE = "type"
 local IDL_ELEMENT = "idl"
 local FACET_ELEMENT = "facet"
 local FACET_NAME = "name"
@@ -31,6 +32,7 @@ local type   = type
 local io     = io
 local string = string
 local require = require
+local error  = error
 
 local idlpath = os.getenv("IDL_PATH")
 
@@ -54,7 +56,8 @@ function build(self, orb, file)
     xmlparser:parse(xmltext)
     -- Now the xml table has the xml file contents
     local id = self:getComponentId(xml.root.component.id)
-    component = ComponentContext(orb, id)
+    local ctxtType = self:getContextType(xml.root.component.context) or ComponentContext
+    component = ctxtType(orb, id)
     --TODO: log idl loading
     self:loadIDLs(xml.root.component.idls, component._orb)
     self:readAndPutReceptacles(xml.root.component.receptacles, component)
@@ -76,6 +79,14 @@ function getComponentId(self, idTag)
     VERSION_DELIMITER .. "(%d)")
   id.platform_spec = idTag[COMPONENT_ID_PLATFORM_SPEC]
   return id
+end
+
+function getContextType(self, ctxtTag)
+  if not ctxtTag then
+    return nil
+  end
+  local typeTag = ctxtTag[COMPONENT_CONTEXT_TYPE]
+  return require (typeTag)
 end
 
 function loadIDLs(self, idlsTag, orb)

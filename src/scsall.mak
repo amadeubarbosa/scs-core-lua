@@ -39,7 +39,7 @@ ${PRECMP_DIR}/scsprecompiled.c: ${SCS_LUA}
 	$(LUABIN) $(LUA_FLAGS) $(PRECMP_LUA)   $(PRECMP_FLAGS) $(SCS_MODULES)
 
 ${PRECMP_DIR}/scsall.c: ${PRECMP_DIR}/scsprecompiled.c
-	$(LUABIN) $(LUA_FLAGS) $(PRELOAD_LUA)  $(PRELOAD_FLAGS) -i ${PRECMP_DIR} scsall.h
+	$(LUABIN) $(LUA_FLAGS) $(PRELOAD_LUA)  $(PRELOAD_FLAGS) -i ${PRECMP_DIR} scsprecompiled.h
 
 SRC= ${PRECMP_DIR}/scsprecompiled.c ${PRECMP_DIR}/scsall.c
 

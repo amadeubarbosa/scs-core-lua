@@ -11,7 +11,7 @@ local DATA_DIR = os.getenv("OPENBUS_DATADIR")
 
 module ("scs.util.OilUtilities", oop.class)
 
-local utils = utils.Utils()
+local utils = utils()
 
 function existent(self, proxy)
 

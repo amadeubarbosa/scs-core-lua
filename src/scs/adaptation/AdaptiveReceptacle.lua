@@ -23,7 +23,7 @@ AdaptiveReceptacleFacet = oop.class({}, Receptacles)
 function AdaptiveReceptacleFacet:__init()
   self = Receptacles.__init(self)
   self.activeConnId = 1
-  self.utils = utils.Utils()
+  self.utils = utils()
   return self
 end
 

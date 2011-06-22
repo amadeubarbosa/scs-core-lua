@@ -1,6 +1,5 @@
 local ipairs = ipairs
 local assert = assert
-local scs = require "scs.core.base"
 local oop = require "loop.simple"
 local print = print
 local pairs = pairs
@@ -10,7 +9,6 @@ local tonumber = tonumber
 local error = error
 
 local oil = require "oil"
-local orb = oil.orb
 
 local utils     = require "scs.core.utils"
 local OilUtilities = require "scs.util.OilUtilities"
@@ -41,7 +39,7 @@ function PersistentReceptacleFacet:__init(dbmanager)
   if type(dbmanager.save) ~= "function"   or
      type(dbmanager.remove) ~= "function" or
      type(dbmanager.get) ~= "function"    then
-     error ( orb:newexcept{"CORBA::PERSIST_STORE"}[1] )
+     error ( self.context:getORB():newexcept{"CORBA::PERSIST_STORE"}[1] )
   end
   self = AdaptiveReceptacle.AdaptiveReceptacleFacet.__init(self)
   self.connectionsDB = dbmanager
@@ -59,7 +57,7 @@ function PersistentReceptacleFacet:connect(receptacle, object)
     if type(connId) == "number" then
       if not self.connectionsDB:get(connId) then
       --saves onle if it is not already saved
-        self.connectionsDB:save(tonumber(connId), orb:tostring(object))
+        self.connectionsDB:save(tonumber(connId), self.context:getORB():tostring(object))
       end
     end
   else
@@ -93,7 +91,7 @@ function PersistentReceptacleFacet:getConnections(receptacle)
     -- Load the connections
     local data = assert(self.connectionsDB:getValues())
     for connId, objIOR in ipairs(data) do
-      local object = orb:newproxy(objIOR, "synchronous", oil.corba.idl.object)
+      local object = self.context.getORB():newproxy(objIOR, "synchronous", oil.corba.idl.object)
       if OilUtilities:existent(object) then
         local status, newConnId = oil.pcall(self.connect, self, receptacle, object)
         if status then

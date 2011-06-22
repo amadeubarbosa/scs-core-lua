@@ -21,7 +21,6 @@ module "scs.auxiliar.componentproperties"
 --------------------------------------------------------------------------------
 
 CpnProperties = oo.class{
-  context = false,
   componentName = "",
 }
 
@@ -30,7 +29,6 @@ function CpnProperties:__init()
   inst.props = inst.props or {}
   inst.utils = utils()
   inst.utils.verbose = true
-  inst.utils.fileVerbose = false
   return inst
 end
 

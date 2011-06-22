@@ -19,8 +19,8 @@ module "scs.auxiliar.componenthelp"
 --------------------------------------------------------------------------------
 
 CpnHelp = oo.class{
-  context = false,
   componentName = "",
+  helpInfo = "",
 }
 
 function CpnHelp:__init()
@@ -36,13 +36,12 @@ end
 function CpnHelp:getHelpInfo(componentId)
   self.context.utils:verbosePrint(self.componentName .. "::ComponentHelp::GetHelpInfo")
   local nameVersion = self.context.utils:getNameVersion(componentId)
-  assert(self.context.componentFullDescriptions[nameVersion] and 
-    self.context.componentFullDescriptions[nameVersion].help, "IDL:scs/auxiliar/HelpInfoNotAvailable:1.0")
+  assert(self.helpInfo != "", "IDL:scs/auxiliar/HelpInfoNotAvailable:1.0")
   --local f = assert( io.open(nameVersion .. ".hlp", "r"),
   --          "IDL:HelpInfoNotAvailable")
   --local string ret = f:read("*all")
   --f:close()
   self.context.utils:verbosePrint(self.componentName .. "::ComponentHelp::GetHelpInfo : Finished.")
-  return self.context.componentFullDescriptions[nameVersion].help
+  return self.helpInfo
 end
 

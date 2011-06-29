@@ -91,7 +91,7 @@ function PersistentReceptacleFacet:getConnections(receptacle)
     -- Load the connections
     local data = assert(self.connectionsDB:getValues())
     for connId, objIOR in ipairs(data) do
-      local object = self.context.getORB():newproxy(objIOR, "synchronous", oil.corba.idl.object)
+      local object = self.context:getORB():newproxy(objIOR, "synchronous", oil.corba.idl.object)
       if OilUtilities:existent(object) then
         local status, newConnId = oil.pcall(self.connect, self, receptacle, object)
         if status then

@@ -57,13 +57,17 @@ function getComponentId(self)
   return self._componentId
 end
 
+local function deactivateFacet(self, name)
+  self._orb:deactivate(self._facets[name].facet_ref)
+end
+
 function putFacet(self, name, interface, implementation, key)
   if type(implementation._component) ~= "function" then
     implementation._component = _get_component
   end
   implementation.context = implementation.context or self
   if self._facets[name] ~= nil then
-    self._orb:deactivate(self._facets[name])
+    deactivateFacet(self, name)
     --TODO: logar que uma faceta foi substituida
   else
     --TODO: logar que uma faceta foi adicionada
@@ -85,7 +89,7 @@ function putReceptacle(self, name, interface, multiplex)
 end
 
 function removeFacet(self, name)
-  self._orb:deactivate(self._facets[name])
+  deactivateFacet(self, name)
   self._facets[name] = nil
   self[name] = nil
   --TODO: logar que uma faceta foi removida

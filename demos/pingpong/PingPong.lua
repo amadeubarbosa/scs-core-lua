@@ -1,5 +1,7 @@
-local oil    = require "oil"
-local oo     = require "loop.base"
+local oil       = require "oil"
+local oo        = require "loop.base"
+local oos       = require "loop.simple"
+local Component = require "scs.core.Component"
 
 --------------------------------------------------------------------------------
 -- PingPongServer Facet
@@ -51,20 +53,27 @@ end
 -- IComponent Facet
 --------------------------------------------------------------------------------
 
-function PPStartup (self)
-  self = self.context
-  self.utils:verbosePrint("PingPong::IComponent::Startup")
-  if self.IReceptacles._numConnections ~= 1 then
-    error{"IDL:scs/core/StartupFailed:1.0"}
-  end
-  self.PingPongServer.otherPP = self.IReceptacles:getConnections("PingPongReceptacle")[1].objref
-  self.utils:verbosePrint("PingPong::IComponent::Startup : Done.")
+PingPongIComponent = oos.class({}, Component)
+
+function PingPongIComponent:__init()
+  self = Component.__init(self)
+  return self
 end
 
-function PPShutdown (self)
-  self = self.context
-  self.utils:verbosePrint("PingPong::IComponent::Shutdown")
-  self.PingPongServer.stop = true
-  self.utils:verbosePrint("PingPong::IComponent::Shutdown : Done.")
+function PingPongIComponent:startup()
+  local context = self.context
+  context.utils:verbosePrint("PingPong::IComponent::Startup")
+  if context.IReceptacles._numConnections ~= 1 then
+    error{"IDL:scs/core/StartupFailed:1.0"}
+  end
+  context.PingPongServer.otherPP = context.IReceptacles:getConnections("PingPongReceptacle")[1].objref
+  context.utils:verbosePrint("PingPong::IComponent::Startup : Done.")
+end
+
+function PingPongIComponent:shutdown()
+  local context = self.context
+  context.utils:verbosePrint("PingPong::IComponent::Shutdown")
+  context.PingPongServer.stop = true
+  context.utils:verbosePrint("PingPong::IComponent::Shutdown : Done.")
 end
 

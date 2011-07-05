@@ -14,7 +14,7 @@ oil.main(function()
   dofile("Hello.lua")
   local componentId = { name = "Hello", major_version = 1, minor_version = 0, patch_version = 0, platform_spec = "" }
   local instance = ComponentContext(orb, componentId)
-  instance:putFacet("Hello", "IDL:scs/demos/helloworld/Hello:1.0", Hello())
+  instance:addFacet("Hello", "IDL:scs/demos/helloworld/Hello:1.0", Hello())
 
   instance.Hello.name = arg[1] or instance.Hello.name
 

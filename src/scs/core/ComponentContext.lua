@@ -29,9 +29,9 @@ module ("scs.core.ComponentContext", oo.class)
 --------------------------------------------------------------------------------
 local unknownInterfaceErrorMessage = "Unknown interface. Try loading the correspondent IDL file or code on the ORB first."
 
-local function _addBasicFacet(self, name, interface, object, key)
+local function addBasicFacet(self, name, interface, object, key)
   local errMsg = "A basic SCS interface is not known by the ORB. Please load scs.idl file on the ORB first."
-  local success, err = oil.pcall(self.putFacet,
+  local success, err = oil.pcall(self.addFacet,
                                  self,
                                  name,
                                  interface,
@@ -46,13 +46,13 @@ local function _addBasicFacet(self, name, interface, object, key)
   end
 end
 
-local function _addBasicFacets(self, basicKeys)
+local function addBasicFacets(self, basicKeys)
   local basicKeys = basicKeys or {}
-  _addBasicFacet(self, utils.ICOMPONENT_NAME, utils.ICOMPONENT_INTERFACE,
+  addBasicFacet(self, utils.ICOMPONENT_NAME, utils.ICOMPONENT_INTERFACE,
     Component(), basicKeys.IComponent)
-  _addBasicFacet(self, utils.IRECEPTACLES_NAME, utils.IRECEPTACLES_INTERFACE,
+  addBasicFacet(self, utils.IRECEPTACLES_NAME, utils.IRECEPTACLES_INTERFACE,
     Receptacles(), basicKeys.IReceptacles)
-  _addBasicFacet(self, utils.IMETAINTERFACE_NAME, utils.IMETAINTERFACE_INTERFACE,
+  addBasicFacet(self, utils.IMETAINTERFACE_NAME, utils.IMETAINTERFACE_INTERFACE,
     MetaInterface(), basicKeys.IMetaInterface)
 end
 
@@ -60,25 +60,11 @@ local function _get_component(self)
   return self.context.IComponent
 end
 
-function __init(self, orb, id, basicKeys)
-  if not id then
-    return nil, "ERROR: Missing ComponentId parameter"
-  end
-  local instance = oo.rawnew(self, {_orb = orb or oil.init(), _componentId = id,
-    _facets = {}, _receptacles = {}})
-  _addBasicFacets(instance, basicKeys)
-  return instance
-end
-
-function getComponentId(self)
-  return self._componentId
-end
-
 local function deactivateFacet(self, name)
   self._orb:deactivate(self._facets[name].facet_ref)
 end
 
-function putFacet(self, name, interface, implementation, key)
+local function putFacet(self, name, interface, implementation, key)
   local impl = implementation
   if type(impl._component) ~= "function" then
     impl._component = _get_component
@@ -96,15 +82,37 @@ function putFacet(self, name, interface, implementation, key)
       error(servant)
     end
   end
-  if self._facets[name] ~= nil then
-    deactivateFacet(self, name)
-    --TODO: logar que uma faceta foi substituida
-  else
-    --TODO: logar que uma faceta foi adicionada
-  end
   self._facets[name] = {name = name, interface_name = interface,
     facet_ref = servant, key = key, implementation = impl}
   self[name] = servant
+  --TODO: logar q uma faceta foi adicionada
+end
+
+function __init(self, orb, id, basicKeys)
+  if not id then
+    return nil, "ERROR: Missing ComponentId parameter"
+  end
+  local instance = oo.rawnew(self, {_orb = orb or oil.init(), _componentId = id,
+    _facets = {}, _receptacles = {}})
+  addBasicFacets(instance, basicKeys)
+  return instance
+end
+
+function getComponentId(self)
+  return self._componentId
+end
+
+function addFacet(self, name, interface, implementation, key)
+  if self._facets[name] ~= nil then
+    error("Facet already exists.")
+  end
+  putFacet(self, name, interface, implementation, key)
+end
+
+function updateFacet(self, name, implementation)
+  local facet = self._facets[name]
+  self:removeFacet(facet.name)
+  self:addFacet(name, facet.interface_name, implementation, facet.key)
 end
 
 function putReceptacle(self, name, interface, multiplex)
@@ -118,6 +126,9 @@ function putReceptacle(self, name, interface, multiplex)
 end
 
 function removeFacet(self, name)
+  if self._facets[name] == nil then
+    error("Facet does not exist.")
+  end
   deactivateFacet(self, name)
   self._facets[name] = nil
   self[name] = nil

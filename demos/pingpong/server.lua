@@ -16,14 +16,13 @@ oil.main(function()
   dofile("PingPong.lua")
   local componentId = { name = "PingPongServer", major_version = 1, minor_version = 0, patch_version = 0, platform_spec = "lua" }
   local ppInst = ComponentContext(orb, componentId)
-  ppInst:putFacet("PingPongServer", "IDL:scs/demos/pingpong/PingPongServer:1.0", PingPongServer())
+  ppInst:addFacet("PingPongServer", "IDL:scs/demos/pingpong/PingPongServer:1.0", PingPongServer())
+  ppInst:updateFacet("IComponent", PingPongIComponent())
   ppInst:putReceptacle("PingPongReceptacle", "IDL:scs/demos/pingpong/PingPongServer:1.0", false)
 
   -- initialization
   ppInst.utils = utils
   ppInst.utils.verbose = true
-  ppInst.IComponent.startup = PPStartup
-  ppInst.IComponent.shutdown = PPShutdown
 
   -- argument treatment
   local pingPong = ppInst.PingPongServer

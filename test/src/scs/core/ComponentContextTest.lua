@@ -147,14 +147,12 @@ Suite = {
       local component = ComponentContext(orb, ComponentId)
       local facet = component:getFacetByName(utils.ICOMPONENT_NAME)
       local newImpl = IComponent()
-      component:putFacet(utils.ICOMPONENT_NAME, utils.ICOMPONENT_INTERFACE, newImpl, "testSubstituteFacet")
+      component:updateFacet(utils.ICOMPONENT_NAME, newImpl)
       Check.assertNotNil(component:getIComponent())
       local newFacet = component:getFacetByName(utils.ICOMPONENT_NAME)
       Check.assertNotEquals(facet.facet_ref, newFacet.facet_ref)
       Check.assertNotEquals(facet.implementation, newFacet.implementation)
-      Check.assertNotEquals(facet.key, newFacet.key)
       Check.assertEquals(newImpl, newFacet.implementation)
-      Check.assertEquals("testSubstituteFacet", newFacet.key)
     end,
 
     testGetReceptacleByName = function(self)

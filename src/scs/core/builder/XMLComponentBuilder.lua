@@ -87,8 +87,13 @@ end
 
 local function readAndPutFacet(self, facetTag, component)
   local impl = require (facetTag[FACET_IMPL])
-  component:putFacet(facetTag[FACET_NAME], facetTag[FACET_INTERFACE_NAME],
-                     impl(), facetTag[FACET_KEY])
+  local name = facetTag[FACET_NAME]
+  if component:getFacetByName(name) then
+    component:updateFacet(name, impl())
+  else
+    component:addFacet(name, facetTag[FACET_INTERFACE_NAME],
+                       impl(), facetTag[FACET_KEY])
+  end
 end
 
 local function readAndPutFacets(self, facetsTag, component)

@@ -46,28 +46,6 @@ function __init(self)
   return oo.rawnew(self, {})
 end
 
-function build(self, orb, file)
-  local component
-  local xml = simpleTreeHandler()
-  local f, e = io.open(file, "r")
-  if f then
-    local xmltext = f:read("*a")
-    local xmlparser = xmlParser(xml)
-    xmlparser:parse(xmltext)
-    -- Now the xml table has the xml file contents
-    local id = getComponentId(self, xml.root.component.id)
-    local ctxtType = getContextType(self, xml.root.component.context) or ComponentContext
-    component = ctxtType(orb, id)
-    --TODO: log idl loading
-    loadIDLs(self, xml.root.component.idls, component._orb)
-    readAndPutReceptacles(self, xml.root.component.receptacles, component)
-    readAndPutFacets(self, xml.root.component.facets, component)
-  else
-    error(e)
-  end
-  return component
-end
-
 local function getComponentId(self, idTag)
   if not idTag then
     return nil
@@ -153,4 +131,26 @@ local function readAndPutReceptacles(self, receptsTag, component)
       readAndPutReceptacle(self, v, component)
     end
   end
+end
+
+function build(self, orb, file)
+  local component
+  local xml = simpleTreeHandler()
+  local f, e = io.open(file, "r")
+  if f then
+    local xmltext = f:read("*a")
+    local xmlparser = xmlParser(xml)
+    xmlparser:parse(xmltext)
+    -- Now the xml table has the xml file contents
+    local id = getComponentId(self, xml.root.component.id)
+    local ctxtType = getContextType(self, xml.root.component.context) or ComponentContext
+    component = ctxtType(orb, id)
+    --TODO: log idl loading
+    loadIDLs(self, xml.root.component.idls, component._orb)
+    readAndPutReceptacles(self, xml.root.component.receptacles, component)
+    readAndPutFacets(self, xml.root.component.facets, component)
+  else
+    error(e)
+  end
+  return component
 end

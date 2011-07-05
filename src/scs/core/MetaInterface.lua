@@ -31,7 +31,7 @@ end
 --             returned.
 -- Return Value: The descriptions that apply.
 --
-function getDescriptions(self, portType, selected)
+local function getDescriptions(self, portType, selected)
   self = self.context
   if not selected then
     if portType == "receptacle" then
@@ -81,7 +81,7 @@ end
 -- Return Value: The descriptions.
 --
 function getFacets(self)
-  return self:getDescriptions("facet")
+  return getDescriptions(self, "facet")
 end
 
 --
@@ -90,7 +90,7 @@ end
 -- Return Value: The descriptions that apply.
 --
 function getFacetsByName(self, names)
-  return self:getDescriptions("facet", names)
+  return getDescriptions(self, "facet", names)
 end
 
 --
@@ -98,7 +98,7 @@ end
 -- Return Value: The descriptions.
 --
 function getReceptacles(self)
-  return self:getDescriptions("receptacle")
+  return getDescriptions(self, "receptacle")
 end
 
 --
@@ -107,6 +107,6 @@ end
 -- Return Value: The descriptions that apply.
 --
 function getReceptaclesByName(self, names)
-  return self:getDescriptions("receptacle", names)
+  return getDescriptions(self, "receptacle", names)
 end
 

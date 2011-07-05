@@ -55,20 +55,20 @@ function build(self, orb, file)
     local xmlparser = xmlParser(xml)
     xmlparser:parse(xmltext)
     -- Now the xml table has the xml file contents
-    local id = self:getComponentId(xml.root.component.id)
-    local ctxtType = self:getContextType(xml.root.component.context) or ComponentContext
+    local id = getComponentId(self, xml.root.component.id)
+    local ctxtType = getContextType(self, xml.root.component.context) or ComponentContext
     component = ctxtType(orb, id)
     --TODO: log idl loading
-    self:loadIDLs(xml.root.component.idls, component._orb)
-    self:readAndPutReceptacles(xml.root.component.receptacles, component)
-    self:readAndPutFacets(xml.root.component.facets, component)
+    loadIDLs(self, xml.root.component.idls, component._orb)
+    readAndPutReceptacles(self, xml.root.component.receptacles, component)
+    readAndPutFacets(self, xml.root.component.facets, component)
   else
     error(e)
   end
   return component
 end
 
-function getComponentId(self, idTag)
+local function getComponentId(self, idTag)
   if not idTag then
     return nil
   end
@@ -81,7 +81,7 @@ function getComponentId(self, idTag)
   return id
 end
 
-function getContextType(self, ctxtTag)
+local function getContextType(self, ctxtTag)
   if not ctxtTag then
     return nil
   end
@@ -89,7 +89,7 @@ function getContextType(self, ctxtTag)
   return require (typeTag)
 end
 
-function loadIDLs(self, idlsTag, orb)
+local function loadIDLs(self, idlsTag, orb)
   if not idlsTag then
     return nil
   end
@@ -107,13 +107,13 @@ function loadIDLs(self, idlsTag, orb)
   end
 end
 
-function readAndPutFacet(self, facetTag, component)
+local function readAndPutFacet(self, facetTag, component)
   local impl = require (facetTag[FACET_IMPL])
   component:putFacet(facetTag[FACET_NAME], facetTag[FACET_INTERFACE_NAME],
                      impl(), facetTag[FACET_KEY])
 end
 
-function readAndPutFacets(self, facetsTag, component)
+local function readAndPutFacets(self, facetsTag, component)
   if not facetsTag then
     return nil
   end
@@ -121,23 +121,23 @@ function readAndPutFacets(self, facetsTag, component)
   if #facetTag == 0 then
     --If the facet element has size 0, its not an array (not indexed by numbers)
     -- and thus has only one element
-    self:readAndPutFacet(facetTag, component)
+    readAndPutFacet(self, facetTag, component)
   else
     --It's an array
     local i = 1
     for k, v in ipairs(facetTag) do
-      self:readAndPutFacet(v, component)
+      readAndPutFacet(self, v, component)
     end
   end
 end
 
-function readAndPutReceptacle(self, receptTag, component)
+local function readAndPutReceptacle(self, receptTag, component)
   component:putReceptacle(receptTag[RECEPTACLE_NAME],
                           receptTag[RECEPTACLE_INTERFACE_NAME],
                           receptTag[RECEPTACLE_MULTIPLEX])
 end
 
-function readAndPutReceptacles(self, receptsTag, component)
+local function readAndPutReceptacles(self, receptsTag, component)
   if not receptsTag then
     return nil
   end
@@ -145,12 +145,12 @@ function readAndPutReceptacles(self, receptsTag, component)
   if #receptTag == 0 then
     --If the receptacle element has size 0, its not an array (not indexed by numbers)
     -- and thus has only one element
-    self:readAndPutReceptacle(receptTag, component)
+    readAndPutReceptacle(self, receptTag, component)
   else
     --It's an array
     local i = 1
     for k, v in ipairs(receptTag) do
-      self:readAndPutReceptacle(v, component)
+      readAndPutReceptacle(self, v, component)
     end
   end
 end

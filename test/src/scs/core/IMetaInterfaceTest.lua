@@ -21,6 +21,7 @@ oil.verbose:level(0)
 Log:level(0)
 
 local orb = oil.init()
+orb:loadidlfile(os.getenv("IDL_PATH") .. "/scs.idl")
 
 local context = ComponentContext(orb, ComponentId)
 context:putReceptacle("IMetaInterfaceTest", utils.ICOMPONENT_INTERFACE, false)

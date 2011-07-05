@@ -12,6 +12,8 @@ builder = builder()
 oil.verbose:level(0)
 
 local orb = oil.init()
+orb:loadidlfile(os.getenv("IDL_PATH") .. "/scs.idl")
+
 local home = os.getenv("SCS_HOME")
 local xmlFile = home .. "/test/src/scs/core/builder/example.xml"
 local xmlFile2 = home .. "/test/src/scs/core/builder/example2.xml"

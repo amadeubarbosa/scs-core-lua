@@ -19,22 +19,40 @@ local module = module
 local pairs  = pairs
 local table  = table
 local type   = type
-
-local idlpath = os.getenv("IDL_PATH") or ""
+local error  = error
+local string = string
 
 --------------------------------------------------------------------------------
 
 module ("scs.core.ComponentContext", oo.class)
 
 --------------------------------------------------------------------------------
+local unknownInterfaceErrorMessage = "Unknown interface. Try loading the correspondent IDL file or code on the ORB first."
+
+local function _addBasicFacet(self, name, interface, object, key)
+  local errMsg = "A basic SCS interface is not known by the ORB. Please load scs.idl file on the ORB first."
+  local success, err = oil.pcall(self.putFacet,
+                                 self,
+                                 name,
+                                 interface,
+                                 object,
+                                 key)
+  if not success then
+    if string.find(err, unknownInterfaceErrorMessage) then
+      error(errMsg)
+    else
+      error(err)
+    end
+  end
+end
 
 local function _addBasicFacets(self, basicKeys)
   local basicKeys = basicKeys or {}
-  self:putFacet(utils.ICOMPONENT_NAME, utils.ICOMPONENT_INTERFACE, Component(),
-    basicKeys.IComponent)
-  self:putFacet(utils.IRECEPTACLES_NAME, utils.IRECEPTACLES_INTERFACE,
+  _addBasicFacet(self, utils.ICOMPONENT_NAME, utils.ICOMPONENT_INTERFACE,
+    Component(), basicKeys.IComponent)
+  _addBasicFacet(self, utils.IRECEPTACLES_NAME, utils.IRECEPTACLES_INTERFACE,
     Receptacles(), basicKeys.IReceptacles)
-  self:putFacet(utils.IMETAINTERFACE_NAME, utils.IMETAINTERFACE_INTERFACE,
+  _addBasicFacet(self, utils.IMETAINTERFACE_NAME, utils.IMETAINTERFACE_INTERFACE,
     MetaInterface(), basicKeys.IMetaInterface)
 end
 
@@ -48,7 +66,6 @@ function __init(self, orb, id, basicKeys)
   end
   local instance = oo.rawnew(self, {_orb = orb or oil.init(), _componentId = id,
     _facets = {}, _receptacles = {}})
-  instance._orb:loadidlfile(idlpath .. "/scs.idl")
   _addBasicFacets(instance, basicKeys)
   return instance
 end
@@ -62,19 +79,31 @@ local function deactivateFacet(self, name)
 end
 
 function putFacet(self, name, interface, implementation, key)
-  if type(implementation._component) ~= "function" then
-    implementation._component = _get_component
+  local impl = implementation
+  if type(impl._component) ~= "function" then
+    impl._component = _get_component
   end
-  implementation.context = implementation.context or self
+  impl.context = impl.context or self
+  local success, servant = oil.pcall(self._orb.newservant,
+                                     self._orb,
+                                     impl,
+                                     key,
+                                     interface)
+  if not success then
+    if servant[1] == "IDL:omg.org/CORBA/INTERNAL:1.0" and servant.message == "unknown interface" then
+      error(unknownInterfaceErrorMessage)
+    else
+      error(servant)
+    end
+  end
   if self._facets[name] ~= nil then
     deactivateFacet(self, name)
     --TODO: logar que uma faceta foi substituida
   else
     --TODO: logar que uma faceta foi adicionada
   end
-  local servant = self._orb:newservant(implementation, key, interface)
   self._facets[name] = {name = name, interface_name = interface,
-    facet_ref = servant, key = key, implementation = implementation}
+    facet_ref = servant, key = key, implementation = impl}
   self[name] = servant
 end
 

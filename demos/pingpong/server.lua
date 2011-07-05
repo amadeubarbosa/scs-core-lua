@@ -8,6 +8,7 @@ local orb = oil.init()
 
 oil.main(function()
   -- starts to wait for remote calls
+  orb:loadidlfile(os.getenv("IDL_PATH") .. "/scs.idl")
   orb:loadidlfile("idl/pingPong.idl")
   oil.newthread(orb.run, orb)
 

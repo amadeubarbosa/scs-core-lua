@@ -22,6 +22,7 @@ oil.verbose:level(0)
 Log:level(0)
 
 local orb = oil.init()
+orb:loadidlfile(os.getenv("IDL_PATH") .. "/scs.idl")
 
 Suite = {
   Test1 = {

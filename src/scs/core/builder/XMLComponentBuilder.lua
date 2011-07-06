@@ -115,7 +115,7 @@ local function readAndPutFacets(self, facetsTag, component)
 end
 
 local function readAndPutReceptacle(self, receptTag, component)
-  component:putReceptacle(receptTag[RECEPTACLE_NAME],
+  component:addReceptacle(receptTag[RECEPTACLE_NAME],
                           receptTag[RECEPTACLE_INTERFACE_NAME],
                           receptTag[RECEPTACLE_MULTIPLEX])
 end

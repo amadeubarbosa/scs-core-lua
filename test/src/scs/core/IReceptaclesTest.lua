@@ -34,7 +34,7 @@ Suite = {
       context = ComponentContext(orb, ComponentId)
       facet = context:getFacetByName(utils.IRECEPTACLES_NAME)
       ir = facet.facet_ref
-      context:putReceptacle(testName, utils.ICOMPONENT_INTERFACE, true)
+      context:addReceptacle(testName, utils.ICOMPONENT_INTERFACE, true)
     end,
 
     afterEachTest = function(self)
@@ -60,7 +60,8 @@ Suite = {
 
     testConnect3 = function(self)
       -- substitutes receptacle for one with only one connection
-      context:putReceptacle(testName, utils.ICOMPONENT_INTERFACE, false)
+      context:removeReceptacle(testName)
+      context:addReceptacle(testName, utils.ICOMPONENT_INTERFACE, false)
       local id = ir:connect(testName, context:getIComponent())
       Check.assertNotNil(id)
       Check.assertError(ir.connect, ir, testName, context:getIComponent()) --AlreadyConnected

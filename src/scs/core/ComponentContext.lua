@@ -115,16 +115,6 @@ function updateFacet(self, name, implementation)
   self:addFacet(name, facet.interface_name, implementation, facet.key)
 end
 
-function putReceptacle(self, name, interface, multiplex)
-  if self._receptacles[name] ~= nil then
-    --TODO: logar que um receptaculo foi substituido e todas as suas conexoes, perdidas
-  else
-    --TODO: logar que um receptaculo foi adicionado
-  end
-  self._receptacles[name] = {name = name, interface_name = interface,
-    is_multiplex = multiplex, connections = {}}
-end
-
 function removeFacet(self, name)
   if self._facets[name] == nil then
     error("Facet does not exist.")
@@ -133,6 +123,15 @@ function removeFacet(self, name)
   self._facets[name] = nil
   self[name] = nil
   --TODO: logar que uma faceta foi removida
+end
+
+function addReceptacle(self, name, interface, multiplex)
+  if self._receptacles[name] ~= nil then
+    error("Receptacle already exists.")
+  end
+  self._receptacles[name] = {name = name, interface_name = interface,
+    is_multiplex = multiplex, connections = {}}
+  --TODO: logar que um receptaculo foi adicionado
 end
 
 function removeReceptacle(self, name)

@@ -18,7 +18,7 @@ oil.main(function()
   local ppInst = ComponentContext(orb, componentId)
   ppInst:addFacet("PingPongServer", "IDL:scs/demos/pingpong/PingPongServer:1.0", PingPongServer())
   ppInst:updateFacet("IComponent", PingPongIComponent())
-  ppInst:putReceptacle("PingPongReceptacle", "IDL:scs/demos/pingpong/PingPongServer:1.0", false)
+  ppInst:addReceptacle("PingPongReceptacle", "IDL:scs/demos/pingpong/PingPongServer:1.0", false)
 
   -- initialization
   ppInst.utils = utils

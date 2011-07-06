@@ -24,7 +24,7 @@ local orb = oil.init()
 orb:loadidlfile(os.getenv("IDL_PATH") .. "/scs.idl")
 
 local context = ComponentContext(orb, ComponentId)
-context:putReceptacle("IMetaInterfaceTest", utils.ICOMPONENT_INTERFACE, false)
+context:addReceptacle("IMetaInterfaceTest", utils.ICOMPONENT_INTERFACE, false)
 local facet = context:getFacetByName(utils.IMETAINTERFACE_NAME)
 local imi = facet.facet_ref
 

@@ -158,20 +158,15 @@ Suite = {
     testGetReceptacleByName = function(self)
       local component = ComponentContext(orb, ComponentId)
       local recName = "MyReceptacle"
-      component:putReceptacle(recName, utils.ICOMPONENT_INTERFACE, false)
+      component:addReceptacle(recName, utils.ICOMPONENT_INTERFACE, false)
       Check.assertNotNil(component:getReceptacleByName(recName))
     end,
 
     testSubstituteReceptacle = function(self)
       local component = ComponentContext(orb, ComponentId)
       local recName = "MyReceptacle"
-      component:putReceptacle(recName, utils.ICOMPONENT_INTERFACE, false)
-      local rec = component:getReceptacleByName(recName)
-      component:putReceptacle(recName, utils.ICOMPONENT_INTERFACE, true)
-      local newRec = component:getReceptacleByName(recName)
-      Check.assertNotEquals(rec.connections, newRec.connections)
-      Check.assertEquals(false, rec.is_multiplex)
-      Check.assertEquals(true, newRec.is_multiplex)
+      component:addReceptacle(recName, utils.ICOMPONENT_INTERFACE, false)
+      Check.assertError(component.addReceptacle, component, recName, utils.ICOMPONENT_INTERFACE, true)
     end,
 
     testRemoveFacet = function(self)
@@ -184,7 +179,7 @@ Suite = {
     testRemoveReceptacle = function(self)
       local component = ComponentContext(orb, ComponentId)
       local recName = "MyReceptacle"
-      component:putReceptacle(recName, utils.ICOMPONENT_INTERFACE, false)
+      component:addReceptacle(recName, utils.ICOMPONENT_INTERFACE, false)
       Check.assertNotNil(component:getReceptacleByName(recName))
       component:removeReceptacle(recName)
       Check.assertNil(component:getReceptacleByName(recName))

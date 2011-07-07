@@ -145,8 +145,7 @@ function removeReceptacle(self, name)
 end
 
 --
--- Description: Activates all of the component's facets. If a facet is
--- successfully activated, its facet_ref field will be set to the new object.
+-- Description: Activates all of the component's facets.
 -- Return value: Table containing the names(indexes) and error messages(values)
 --               of the facets that could not be activated.
 --
@@ -159,7 +158,6 @@ function activateComponent(self)
       errFacets[name] = err
       Log:error("Facet " .. name .. " was not activated. Error: " .. err)
     else
-      facet.facet_ref = err
       Log:scs("Facet " .. name .. " was activated.")
     end
   end
@@ -168,8 +166,8 @@ end
 
 --
 -- Description: Deactivates all of the component's facets. If a facet is
--- successfully deactivated, its facet_ref field will be set to nil, but its
--- implementation field will remain unchanged.
+-- successfully deactivated, its facet_ref field will NOT be set to nil, because
+-- it can be reactivated later.
 -- Return value: Table containing the names(indexes) and error messages(values)
 --               of the facets that could not be deactivated.
 --
@@ -177,12 +175,11 @@ function deactivateComponent(self)
   local errFacets = {}
   for name, facet in pairs(self._facets) do
     local status, err = oil.pcall(self._orb.deactivate, self._orb,
-      facet.facet_ref)
+      facet.facet_ref, facet.interface_name)
     if not status then
       errFacets[name] = err
       Log:error("Facet " .. name .. " was not deactivated. Error: " .. err)
     else
-      facet.facet_ref = nil
       Log:scs("Facet " .. name .. " was deactivated.")
     end
   end

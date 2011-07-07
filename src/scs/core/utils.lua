@@ -7,6 +7,7 @@
 
 local oo  = require "loop.base"
 local oil = require "oil"
+local Log = require "scs.util.Log"
 
 local module    = module
 local tostring  = tostring
@@ -79,7 +80,7 @@ function readProperties (self, t, file)
     if prop == nil then
       break
     end
-    self:verbosePrint("SCS::Utils::ReadProperties : Line: " .. prop)
+    Log:utils("ReadProperties : Line: " .. prop)
     local a,b = string.match(prop, "%s*(%S*)%s*[=]%s*(.*)%s*")
     if a ~= nil then
       local readonly = false
@@ -126,7 +127,7 @@ end
 -- Return Value: The array.
 --
 function convertToArray(self, inputTable)
-  self:verbosePrint("SCS::Utils::ConvertToArray")
+  Log:utils("ConvertToArray: Begin")
   local outputArray = {}
   local i = 1
   for index, item in pairs(inputTable) do
@@ -136,7 +137,7 @@ function convertToArray(self, inputTable)
       i = i + 1
     end
   end
-  self:verbosePrint("SCS::Utils::ConvertToArray : Finished.")
+  Log:utils("ConvertToArray : Finished.")
   return outputArray
 end
 
@@ -146,14 +147,14 @@ end
 -- Return Value: The boolean.
 --
 function toBoolean(self, inputString)
-    self:verbosePrint("SCS::Utils::StringToBoolean")
+    Log:utils("StringToBoolean: Begin")
     local inputString = tostring(inputString)
     local result = false
     if string.find(inputString, "true") and string.len(inputString) == 4 then
         result = true
     end
-    self:verbosePrint("SCS::Utils::StringToBoolean : " .. tostring(result) .. ".")
-    self:verbosePrint("SCS::Utils::StringToBoolean : Finished.")
+    Log:utils("StringToBoolean : " .. tostring(result) .. ".")
+    Log:utils("StringToBoolean : Finished.")
     return result
 end
 

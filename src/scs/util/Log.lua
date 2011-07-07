@@ -22,13 +22,14 @@ viewer = Viewer{
 groups.basic = {"init", "warn", "error"}
 groups.service = {"execution_node", "container"}
 groups.mechanism = {"interceptor", "conn"}
-groups.core = {"scs"}
+groups.core = {"scs", "utils"}
 groups.all = {"basic", "service", "core"}
 
 -- Definição dos níveis de debug (em ordem crescente)
 _M:newlevel{"basic"}
-_M:newlevel{"service"}
 _M:newlevel{"core"}
+_M:newlevel{"mechanism"}
+_M:newlevel{"service"}
 
 -- Caso seja necessário exibir o horário do registro
 -- timed.basic =  "%d/%m %H:%M:%S"

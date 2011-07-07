@@ -1,7 +1,9 @@
 local oil = require "oil"
 local ComponentContext = require "scs.core.ComponentContext"
+local Log = require "scs.util.Log"
 local utils  = require "scs.core.utils"
 utils = utils()
+Log:level(3)
 
 -- OiL configuration
 local orb = oil.init()
@@ -33,6 +35,6 @@ oil.main(function()
   -- other facet from it. This step can also be replaced by other methods of
   -- publishing, like a name server.
   oil.writeto("pingpong" .. pingPong.id .. ".ior", orb:tostring(ppInst.IComponent))
-  print("[info] Component PingPongServer " .. pingPong.id .. " was started successfully.")
+  Log:info("Component PingPongServer " .. pingPong.id .. " was started successfully.")
 end)
 

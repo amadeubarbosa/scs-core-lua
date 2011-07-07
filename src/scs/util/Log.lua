@@ -9,14 +9,14 @@ local Verbose = require "loop.debug.Verbose"
 module ("scs.util.Log", Verbose)
 
 -- Coloca data e hora no log
-timed = "%d/%m %H:%M:%S"
+timed = "%d/%m/%Y %H:%M:%S"
 
 -- Usa uma instância própria do Viewer para não interferir com o do OiL
 viewer = Viewer{
-           maxdepth = 2,
-           indentation = "|  ",
-           -- output = io.output()
-         }
+  maxdepth = 2,
+  indentation = "|  ",
+  -- output = io.output()
+}
 
 -- Definição dos tags que compõem cada grupo
 groups.basic = {"init", "warn", "error"}

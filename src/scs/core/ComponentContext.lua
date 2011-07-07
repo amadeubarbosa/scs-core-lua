@@ -12,6 +12,7 @@ local oil           = require "oil"
 local Component     = require "scs.core.Component"
 local Receptacles   = require "scs.core.Receptacles"
 local MetaInterface = require "scs.core.MetaInterface"
+local Log           = require "scs.util.Log"
 local utils         = require "scs.core.utils"
 utils = utils()
 
@@ -85,7 +86,11 @@ local function putFacet(self, name, interface, implementation, key)
   self._facets[name] = {name = name, interface_name = interface,
     facet_ref = servant, key = key, implementation = impl}
   self[name] = servant
-  --TODO: logar q uma faceta foi adicionada
+  local msg = "Facet " .. name .. " with interface " .. interface .. " was added to the component."
+  if key then
+    msg = msg .. " The key " .. key .. " was used."
+  end
+  Log:scs(msg)
 end
 
 function __init(self, orb, id, basicKeys)
@@ -122,7 +127,7 @@ function removeFacet(self, name)
   deactivateFacet(self, name)
   self._facets[name] = nil
   self[name] = nil
-  --TODO: logar que uma faceta foi removida
+  Log:scs("Facet " .. name .. " was removed from the component.")
 end
 
 function addReceptacle(self, name, interface, multiplex)
@@ -131,12 +136,12 @@ function addReceptacle(self, name, interface, multiplex)
   end
   self._receptacles[name] = {name = name, interface_name = interface,
     is_multiplex = multiplex, connections = {}}
-  --TODO: logar que um receptaculo foi adicionado
+  Log:scs("Receptacle " .. name .. " expecting interface " .. interface .. " was added to the component.")
 end
 
 function removeReceptacle(self, name)
   self._receptacles[name] = nil
-  --TODO: logar que um receptaculo foi removido e todas as suas conexoes, perdidas
+  Log:scs("Receptacle " .. name .. " was removed from the component. If it had active connections, access to them may be lost.")
 end
 
 --
@@ -150,11 +155,12 @@ function activateComponent(self)
   for name, facet in pairs(self._facets) do
     local status, err = oil.pcall(self._orb.newservant, self._orb,
       facet.implementation, facet.key, facet.interface_name)
-    --TODO: logar de acordo
     if not status then
       errFacets[name] = err
+      Log:error("Facet " .. name .. " was not activated. Error: " .. err)
     else
       facet.facet_ref = err
+      Log:scs("Facet " .. name .. " was activated.")
     end
   end
   return errFacets
@@ -172,11 +178,12 @@ function deactivateComponent(self)
   for name, facet in pairs(self._facets) do
     local status, err = oil.pcall(self._orb.deactivate, self._orb,
       facet.facet_ref)
-    --TODO: logar de acordo
     if not status then
       errFacets[name] = err
+      Log:error("Facet " .. name .. " was not deactivated. Error: " .. err)
     else
       facet.facet_ref = nil
+      Log:scs("Facet " .. name .. " was deactivated.")
     end
   end
   return errFacets

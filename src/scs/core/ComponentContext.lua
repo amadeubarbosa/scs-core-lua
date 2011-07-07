@@ -139,6 +139,12 @@ function removeReceptacle(self, name)
   --TODO: logar que um receptaculo foi removido e todas as suas conexoes, perdidas
 end
 
+--
+-- Description: Activates all of the component's facets. If a facet is
+-- successfully activated, its facet_ref field will be set to the new object.
+-- Return value: Table containing the names(indexes) and error messages(values)
+--               of the facets that could not be activated.
+--
 function activateComponent(self)
   local errFacets = {}
   for name, facet in pairs(self._facets) do
@@ -147,18 +153,17 @@ function activateComponent(self)
     --TODO: logar de acordo
     if not status then
       errFacets[name] = err
+    else
+      facet.facet_ref = err
     end
   end
   return errFacets
 end
 
---TODO: checar se comentario abaixo ainda esta bom.
 --
--- Description: Deactivate the component's facets. The facet_ref references
--- remain not null after the call, as to maintain the Lua table reachable.
--- It's the user's responsibility to reactivate the facets when deemed
--- appropriate.
--- Parameter instance: Component instance.
+-- Description: Deactivates all of the component's facets. If a facet is
+-- successfully deactivated, its facet_ref field will be set to nil, but its
+-- implementation field will remain unchanged.
 -- Return value: Table containing the names(indexes) and error messages(values)
 --               of the facets that could not be deactivated.
 --
@@ -170,6 +175,8 @@ function deactivateComponent(self)
     --TODO: logar de acordo
     if not status then
       errFacets[name] = err
+    else
+      facet.facet_ref = nil
     end
   end
   return errFacets

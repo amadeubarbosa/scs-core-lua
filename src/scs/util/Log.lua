@@ -19,17 +19,19 @@ viewer = Viewer{
 }
 
 -- Definição dos tags que compõem cada grupo
-groups.basic = {"init", "warn", "error"}
-groups.service = {"execution_node", "container"}
-groups.mechanism = {"interceptor", "conn"}
-groups.core = {"scs", "utils"}
-groups.all = {"basic", "service", "core"}
+groups.fatal = {"error"}
+groups.basic = {"init", "warn"}
+groups.service = {"execution_node", "container", "info"}
+groups.core = {"scs", "utils", "config"}
+groups.mechanism = {"interceptor", "conn", "debug"}
+groups.all = {"fatal", "basic", "service", "core", "mechanism"}
 
 -- Definição dos níveis de debug (em ordem crescente)
+_M:newlevel{"fatal"}
 _M:newlevel{"basic"}
+_M:newlevel{"service"}
 _M:newlevel{"core"}
 _M:newlevel{"mechanism"}
-_M:newlevel{"service"}
 
 -- Caso seja necessário exibir o horário do registro
 -- timed.basic =  "%d/%m %H:%M:%S"

@@ -1,4 +1,5 @@
 local Receptacles = require "scs.core.Receptacles"
+local Log = require "scs.util.Log"
 local oop = require "loop.simple"
 local print = print
 local pairs = pairs
@@ -28,7 +29,7 @@ function AdaptiveReceptacleFacet:__init()
 end
 
 function AdaptiveReceptacleFacet:updateActiveConnId(conns)
-  self.utils:verbosePrint("[AdaptiveReceptacleFacet:updateActiveConnId]")
+  Log:scs("[AdaptiveReceptacleFacet:updateActiveConnId]")
   if # conns == 0 then
   --if the list is empty, there aren't active receptacle
      self.activeConnId = 0
@@ -51,7 +52,7 @@ end
 -- Return Value: The connection's identifier.
 --
 function AdaptiveReceptacleFacet:connect(receptacle, object)
-  self.utils:verbosePrint("[AdaptiveReceptacleFacet:connect]")
+  Log:scs("[AdaptiveReceptacleFacet:connect]")
 
   self:updateConnections(receptacle)
   -- Connects the service at the receptacle
@@ -59,14 +60,14 @@ function AdaptiveReceptacleFacet:connect(receptacle, object)
                           receptacle,
                           object) -- calling inherited method
   if not connId then
-    self.utils:verbosePrint("Failure attempting to connect service")
+    Log:warn("[AdaptiveReceptacleFacet:connect] Failure attempting to connect service")
     return connId
   elseif connId == 1 then
   -- this is the first to connect
   -- make sure that the reference to the leader is correct
     self.activeConnId = 1
   end
-  self.utils:verbosePrint("[AdaptiveReceptacleFacet:connect] Service was connected successefully")
+  Log:scs("[AdaptiveReceptacleFacet:connect] Service was connected successefully")
   return connId
 
 end
@@ -78,7 +79,7 @@ end
 -- Parameter connId: The connection's identifier.
 --
 function AdaptiveReceptacleFacet:disconnect(connId)
-  self.utils:verbosePrint("[AdaptiveReceptacleFacet:disconnect]")
+  Log:scs("[AdaptiveReceptacleFacet:disconnect]")
   Receptacles.disconnect(self,connId) -- calling inherited method
 end
 
@@ -90,7 +91,7 @@ end
 -- Return Value: All current connections of the specified receptacle.
 --
 function AdaptiveReceptacleFacet:getConnections(receptacle)
-  self.utils:verbosePrint("[AdaptiveReceptacleFacet:getConnections]")
+  Log:scs("[AdaptiveReceptacleFacet:getConnections]")
   self:updateConnections(receptacle)
   return Receptacles.getConnections(self,receptacle) -- calling inherited method
 end
@@ -102,21 +103,21 @@ end
 -- Parameter receptacle: The receptacle's name.
 --
 function AdaptiveReceptacleFacet:updateConnections(receptacle)
-  self.utils:verbosePrint("[AdaptiveReceptacleFacet:updateConnections]")
+  Log:scs("[AdaptiveReceptacleFacet:updateConnections]")
   local conns = Receptacles.getConnections(self,receptacle)
   if conns then
   -- each connected service is tested,
   -- if a communication failure happened, the service is disconnected
     local alreadyUpdated = false
     for connId,conn in pairs(conns) do
-      self.utils:verbosePrint("[AdaptiveReceptacleFacet:updateConnections] Testing conection [".. tostring(connId) .."]")
+      Log:scs("[AdaptiveReceptacleFacet:updateConnections] Testing conection [".. tostring(connId) .."]")
       local serviceRec = self.context:getORB():narrow(conn.objref, "IDL:scs/core/IComponent:1.0")
       if not OilUtilities:existent(serviceRec) then
-        self.utils:verbosePrint("[AdaptiveReceptacleFacet:updateConnections] The service was not found. It will be disconnected from receptacle.")
+        Log:warn("[AdaptiveReceptacleFacet:updateConnections] The service was not found. It will be disconnected from the receptacle.")
         -- serviceRec esta com falha -> desconectar
         local succ, err = oil.pcall(self.disconnect, self, connId)
         if not succ then
-          self.utils:verbosePrint("[AdaptiveReceptacleFacet:updateConnections] Error:" .. err[1])
+          Log:error("[AdaptiveReceptacleFacet:updateConnections] Error:" .. err[1])
         end
         if self.activeConnId == connId and not alreadyUpdated then
         --atualiza receptacle lider

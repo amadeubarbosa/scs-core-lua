@@ -6,6 +6,7 @@
 --
 
 local oo = require "loop.base"
+local Log = require "scs.util.Log"
 local assert = assert
 
 --------------------------------------------------------------------------------
@@ -34,14 +35,14 @@ end
 -- Throws: IDL:ComponentNotFound IDL:HelpInfoNotAvailable exceptions
 --
 function CpnHelp:getHelpInfo(componentId)
-  self.context.utils:verbosePrint(self.componentName .. "::ComponentHelp::GetHelpInfo")
+  Log:info(self.componentName .. "::ComponentHelp::GetHelpInfo")
   local nameVersion = self.context.utils:getNameVersion(componentId)
   assert(self.helpInfo ~= "", "IDL:scs/auxiliar/HelpInfoNotAvailable:1.0")
   --local f = assert( io.open(nameVersion .. ".hlp", "r"),
   --          "IDL:HelpInfoNotAvailable")
   --local string ret = f:read("*all")
   --f:close()
-  self.context.utils:verbosePrint(self.componentName .. "::ComponentHelp::GetHelpInfo : Finished.")
+  Log:info(self.componentName .. "::ComponentHelp::GetHelpInfo : Finished.")
   return self.helpInfo
 end
 

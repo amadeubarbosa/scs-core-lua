@@ -1,6 +1,12 @@
+local oop = require "loop.simple"
+local oil = require "oil"
+local Log = require "scs.util.Log"
+local utils = require "scs.core.utils"
+local OilUtilities = require "scs.util.OilUtilities"
+local AdaptiveReceptacle = require "scs.adaptation.AdaptiveReceptacle"
+
 local ipairs = ipairs
 local assert = assert
-local oop = require "loop.simple"
 local print = print
 local pairs = pairs
 local tostring = tostring
@@ -8,11 +14,6 @@ local type = type
 local tonumber = tonumber
 local error = error
 
-local oil = require "oil"
-
-local utils     = require "scs.core.utils"
-local OilUtilities = require "scs.util.OilUtilities"
-local AdaptiveReceptacle = require "scs.adaptation.AdaptiveReceptacle"
 
 module("scs.adaptation.PersistentReceptacle")
 
@@ -49,7 +50,7 @@ function PersistentReceptacleFacet:__init(dbmanager)
 end
 
 function PersistentReceptacleFacet:connect(receptacle, object)
-  self.utils:verbosePrint("[PersistentReceptacleFacet:connect]")
+  Log:scs("[PersistentReceptacleFacet:connect]")
 
   local status, connId = oil.pcall(AdaptiveReceptacle.AdaptiveReceptacleFacet.connect,
                                    self, receptacle, object)
@@ -74,7 +75,7 @@ end
 -- Parameter connId: The connection's identifier.
 --
 function PersistentReceptacleFacet:disconnect(connId)
-  self.utils:verbosePrint("[PersistentReceptacleFacet:disconnect]")
+  Log:scs("[PersistentReceptacleFacet:disconnect]")
   if self.connectionsDB:get(connId) then
   --removes only if exists
     self.connectionsDB:remove(connId)
@@ -86,7 +87,7 @@ function PersistentReceptacleFacet:disconnect(connId)
 end
 
 function PersistentReceptacleFacet:getConnections(receptacle)
-  self.utils:verbosePrint("[PersistentReceptacleFacet:getConnections]")
+  Log:scs("[PersistentReceptacleFacet:getConnections]")
   if self.firstRequired then
     -- Load the connections
     local data = assert(self.connectionsDB:getValues())

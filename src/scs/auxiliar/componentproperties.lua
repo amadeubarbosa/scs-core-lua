@@ -6,6 +6,7 @@
 --
 
 local oo = require "loop.base"
+local Log = require "scs.util.Log"
 local utils   = require "scs.core.utils"
 
 local assert = assert
@@ -28,7 +29,6 @@ function CpnProperties:__init()
   local inst = oo.rawnew(self, {})
   inst.props = inst.props or {}
   inst.utils = utils()
-  inst.utils.verbose = true
   return inst
 end
 
@@ -45,9 +45,9 @@ end
 -- Return Value: Array of properties.
 --
 function CpnProperties:getProperties()
-  self.utils:verbosePrint(self.componentName .. "::ComponentProperties::GetProperties")
+  Log:info(self.componentName .. "::ComponentProperties::GetProperties")
   local ret = self.utils:convertToArray(self.props)
-  self.utils:verbosePrint(self.componentName .. "::ComponentProperties::GetProperties : Finished.")
+  Log:info(self.componentName .. "::ComponentProperties::GetProperties : Finished.")
   return ret
 end
 
@@ -58,8 +58,8 @@ end
 -- Throws: IDL:UndefinedProperty
 --
 function CpnProperties:getProperty(name)
-  self.utils:verbosePrint(self.componentName .. "::ComponentProperties::GetProperty")
-  self.utils:verbosePrint(self.componentName .. "::ComponentProperties::GetProperty : Finished.")
+  Log:info(self.componentName .. "::ComponentProperties::GetProperty")
+  Log:info(self.componentName .. "::ComponentProperties::GetProperty : Finished.")
   return self.props[name]
 end
 
@@ -68,7 +68,7 @@ end
 -- Parameter property: The property structure.
 --
 function CpnProperties:setProperty(property)
-  self.utils:verbosePrint(self.componentName .. "::ComponentProperties::SetProperty")
+  Log:info(self.componentName .. "::ComponentProperties::SetProperty")
   local prop = self.props[property.name]
   if not prop then
     self.props[property.name] = property
@@ -80,6 +80,6 @@ function CpnProperties:setProperty(property)
       prop.read_only = self.utils:toBoolean(property.read_only)
     end
   end
-  self.utils:verbosePrint(self.componentName .. "::ComponentProperties::SetProperty : Finished.")
+  Log:info(self.componentName .. "::ComponentProperties::SetProperty : Finished.")
 end
 

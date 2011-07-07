@@ -138,6 +138,13 @@ local function readAndPutReceptacles(self, receptsTag, component)
   end
 end
 
+
+--- Builds a component, based on a XML file. The component will be composed of
+-- the basic facets, plus all facets and receptacles present on the XML file.
+--
+-- @param orb The orb that shall be associated to this component and its CORBA objects.
+-- @param file The XML file.
+-- @return A fully assembled component, with working facets, as described by the XML file.
 function build(self, orb, file)
   local component
   local xml = simpleTreeHandler()

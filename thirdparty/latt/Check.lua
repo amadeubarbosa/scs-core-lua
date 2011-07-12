@@ -1,12 +1,19 @@
 local unpack = unpack
 local error = error
 local tostring = tostring
+local type = type
 
 local oop = require "loop.base"
 
 local latt = latt
 
 module("latt.Check", oop.class)
+
+local function assertBoolean(condition)
+  if type(condition) ~= "boolean" then
+    error("The condition is not a boolean value.", 3)
+  end
+end
 
 function assertError(f, ...)
   local success = latt.pcall(f, unpack(arg))
@@ -28,12 +35,14 @@ function assertNotEquals(expected, actual)
 end
 
 function assertTrue(condition)
+  assertBoolean(condition)
   if condition == false then
     error("The condition must be true.", 2)
   end
 end
 
 function assertFalse(condition)
+  assertBoolean(condition)
   if condition == true then
     error("The condition must be false.", 2)
   end

@@ -7,7 +7,6 @@ local ComponentContext = require "scs.core.ComponentContext"
 local utils = require "scs.core.utils"
 utils = utils()
 local builder = require "scs.core.builder.XMLComponentBuilder"
-builder = builder()
 
 oil.verbose:level(0)
 

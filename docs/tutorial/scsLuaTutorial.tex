@@ -19,6 +19,7 @@
 \def\lstlistingname{Código}
 \lstset{inputencoding=latin1}
 \codestyle{colorful}
+\bibliographystyle{acm}
 %% Removes hyperlinks borders
 \hypersetup{
   pdfborder = {0 0 0},
@@ -47,8 +48,8 @@
 
 \section{Introdução}\label{intro}
 
-Este documento é um tutorial básico sobre a criação de componentes no modelo SCS v1.3.0, utilizando a versão Lua da implementação padrão. Não serão encontradas aqui explicações sobre o modelo, as quais encontram-se em documentos específicos. Também não será abordado o uso de serviços específicos desenvolvidos para o auxílio ao uso do modelo, como a infra-estrutura de execução. Essas informações também podem ser obtidas em outros documentos.
-A implementação SCS-Lua 1.3.0 baseia-se na versão 5.1 da máquina virtual Lua e em CORBA v2.3, representada pelo ORB OiL v0.5. Este documento assume que o leitor é familiarizado a conceitos de desenvolvimento de \emph{software} baseado em componentes e à terminologia CORBA.
+Este documento é um tutorial básico sobre a criação de componentes no modelo SCS v1.3.0\cite{SCS}, utilizando a versão Lua da implementação padrão. Não serão encontradas aqui explicações sobre o modelo, as quais encontram-se em documentos específicos. Também não será abordado o uso de serviços específicos desenvolvidos para o auxílio ao uso do modelo, como a infra-estrutura de execução ou a de implantação. Essas informações também podem ser obtidas em outros documentos.
+A implementação SCS-Lua 1.3.0 baseia-se na versão 5.1 da máquina virtual Lua\cite{LUA} e em CORBA v2.3\cite{CORBA}, representada pelo ORB OiL v0.5\cite{OIL}. Este documento assume que o leitor é familiarizado a conceitos de desenvolvimento de \emph{software} baseado em componentes e à terminologia CORBA.
 
 \section{Inicialização do ORB e Carga da IDL do SCS}\label{ORB}
 
@@ -156,7 +157,7 @@ end)
 
 \subsection{Criação de Facetas}\label{facetas}
 
-Facetas são interfaces CORBA, e devem ser implementadas pelo desenvolvedor da aplicação, como exigido pelas definições Lua desse padrão. No SCS-Lua, implementações de facetas podem ser tabelas simples. No entanto, é comum utilizar-se de orientação a objetos para a implementação de uma faceta. A biblioteca LOOP facilita o uso do paradigma de orientação a objetos em Lua.
+Facetas são interfaces CORBA, e devem ser implementadas pelo desenvolvedor da aplicação, como exigido pelas definições Lua desse padrão. No SCS-Lua, implementações de facetas podem ser tabelas simples. No entanto, é comum utilizar-se de orientação a objetos para a implementação de uma faceta. A biblioteca LOOP\cite{LOOP} facilita o uso do paradigma de orientação a objetos em Lua.
 
 Um exemplo de implementação de faceta com uso da biblioteca LOOP pode ser conferido no Código~\ref{lst:faceta}. Essa faceta precisa ter uma especificação em IDL. Para o nosso exemplo, utilizaremos a IDL contida no Código~\ref{lst:idl}.
 
@@ -203,7 +204,7 @@ context:addFacet("MyFacetName", "IDL:mymodule/MyFacet:1.0", facetInstance, "MyKe
 
 No ato da adição de uma faceta a um componente, é realizada uma cópia da instância da faceta. A instância precisa ser alterada e assim a cópia é inserida no componente, para evitar modificações no objeto fornecido pelo usuário. Será automaticamente inserido um campo "context" na faceta, com uma referência para o contexto do seu componente. O Contexto pode ser utilizado para acessar outras facetas e o identificador do componente, entre outros dados, como descrito na Seção \ref{contexto}. Além disso, é criada uma variável de mesmo nome da faceta dentro do contexto, que referencia diretamente o objeto CORBA da faceta. Por isso, não é possível utilizar o mesmo nome para uma faceta e um receptáculo.
 
-O SCS-Lua exige ainda que facetas implementem o método \emph{\_component} de CORBA, definido pelo OiL, mas esse método já é inserido automaticamente em qualquer faceta adicionada a um componente. Esse método é o mesmo que o \emph{\_get\_component} do ORB JacORB para Java e retorna o objeto CORBA da faceta IComponent. Em Lua deve-se sempre chamar \emph{\_component()}, independente da linguagem do objeto remoto.
+O SCS-Lua exige ainda que facetas implementem o método \emph{\_component} de CORBA, definido pelo OiL, mas esse método já é inserido automaticamente em qualquer faceta adicionada a um componente. Esse método é o mesmo que o \emph{\_get\_component} do ORB JacORB\cite{JACORB} para Java\cite{JAVA} e retorna o objeto CORBA da faceta IComponent. Em Lua deve-se sempre chamar \emph{\_component()}, independente da linguagem do objeto remoto.
 
 Por fim, é possível substituir a implementação de uma faceta por uma diferente. Isso é feito através do método \emph{updateFacet}. O método remove a faceta antiga e adiciona a nova, mas mantém o nome, interface e a chave definida pelo usuário (se não houver sido fornecida, uma nova é gerada aleatoriamente). O Código~\ref{lst:updateFacet} mostra o uso do método.
 
@@ -505,10 +506,6 @@ Para facilitar esse processo de externalização da configuração do componente, o 
 
 O \emph{XMLComponentBuilder} interpreta um arquivo XML com a descrição de um componente e retorna um componente pronto com a configuração especificada nesse arquivo. Na versão atual não é possível especificar parâmetros para os construtores das facetas. É possível especificar facetas, receptáculos, o Identificador do Componente e a implementação do contexto a ser usada. O Código~\ref{lst:xml} mostra um XML de exemplo, enquanto que o Código~\ref{lst:xmlbuilder} demonstra como utilizar o \emph{XMLComponentBuilder}.
 
-Para obter a implementação de facetas e contexto, o \emph{XMLComponentBuilder} realiza um \emph{require} no valor fornecido na \emph{tag} respectiva. Se o nome de uma faceta já existir, a faceta anterior será substituída pela nova.
-
-O SCS fornece em seu pacote de distribuição um arquivo chamado \emph{ComponentDescription.xsd} que contém o \emph{schema} XML utilizado pelo XMLComponentBuilder em qualquer linguagem suportada pelo SCS. A versão Lua atual, no entanto, não verifica o XML fornecido pelo usuário contra o \emph{schema}.
-
 \begin{labeledcode}[xml]{xml}{Arquivo XML Definindo um Componente}
 <?xml version="1.0" encoding="iso-8859-1" ?>
 <component xmlns="tecgraf.scs">
@@ -552,5 +549,11 @@ local builder = require "scs.core.builder.XMLComponentBuilder"
 -- facetas e receptáculos especificados no arquivo XML
 local instance = builder:build(orb, "exemplo.xml")
 \end{labeledcode}
+
+Para obter a implementação de facetas e contexto, o \emph{XMLComponentBuilder} realiza um \emph{require} no valor fornecido na \emph{tag} respectiva. Se o nome de uma faceta já existir, a faceta anterior será substituída pela nova.
+
+O SCS fornece em seu pacote de distribuição um arquivo chamado \emph{ComponentDescription.xsd} que contém o \emph{schema} XML utilizado pelo XMLComponentBuilder em qualquer linguagem suportada pelo SCS. A versão Lua atual, no entanto, não verifica o XML fornecido pelo usuário contra o \emph{schema}.
+
+\bibliography{bibliografia}
 
 \end{document}

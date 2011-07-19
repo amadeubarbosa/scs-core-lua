@@ -208,6 +208,8 @@ O SCS-Lua exige ainda que facetas implementem o método \emph{\_component} de COR
 
 Por fim, é possível substituir a implementação de uma faceta por uma diferente. Isso é feito através do método \emph{updateFacet}. O método remove a faceta antiga e adiciona a nova, mas mantém o nome, interface e a chave definida pelo usuário (se não houver sido fornecida, uma nova é gerada aleatoriamente). O Código~\ref{lst:updateFacet} mostra o uso do método.
 
+É importante notar que deve-se tomar grande cuidado ao atualizar ou remover uma faceta (existe também um método \emph{removeFacet} que não é coberto neste tutorial, mas explicado na documentação da API), pois esses tipos de ação podem levar a resultados inesperados para clientes. Isso pode ser considerado até mesmo como uma mudança em sua própria identidade. Portanto, é recomendada a atualização ou remoção de facetas somente em fase de construção ou destruição do componente, sem que suas facetas sejam conhecidas ou estejam sendo utilizadas por clientes. Um cuidado ainda maior deve ser tomado em casos onde sejam utilizadas referências persistentes.
+
 \begin{labeledcode}[lua]{updateFacet}{Atualização de Uma Faceta Básica}
 -- Nova implementação da faceta IComponent
 local MyIComponent = oo.class{}
@@ -221,6 +223,7 @@ context:updateFacet("IComponent", MyIComponent())
 \end{labeledcode}
 
 Um exemplo mais detalhado de como criar uma classe LOOP que estenda uma outra classe será dado na Seção \ref{extensão}.
+
 
 \subsection{Criação de Receptáculos}\label{receptaculos}
 

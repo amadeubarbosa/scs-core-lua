@@ -151,7 +151,7 @@ end
 -- and removeFacet also apply.
 --
 -- @param name The existent facet's name.
--- @param implementation The new facet implementation, not yet activated within the POA.
+-- @param implementation The new facet implementation, not yet registered within the ORB.
 function updateFacet(self, name, implementation)
   local facet = self._facets[name]
   self:removeFacet(facet.name)

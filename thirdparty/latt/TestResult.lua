@@ -5,7 +5,7 @@ local oop = require "loop.base"
 
 module("latt.TestResult", oop.class)
 
-function __init(self, suiteName)
+function __new(self, suiteName)
   return oop.rawnew(self, {
     suiteName = suiteName,
     testCounter = 0,

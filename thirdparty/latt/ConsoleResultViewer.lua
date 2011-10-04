@@ -7,7 +7,7 @@ local oop = require "loop.base"
 
 module("latt.ConsoleResultViewer", oop.class)
 
-function __init(self, result)
+function __new(self, result)
   return oop.rawnew(self, { result = result, })
 end
 

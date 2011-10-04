@@ -13,7 +13,7 @@ local TestSuite = require "latt.TestSuite"
 
 module("latt.TestRunner", oop.class)
 
-function __init(self, suite)
+function __new(self, suite)
   return oop.rawnew(self, { suite = suite, })
 end
 

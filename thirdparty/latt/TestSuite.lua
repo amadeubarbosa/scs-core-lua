@@ -6,7 +6,7 @@ local TestResult = require "latt.TestResult"
 
 module("latt.TestSuite", oop.class)
 
-function __init(self, name, testCases)
+function __new(self, name, testCases)
   return oop.rawnew(self, { name = name, testCases = testCases, })
 end
 

@@ -4,7 +4,7 @@ local oop = require "loop.base"
 
 module("latt.TestCase", oop.class)
 
-function __init(self, name, testCase, tests)
+function __new(self, name, testCase, tests)
   return oop.rawnew(self, { name = name, testCase = testCase, tests = tests, })
 end
 

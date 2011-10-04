@@ -6,10 +6,9 @@ end
 require "oil"
 
 local orb = oil.init {flavor = "cooperative;corba.intercepted",}
-oil.orb = orb
 
 latt = {}
-latt.pcall = oil.pcall
+latt.pcall = pcall
 
 dofile(arg[1])
 if not Suite then

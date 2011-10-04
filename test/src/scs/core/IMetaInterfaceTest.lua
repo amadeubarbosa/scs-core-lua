@@ -23,13 +23,16 @@ Log:level(0)
 local orb = oil.init()
 orb:loadidlfile(os.getenv("IDL_PATH") .. "/scs.idl")
 
-local context = ComponentContext(orb, ComponentId)
-context:addReceptacle("IMetaInterfaceTest", utils.ICOMPONENT_INTERFACE, false)
-local facet = context:getFacetByName(utils.IMETAINTERFACE_NAME)
-local imi = facet.facet_ref
+local imi
 
 Suite = {
   Test1 = {
+    beforeTestCase = function(self)
+      local context = ComponentContext(orb, ComponentId)
+      context:addReceptacle("IMetaInterfaceTest", utils.ICOMPONENT_INTERFACE, false)
+      imi = context:getFacetByName(utils.IMETAINTERFACE_NAME).facet_ref
+    end,
+
     testGetFacets = function(self)
       Check.assertEquals(3, #(imi:getFacets()))
     end,
@@ -50,10 +53,6 @@ Suite = {
       Check.assertEquals(1, #(imi:getReceptacles()))
     end,
 
-    testGetReceptacles2 = function(self)
-      Check.assertEquals(1, #(imi:getReceptacles()))
-    end,
-
     testGetReceptaclesByName = function(self)
       Check.assertEquals(0, #(imi:getReceptaclesByName({})))
       Check.assertEquals(1, #(imi:getReceptaclesByName({
@@ -63,6 +62,5 @@ Suite = {
     testGetReceptaclesByName2 = function(self)
       Check.assertError(imi.getReceptaclesByName, imi, {""})
     end,
-
   },
 }

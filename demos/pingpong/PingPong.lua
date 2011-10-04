@@ -10,7 +10,7 @@ local Log       = require "scs.util.Log"
 
 PingPongServer = oo.class{ id = 0, stop = false }
 
-function PingPongServer:__init()
+function PingPongServer:__new()
   return oo.rawnew(self, {})
 end
 
@@ -56,8 +56,8 @@ end
 
 PingPongIComponent = oos.class({}, Component)
 
-function PingPongIComponent:__init()
-  self = Component.__init(self)
+function PingPongIComponent:__new()
+  self = Component.__new(self)
   return self
 end
 

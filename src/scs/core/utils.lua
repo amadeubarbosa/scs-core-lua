@@ -25,7 +25,7 @@ module ("scs.core.utils", oo.class)
 
 --------------------------------------------------------------------------------
 
-function __init(self)
+function __new(self)
   local instance = oo.rawnew(self, {fileName = "",
                           verbose = false,
                           fileVerbose = false,

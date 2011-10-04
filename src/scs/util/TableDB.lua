@@ -10,7 +10,6 @@ local string = require "string"
 
 local pairs    = pairs
 local error    = error
-local print    = print
 local assert   = assert
 local pcall    = pcall
 local setfenv  = setfenv
@@ -28,7 +27,7 @@ module("scs.util.TableDB", oo.class)
 -- @param dbfile Arquivo para armazenar as informações. Esse arquivo é
 -- criado caso não exista.
 --
-function __init(self, dbfile)
+function __new(self, dbfile)
    local mode = lfs.attributes(dbfile, "mode")
    if not mode then
       local f = assert(io.open(dbfile, "w"))

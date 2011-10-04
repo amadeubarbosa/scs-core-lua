@@ -23,11 +23,15 @@ Log:level(0)
 local orb = oil.init()
 orb:loadidlfile(os.getenv("IDL_PATH") .. "/scs.idl")
 
-local context = ComponentContext(orb, ComponentId)
-local ic = context:getIComponent()
+local ic
 
 Suite = {
   Test1 = {
+    beforeTestCase = function(self)
+      local context = ComponentContext(orb, ComponentId)
+      ic = context:getIComponent()
+    end,
+
     testGetComponentId = function(self)
       local cpId = ic:getComponentId()
       Check.assertNotNil(cpId)

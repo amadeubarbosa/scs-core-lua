@@ -24,7 +24,7 @@ oil.main(function()
   -- since the _component() exists to obtain the IComponent facet, and any 
   -- other facet from it. This step can also be replaced by other methods of
   -- publishing, like a name server.
-  oil.writeto("hello.ior", orb:tostring(instance.IComponent))
+  oil.writeto("hello.ior", tostring(instance.IComponent))
   Log:info("Component Hello was started successfully.")
 end)
 

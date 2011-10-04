@@ -34,7 +34,7 @@ oil.main(function()
   -- since the _component() exists to obtain the IComponent facet, and any 
   -- other facet from it. This step can also be replaced by other methods of
   -- publishing, like a name server.
-  oil.writeto("pingpong" .. pingPong.id .. ".ior", orb:tostring(ppInst.IComponent))
+  oil.writeto("pingpong" .. pingPong.id .. ".ior", tostring(ppInst.IComponent))
   Log:info("Component PingPongServer " .. pingPong.id .. " was started successfully.")
 end)
 

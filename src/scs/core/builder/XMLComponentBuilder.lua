@@ -42,7 +42,7 @@ module ("scs.core.builder.XMLComponentBuilder", oo.class)
 
 --------------------------------------------------------------------------------
 
-function __init(self)
+function __new(self)
   return oo.rawnew(self, {})
 end
 

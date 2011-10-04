@@ -24,7 +24,7 @@ CpnHelp = oo.class{
   helpInfo = "",
 }
 
-function CpnHelp:__init()
+function CpnHelp:__new()
   return oo.rawnew(self, {})
 end
 

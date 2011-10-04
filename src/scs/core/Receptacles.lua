@@ -11,6 +11,8 @@ local utils = require "scs.core.utils"
 utils = utils()
 
 local error = error
+local pcall = pcall
+local type = type
 
 --------------------------------------------------------------------------------
 
@@ -18,7 +20,7 @@ module ("scs.core.Receptacles", oo.class)
 
 --------------------------------------------------------------------------------
 
-function __init(self)
+function __new(self)
   return oo.rawnew(self, {_nextConnId = 0, _maxConnections = 100,
                           _numConnections = 0, _receptsByConId = {}})
 end
@@ -40,14 +42,16 @@ function connect(self, receptacle, object)
     error{ "IDL:scs/core/InvalidConnection:1.0" }
   end
   local status, err
-  if not object._is_a then
+  if object._is_a then
+    status, err = pcall(object._is_a, object, desc.interface_name)
+  else
     -- This oil version does not provide an easy way to call the _is_a method on
     -- local objects with collocation enabled.
     -- Thus, the below two lines are a temporary workaround for this problem.
-    local impl, iface = self.context._orb.ServantManager.servants:retrieve(object.__key)
-    status, err = oil.pcall(iface.is_a, iface, desc.interface_name)
-  else
-    status, err = oil.pcall(object._is_a, object, desc.interface_name)
+    local iface = object.__type
+    if type(iface) == "table" and iface.is_a then
+      status, err = pcall(iface.is_a, iface, desc.interface_name)
+    end
   end
   if not (status and err) then
     error{ "IDL:scs/core/InvalidConnection:1.0" }

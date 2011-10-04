@@ -18,6 +18,7 @@ utils = utils()
 
 local module = module
 local pairs  = pairs
+local pcall  = pcall
 local table  = table
 local type   = type
 local error  = error
@@ -32,7 +33,7 @@ local unknownInterfaceErrorMessage = "Unknown interface. Try loading the corresp
 
 local function addBasicFacet(self, name, interface, object, key)
   local errMsg = "A basic SCS interface is not known by the ORB. Please load scs.idl file on the ORB first."
-  local success, err = oil.pcall(self.addFacet,
+  local success, err = pcall(self.addFacet,
                                  self,
                                  name,
                                  interface,
@@ -71,7 +72,7 @@ local function putFacet(self, name, interface, implementation, key)
     impl._component = _get_component
   end
   impl.context = impl.context or self
-  local success, servant = oil.pcall(self._orb.newservant,
+  local success, servant = pcall(self._orb.newservant,
                                      self._orb,
                                      impl,
                                      key,
@@ -107,7 +108,7 @@ end
 -- @param id The type of this component.
 -- @param basicKeys A table associating the name of a basic facet with a string key to be registered for it with the ORB.
 -- @return The new component instance.
-function __init(self, orb, id, basicKeys)
+function __new(self, orb, id, basicKeys)
   if not id then
     return nil, "ERROR: Missing ComponentId parameter"
   end
@@ -199,7 +200,7 @@ end
 function activateComponent(self)
   local errFacets = {}
   for name, facet in pairs(self._facets) do
-    local status, err = oil.pcall(self._orb.newservant, self._orb,
+    local status, err = pcall(self._orb.newservant, self._orb,
       facet.implementation, facet.key, facet.interface_name)
     if not status then
       errFacets[name] = err
@@ -219,7 +220,7 @@ end
 function deactivateComponent(self)
   local errFacets = {}
   for name, facet in pairs(self._facets) do
-    local status, err = oil.pcall(self._orb.deactivate, self._orb,
+    local status, err = pcall(self._orb.deactivate, self._orb,
       facet.facet_ref, facet.interface_name)
     if not status then
       errFacets[name] = err

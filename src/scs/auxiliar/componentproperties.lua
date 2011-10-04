@@ -25,7 +25,7 @@ CpnProperties = oo.class{
   componentName = "",
 }
 
-function CpnProperties:__init()
+function CpnProperties:__new()
   local inst = oo.rawnew(self, {})
   inst.props = inst.props or {}
   inst.utils = utils()

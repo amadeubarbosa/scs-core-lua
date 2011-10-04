@@ -7,8 +7,8 @@ local AdaptiveReceptacle = require "scs.adaptation.AdaptiveReceptacle"
 
 local ipairs = ipairs
 local assert = assert
-local print = print
 local pairs = pairs
+local pcall = pcall
 local tostring = tostring
 local type = type
 local tonumber = tonumber
@@ -35,14 +35,14 @@ PersistentReceptacleFacet = oop.class({}, AdaptiveReceptacle.AdaptiveReceptacleF
 --                                        "","IDL:scs/core/IReceptacles:1.0")
 --   facetDescriptions.IReceptacles.facet_ref      = receptFacetRef
 
-function PersistentReceptacleFacet:__init(dbmanager)
+function PersistentReceptacleFacet:__new(dbmanager)
   --Checks if dbmanager implements the required operations
   if type(dbmanager.save) ~= "function"   or
      type(dbmanager.remove) ~= "function" or
      type(dbmanager.get) ~= "function"    then
      error ( self.context:getORB():newexcept{"CORBA::PERSIST_STORE"}[1] )
   end
-  self = AdaptiveReceptacle.AdaptiveReceptacleFacet.__init(self)
+  self = AdaptiveReceptacle.AdaptiveReceptacleFacet.__new(self)
   self.connectionsDB = dbmanager
   --used to load data during getConnections at the first time
   self.firstRequired = true
@@ -52,13 +52,13 @@ end
 function PersistentReceptacleFacet:connect(receptacle, object)
   Log:scs("[PersistentReceptacleFacet:connect]")
 
-  local status, connId = oil.pcall(AdaptiveReceptacle.AdaptiveReceptacleFacet.connect,
+  local status, connId = pcall(AdaptiveReceptacle.AdaptiveReceptacleFacet.connect,
                                    self, receptacle, object)
   if status then
     if type(connId) == "number" then
       if not self.connectionsDB:get(connId) then
       --saves onle if it is not already saved
-        self.connectionsDB:save(tonumber(connId), self.context:getORB():tostring(object))
+        self.connectionsDB:save(tonumber(connId), tostring(object))
       end
     end
   else
@@ -80,7 +80,7 @@ function PersistentReceptacleFacet:disconnect(connId)
   --removes only if exists
     self.connectionsDB:remove(connId)
   end
-  local status, err =oil.pcall(AdaptiveReceptacle.AdaptiveReceptacleFacet.disconnect, self,connId) -- calling inherited method
+  local status, err = pcall(AdaptiveReceptacle.AdaptiveReceptacleFacet.disconnect, self,connId) -- calling inherited method
   if not status then
     error { err[1] }
   end
@@ -94,7 +94,7 @@ function PersistentReceptacleFacet:getConnections(receptacle)
     for connId, objIOR in ipairs(data) do
       local object = self.context:getORB():newproxy(objIOR, "synchronous", oil.corba.idl.object)
       if OilUtilities:existent(object) then
-        local status, newConnId = oil.pcall(self.connect, self, receptacle, object)
+        local status, newConnId = pcall(self.connect, self, receptacle, object)
         if status then
           if newConnId ~= connId then
             --update the connId only if the new one is different from the one saved

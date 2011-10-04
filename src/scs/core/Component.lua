@@ -15,7 +15,7 @@ module ("scs.core.Component", oo.class)
 
 --------------------------------------------------------------------------------
 
-function __init(self)
+function __new(self)
   return oo.rawnew(self, {})
 end
 

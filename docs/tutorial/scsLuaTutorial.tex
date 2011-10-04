@@ -177,7 +177,7 @@ local oo = require "loop.base"
 
 -- Implementação do construtor
 local MyFacet = oo.class{}
-function MyFacet:__init()
+function MyFacet:__new()
   return oo.rawnew(self, {})
 end
 
@@ -368,7 +368,7 @@ oil.main(function()
   -- pode-se obter outras facetas(esse passo pode ser substituído por outras
   -- formas de publicação, como a publicação em um serviço de nomes, por
   -- exemplo).
-  oil.writeto("hello.ior", orb:tostring(instance.IHello))
+  oil.writeto("hello.ior", tostring(instance.IHello))
 end)
 \end{labeledcode}
 
@@ -441,9 +441,9 @@ local oo = require "loop.simple"
 
 -- a linha abaixo especifica a classe ComponentContext como classe a ser herdada
 local MyComponentContext = oop.class({}, ComponentContext)
-function MyComponentContext:__init(orb, componentId, basicKeys)
+function MyComponentContext:__new(orb, componentId, basicKeys)
   -- chama o construtor da superclasse passando o self da classe atual
-  self = ComponentContext.__init(self, orb, componentId, basicKeys)
+  self = ComponentContext.__new(self, orb, componentId, basicKeys)
   -- não podemos juntar a linha abaixo com a linha acima - a definição de "self"
   -- na linha acima não é uma definição de variável local temporária
   return self
@@ -477,9 +477,9 @@ local oo = require "loop.simple"
 
 -- a linha abaixo especifica a classe Component como classe a ser herdada
 local MyIComponent = oop.class({}, Component)
-function MyIComponent:__init()
+function MyIComponent:__new()
   -- chama o construtor da superclasse passando o self da classe atual
-  self = Component.__init(self)
+  self = Component.__new(self)
   -- não podemos juntar a linha abaixo com a linha acima - a definição de "self"
   -- na linha acima não é uma definição de variável local temporária
   return self

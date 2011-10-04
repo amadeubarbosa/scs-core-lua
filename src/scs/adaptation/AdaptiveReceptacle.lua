@@ -1,8 +1,8 @@
 local Receptacles = require "scs.core.Receptacles"
 local Log = require "scs.util.Log"
 local oop = require "loop.simple"
-local print = print
 local pairs = pairs
+local pcall = pcall
 local tostring = tostring
 
 local oil = require "oil"
@@ -21,8 +21,8 @@ AdaptiveReceptacleFacet = oop.class({}, Receptacles)
 
 --The first of the list always starts as the leader
 
-function AdaptiveReceptacleFacet:__init()
-  self = Receptacles.__init(self)
+function AdaptiveReceptacleFacet:__new()
+  self = Receptacles.__new(self)
   self.activeConnId = 1
   self.utils = utils()
   return self
@@ -115,7 +115,7 @@ function AdaptiveReceptacleFacet:updateConnections(receptacle)
       if not OilUtilities:existent(serviceRec) then
         Log:warn("[AdaptiveReceptacleFacet:updateConnections] The service was not found. It will be disconnected from the receptacle.")
         -- serviceRec esta com falha -> desconectar
-        local succ, err = oil.pcall(self.disconnect, self, connId)
+        local succ, err = pcall(self.disconnect, self, connId)
         if not succ then
           Log:error("[AdaptiveReceptacleFacet:updateConnections] Error:" .. err[1])
         end

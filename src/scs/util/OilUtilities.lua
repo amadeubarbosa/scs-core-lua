@@ -1,4 +1,4 @@
-local print = print
+local pcall = pcall
 local coroutine = coroutine
 local loadfile = loadfile
 local assert = assert
@@ -28,7 +28,7 @@ function existent(self, proxy)
         if proxy.__manager.invoker == protected then
           executedOK, not_exists = proxy:_non_existent()
         else
-          executedOK, not_exists = oil.pcall(proxy._non_existent, proxy)
+          executedOK, not_exists = pcall(proxy._non_existent, proxy)
         end
         oil.tasks:resume(parent)
   end)

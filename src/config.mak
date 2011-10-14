@@ -1,5 +1,5 @@
-PROJNAME= SCS
-LIBNAME= luascs
+PROJNAME= luascs
+LIBNAME= $(PROJNAME)
 
 ifeq "$(TEC_SYSNAME)" "SunOS"
   USE_CC=Yes

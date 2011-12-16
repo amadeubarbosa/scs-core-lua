@@ -11,6 +11,7 @@ local Log = require "scs.util.Log"
 
 local module    = module
 local tostring  = tostring
+local tonumber  = tonumber
 local type      = type
 local io        = io
 local string    = string
@@ -93,6 +94,40 @@ function readProperties (self, t, file)
     end
   end
   f:close()
+  -- defining auxiliar functions to help manipulating read properties
+  -- return the string from tag in properties, or the defaul value (var)
+  function t:getString(tag, var)
+    if self[tag] then
+      var = self[tag].value
+    end
+    return var
+  end
+  -- return the number from tag in properties, or the defaul value (var)
+  function t:getNumber(tag, var)
+    if self[tag] and tonumber(self[tag].value) then
+      var = tonumber(self[tag].value)
+    end
+    return var
+  end
+  local uself = self
+  -- return the boolean from tag in properties, or the defaul value (var)
+  function t:getBoolean(tag, var)
+    if self[tag] then
+      var = uself:toBoolean(self[tag].value)
+    end
+    return var
+  end
+  -- return the value of tag according to the type of default value (var)
+  function t:getTagOrDefault(tag, var)
+    local t = type(var)
+    if t == "boolean" then
+      return self:getBoolean(tag, var)
+    elseif t == "number" then 
+      return self:getNumber(tag, var)
+    else
+      return self:getString(tag, var)
+    end
+  end
 end
 
 --
@@ -147,15 +182,20 @@ end
 -- Return Value: The boolean.
 --
 function toBoolean(self, inputString)
-    Log:utils("StringToBoolean: Begin")
-    local inputString = tostring(inputString)
-    local result = false
-    if string.find(inputString, "true") and string.len(inputString) == 4 then
-        result = true
-    end
-    Log:utils("StringToBoolean : " .. tostring(result) .. ".")
-    Log:utils("StringToBoolean : Finished.")
-    return result
+  Log:utils("StringToBoolean: Begin")
+  local toBool = {
+    ["true"] = true,
+    ["false"] = false,
+    ["yes"] = true,
+    ["no"] = false,
+  }
+  local inputString = tostring(inputString)
+  local result = toBool[inputString:lower()]
+  -- convert nil to false, false to false, true to true
+  result = not not result
+  Log:utils("StringToBoolean : " .. tostring(result) .. ".")
+  Log:utils("StringToBoolean : Finished.")
+  return result
 end
 
 --
@@ -164,6 +204,6 @@ end
 -- Return Value: A string containing the stringified version.
 --
 function getNameVersion(self, componentId)
-    return componentId.name .. componentId.major_version .. componentId.minor_version ..
-    componentId.patch_version
+  return componentId.name .. componentId.major_version .. componentId.minor_version ..
+  componentId.patch_version
 end

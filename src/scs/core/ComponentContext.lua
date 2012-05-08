@@ -40,7 +40,7 @@ local function addBasicFacet(self, name, interface, object, key)
                                  object,
                                  key)
   if not success then
-    if string.find(err, unknownInterfaceErrorMessage) then
+    if type(err) == "string" and string.find(err, unknownInterfaceErrorMessage) then
       error(errMsg)
     else
       error(err)

@@ -1,0 +1,7 @@
+#!/bin/sh
+
+lua compositeServer.lua &
+sleep 1
+SERVERPID=$!
+lua client.lua
+kill -9 $SERVERPID

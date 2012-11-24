@@ -7,15 +7,19 @@
 -- Version: 1.0
 --
 
-local class = require "loop.base"
-local utils = require "scs.composite.utils"
+local oo = require "loop.base"
+local class = oo.class
+
+local utils = require "scs.composite.Utils"
 utils = utils()
 
 
 local ISuperComponent = class()
 
-function __new()
-	superComponents = {}
+function ISuperComponent:__new()
+	self.superComponents = {}
+  
+  return self
 end
 
 
@@ -27,12 +31,12 @@ function ISuperComponent:addSuperComponent(iComponent)
 end
 
 
-function SuperComponent:removeSuperComponent(iComponent)
+function ISuperComponent:removeSuperComponent(iComponent)
 	-- Não sei como fazer? Via ComponentID?
 end
 
 
-function SuperComponent:getSuperComponents()
+function ISuperComponent:getSuperComponents()
 	local context = self.context
 	local superComponents = {}
 
@@ -42,3 +46,6 @@ function SuperComponent:getSuperComponents()
 
 	return superComponents
 end
+
+
+return ISuperComponent

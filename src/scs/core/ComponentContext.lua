@@ -23,6 +23,7 @@ local table  = table
 local type   = type
 local error  = error
 local string = string
+local print = print
 
 --------------------------------------------------------------------------------
 
@@ -84,9 +85,7 @@ local function putFacet(self, name, interface, implementation, key)
       error(servant)
     end
   end
-  self._facets[name] = {name = name, interface_name = interface,
-    facet_ref = servant, key = key, implementation = impl}
-  self[name] = servant
+  registerFacet(self, name, interface, impl, servant, key)
   local msg = "Facet " .. name .. " with interface " .. interface .. " was added to the component."
   if key then
     msg = msg .. " The key " .. key .. " was used."
@@ -105,16 +104,18 @@ end
 --
 -- @param orb The ORB to be used when creating this component instance's
 --        facets.
--- @param id The type of this component.
+-- @param id The type of this component.addBasicFacets
 -- @param basicKeys A table associating the name of a basic facet with a string key to be registered for it with the ORB.
 -- @return The new component instance.
 function __new(self, orb, id, basicKeys)
   if not id then
+    Log:error("Missing ComponentId parameter.")
     return nil, "ERROR: Missing ComponentId parameter"
   end
   local instance = oo.rawnew(self, {_orb = orb or oil.init(), _componentId = id,
     _facets = {}, _receptacles = {}})
   addBasicFacets(instance, basicKeys)
+
   return instance
 end
 
@@ -143,6 +144,20 @@ function addFacet(self, name, interface, implementation, key)
     error("Facet already exists.")
   end
   putFacet(self, name, interface, implementation, key)
+end
+
+---
+-- Registra uma nova faceta no componente. Esse método leva em consideração que
+-- a faceta já está associada no ORB.
+---
+function registerFacet(self, name, interface, implementation, servant, key)
+  if self._facets[name] ~= nil then
+    error("Facet already exists.")
+  end
+  
+  self._facets[name] = {name = name, interface_name = interface,
+    facet_ref = servant, key = key, implementation = impl}
+  self[name] = servant
 end
 
 --- Changes the implementation object of a facet. This method removes the old

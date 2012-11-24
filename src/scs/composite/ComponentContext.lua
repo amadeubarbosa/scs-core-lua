@@ -1,5 +1,3 @@
-
-
 --
 -- SCS
 -- ComponentContext.lua
@@ -7,19 +5,35 @@
 -- Version: 1.0
 --
 
-local ISuperComponent = require "scs.core.ISuperComponent"
+local ISuperComponent = require "scs.composite.ISuperComponent"
+local IContentController = require "scs.composite.IContentController"
 local SuperComponentContext = require "scs.core.ComponentContext"
-local class = require "loop.simple"
-local utils = require "scs.composite.utils"
+local oo = require "loop.simple"
+local class = oo.class
+local utils = require "scs.composite.Utils"
 utils = utils()
-
+------------------------------------------------------------------------
 
 local ComponentContext = class({}, SuperComponentContext)
 
-function ComponentContext:addBasicFacets(basicKeys)
+function ComponentContext:__new(orb, id, basicKeys)
+  local component = SuperComponentContext.__new(self, orb, id, basicKeys)
+  addCompositeFacets(component, basicKeys)
+  
+  return component
+end
+
+function addCompositeFacets(component, basicKeys)
 	local basicKeys = basicKeys or {}
-	SuperComponentContext:addBasicFacets(basicKeys)
-	addBasicFacet(self, utils.ICONTENTCONTROLLER_NAME,
+	  
+	component:addFacet(utils.ICONTENTCONTROLLER_NAME,
 			utils.ICONTENTCONTROLLER_INTERFACE,
+      IContentController(), basicKeys.IContentController)
+      
+   component:addFacet(utils.ISUPERCOMPONENT_NAME,
+      utils.ISUPERCOMPONENT_INTERFACE,
 			ISuperComponent(), basicKeys.ISuperComponent)
 end
+
+
+return ComponentContext

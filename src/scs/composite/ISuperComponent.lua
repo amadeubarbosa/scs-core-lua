@@ -19,7 +19,7 @@ local ISuperComponent = class()
 function ISuperComponent:__new()
 	self.superComponents = {}
   
-  return self
+  return oo.rawnew(self, {})
 end
 
 

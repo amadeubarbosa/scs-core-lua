@@ -26,7 +26,7 @@ function ContentController:__new()
   self.receptacleConnectorsMap = {}
   self.componentSet = {}
 
-  return self
+  return oo.rawnew(self, {})
 end
 
 
@@ -38,7 +38,7 @@ end
 function ContentController:addSubComponent(component)
 	local context = self.context
   local orb = context._orb
-  
+    
 	local ok, superCompFacet = pcall(component.getFacetByName, component, utils.ISUPERCOMPONENT_NAME)
 	if not ok or not superCompFacet then
 		error { compositeIdl.throw.InvalidComponent }
@@ -119,7 +119,7 @@ function ContentController:bindFacet(internalFacetList, externalFacetName)
 			error { compositeIdl.throw.FacetNotAvailableInComponent }
 		end
 
-		local facetInComposite = context:getFacetByName(externalFacetName)
+		local facetInComposite = context:getFacetByName(externalFacetName)    
 		if facetInComposite then
 			error { compositeIdl.throw.FacetAlreadyExists }
 		end

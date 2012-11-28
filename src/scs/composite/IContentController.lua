@@ -12,7 +12,8 @@ local utils = require "scs.composite.Utils"
 utils = utils()
 
 local compositeIdl = require "scs.composite.Idl"
-local ConnectorBuilder = require "loop.object.Publisher"
+--local ConnectorBuilder = require "loop.object.Publisher"
+local ConnectorBuilder = require "scs.composite.Publisher"
 ------------------------------------------------------------------------
 
 local ContentController = class()
@@ -147,7 +148,8 @@ function ContentController:bindFacet(internalFacetList, externalFacetName)
 
 	-- Cria o conector
 	local connector = ConnectorBuilder(componentsList)
-	context:registerFacet(externalFacetName, interfaceName, connector, connector)
+	--context:registerFacet(externalFacetName, interfaceName, connector, connector)
+  context:addFacet(externalFacetName, interfaceName, connector)
 
 	local bindingId = self.bindingId
 	self.facetConnectorsMap[bindingId] = externalFacetName

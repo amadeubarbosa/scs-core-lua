@@ -24,7 +24,6 @@ oil.main(function()
 	local compositeComponent = orb:newproxy(serverIOR)
 	
 	local helloFacet = compositeComponent:getFacetByName("IHelloX")
-	print(helloFacet)
 	helloFacet = orb:narrow(helloFacet, helloFacetInterface)
 	if not helloFacet then 
 		print("[ERROR] Faceta não encontrada.")
@@ -32,5 +31,6 @@ oil.main(function()
 	end
 	
 	helloFacet:sayHello()
+	return
 end)
 

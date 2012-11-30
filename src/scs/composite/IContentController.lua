@@ -39,14 +39,23 @@ end
 function ContentController:addSubComponent(component)
 	local context = self.context
   local orb = context._orb
-    
-	local ok, superCompFacet = pcall(component.getFacetByName, component, utils.ISUPERCOMPONENT_NAME)
+  
+  local subIComponent = orb:narrow(component, utils.ICOMPONENT_INTERFACE)
+  if not subIComponent then
+    error { compositeIdl.throw.InvalidComponent }
+  end
+
+	local ok, superCompFacet = pcall(subIComponent.getFacetByName, subIComponent, utils.ISUPERCOMPONENT_NAME)
 	if not ok or not superCompFacet then
 		error { compositeIdl.throw.InvalidComponent }
 	end
-
+  
 	superCompFacet = orb:narrow(superCompFacet, utils.ISUPERCOMPONENT_INTERFACE)
-	ok = pcall(superCompFacet.addSuperComponent, superCompFacet, context.IComponent)
+  if not superCompFacet then
+    error { compositeIdl.throw.InvalidComponent }
+  end 
+  
+ 	ok = pcall(superCompFacet.addSuperComponent, superCompFacet, context.IComponent)
 	if not ok then
 		error { compositeIdl.throw.ComponentFailure }
 	end
@@ -54,7 +63,7 @@ function ContentController:addSubComponent(component)
 	local membershipId = self.membershipId
 	self.membershipId = membershipId + 1
 
-	self.componentSet[membershipId] = component
+	self.componentSet[membershipId] = subIComponent
 	return membershipId
 end
 
@@ -148,7 +157,7 @@ function ContentController:bindFacet(internalFacetList, externalFacetName)
 
 	-- Cria o conector
 	local connector = ConnectorBuilder(componentsList)
-	--context:registerFacet(externalFacetName, interfaceName, connector, connector)
+  
   context:addFacet(externalFacetName, interfaceName, connector)
 
 	local bindingId = self.bindingId

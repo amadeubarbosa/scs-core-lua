@@ -14,11 +14,11 @@ function Hello:__new(name)
 	return oo.rawnew(self,{name = name})
 end
 function Hello:sayHello()
-	print("Hello " .. name .. "!")
+	print("Hello " .. self.name .. "!")
 end
 
 -- OiL configuration
-local orb = oil.init()
+local orb = oil.init({localrefs = "proxy"})
 local helloFacetInterface = "IDL:scs/demos/helloworld/Hello:1.0"
 
 oil.main(function()
@@ -31,7 +31,7 @@ oil.main(function()
   -- Cria dois componentes Hello  
   local componentId = { name = "Hello1", major_version = 1, minor_version = 0, patch_version = 0, platform_spec = "" }
   local helloComponent1 = ComponentContext(orb, componentId)
-  helloComponent1:addFacet("IHello1", helloFacetInterface, Hello("SubComponent One"))
+  helloComponent1:addFacet("IHello1", helloFacetInterface, Hello("SubComponent One"))	
   
   local componentId = { name = "Hello2", major_version = 1, minor_version = 0, patch_version = 0, platform_spec = "" }
   local helloComponent2 = ComponentContext(orb, componentId)
@@ -41,7 +41,7 @@ oil.main(function()
 	local componentId = { name = "ComplexHello", major_version = 1, minor_version = 0, patch_version = 0, platform_spec = "" }
 	local component = ComponentContext(orb, componentId)
 	local icontentController = component:getFacetByName(utils.ICONTENTCONTROLLER_NAME).facet_ref
-		
+	
 	-- Adiciona os componentes Hello no Componente Composto e cria uma faceta.
 	local membershipID1 = icontentController:addSubComponent(helloComponent1:getIComponent())
 	local membershipID2 = icontentController:addSubComponent(helloComponent2:getIComponent())

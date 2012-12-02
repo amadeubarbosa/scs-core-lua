@@ -10,6 +10,7 @@ local class = oo.class
 
 local utils = require "scs.composite.Utils"
 utils = utils()
+local Log = require "scs.util.Log"
 
 local compositeIdl = require "scs.composite.Idl"
 --local ConnectorBuilder = require "loop.object.Publisher"
@@ -19,27 +20,31 @@ local ConnectorBuilder = require "scs.composite.Publisher"
 local ContentController = class()
 
 
-function ContentController:__new()
-  self.id = 123 -- ????
-  self.membershipId = 1 -- Representa os subcomponentes
-  self.bindingId = 1 -- Representa os conectores criados
-  self.facetConnectorsMap = {}
-  self.receptacleConnectorsMap = {}
-  self.componentSet = {}
 
-  return oo.rawnew(self, {})
+function ContentController:__new()
+  math.randomseed(os.date("%M%S"))
+  self.id = not self.id and math.random(100,999) or self.id + 1
+
+  return oo.rawnew(self, {
+      id = self.id,
+      membershipId = 1, -- Representa os subcomponentes
+      bindingId = 1, -- Representa os conectores criados
+      facetConnectorsMap = {},
+      receptacleConnectorsMap = {},
+      componentSet = {},
+  })
 end
 
 
 function ContentController:getId()
-	return tostring(id)
+	return tostring(self.id)
 end
 
 
 function ContentController:addSubComponent(component)
 	local context = self.context
   local orb = context._orb
-  
+
   local subIComponent = orb:narrow(component, utils.ICOMPONENT_INTERFACE)
   if not subIComponent then
     error { compositeIdl.throw.InvalidComponent }
@@ -49,7 +54,7 @@ function ContentController:addSubComponent(component)
 	if not ok or not superCompFacet then
 		error { compositeIdl.throw.InvalidComponent }
 	end
-  
+
 	superCompFacet = orb:narrow(superCompFacet, utils.ISUPERCOMPONENT_INTERFACE)
   if not superCompFacet then
     error { compositeIdl.throw.InvalidComponent }
@@ -67,37 +72,39 @@ function ContentController:addSubComponent(component)
 	return membershipId
 end
 
-
+-- Não possui exceção porque o usuário não quer ficar tratando falhas. Só quer remover o componente.
 function ContentController:removeSubComponent(membershipId)
 	local context = self.context  
   local orb = context._orb
 
 	local ok subComponent = pcall(self.findComponent, self, membershipId)
 	if not ok or not subcomponent then
-		error { compositeIdl.throw.ComponentNotFoundException }
+    Log:warn(string.format("MemberID:%s não foi encontrado no componente composto",membershipId))
+    return false
 	end
 
 	local ok, superCompFacet = pcall(subComponent.getFacetByName, subComponent, utils.ISUPERCOMPONENT_NAME)
 	if not ok or not superCompFacet then
-		error { compositeIdl.throw.ComponentFailure, msg = "Faceta ISuperComponent não encontrada"  }
+    Log:error("Faceta ISuperComponent não encontrada")
+		return false
 	end
 
 	superCompFacet = orb:narrow(scFacet, utils.ISUPERCOMPONENT_INTERFACE)
 	ok = pcall(superCompFacet.removeSuperComponent, superCompFacet, context.IComponent)
 	if not ok then
-		error { compositeIdl.throw.ComponentFailure, msg = "Faceta encontrada não é da interface ISuperComponent."  }
+    Log:error("Faceta encontrada não é da interface ISuperComponent.")
+		return false
 	end
 
-	context._componentSet[membershipId] = nil
+	self.componentSet[membershipId] = nil
+  return true
 end
 
-
 function ContentController:getSubComponents()
-	local self = self.context
 	local subComponents = {}
 
-	for _,component in pairs (self.componentSet) do
-		table.insert(subComponents,component)
+	for id,component in pairs (self.componentSet) do
+		table.insert(subComponents, {id = id, iComponent = component})
 	end
 
 	return subComponents

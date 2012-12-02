@@ -1,11 +1,11 @@
 
 
---
+---
 -- SCS
 -- ISuperComponent.lua
 -- Description:  ... . .. . . . . .
 -- Version: 1.0
---
+---
 
 local oo = require "loop.base"
 local class = oo.class
@@ -24,8 +24,8 @@ end
 
 function ISuperComponent:addSuperComponent(iComponent)
 	local context = self.context
-
 	local composite = context._orb:narrow(iComponent:getFacetByName(utils.ICONTENTCONTROLLER_NAME))
+
 	self.superComponents[composite:getId()] = composite
 end
 

@@ -16,10 +16,11 @@ local function assertBoolean(condition)
 end
 
 function assertError(f, ...)
-  local success = latt.pcall(f, unpack(arg))
+  local success, errMsg = latt.pcall(f, unpack(arg))
   if success then
     error("Function shouldn't run successfully.", 2)
   end
+  return errMsg
 end
 
 function assertEquals(expected, actual)

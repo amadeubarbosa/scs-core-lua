@@ -162,7 +162,7 @@ end
 -- Return Value: The array.
 --
 function convertToArray(self, inputTable)
-  Log:utils("ConvertToArray: Begin")
+  Log:debug("ConvertToArray: Begin")
   local outputArray = {}
   local i = 1
   for index, item in pairs(inputTable) do
@@ -172,7 +172,7 @@ function convertToArray(self, inputTable)
       i = i + 1
     end
   end
-  Log:utils("ConvertToArray : Finished.")
+  Log:debug("ConvertToArray : Finished.")
   return outputArray
 end
 
@@ -204,6 +204,6 @@ end
 -- Return Value: A string containing the stringified version.
 --
 function getNameVersion(self, componentId)
-  return componentId.name .. componentId.major_version .. componentId.minor_version ..
-  componentId.patch_version
+  return string.format("%s:%d.%d.%d",componentId.name, componentId.major_version, 
+      componentId.minor_version, componentId.patch_version)
 end

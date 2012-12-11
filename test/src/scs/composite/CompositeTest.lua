@@ -6,7 +6,7 @@ local oo = require "loop.base"
 local utils = require "scs.composite.Utils"
 utils = utils()
 
-Log:level(5)
+Log:level(4)
 
 --implementação da faceta IHello
 local Hello = oo.class{}
@@ -52,17 +52,48 @@ oil.main(function()
 		local iComponent = orb:narrow(desc.iComponent, utils.ICOMPONENT_INTERFACE)
 		print(string.format("  MembershipID = %s | ComponentID.Name = %s", desc.id, iComponent:getComponentId().name))
 	end
+  
+    print "\nProcura o componente Adicionado"
+  local iComponent = icontentController:findComponent(membershipID2)
+  print(utils:getNameVersion(iComponent:getComponentId()))
 	
 	local internalFacetList = {
 			{id = membershipID1, name = "IHello1"},
 			{id = membershipID2, name = "IHello2"}
 			}
-	icontentController:bindFacet(internalFacetList, "IHelloX")
-		
-  -- publishes the IComponent facet's IOR to a file. We could publish any facet,
-  -- since the _component() exists to obtain the IComponent facet, and any 
-  -- other facet from it. This step can also be replaced by other methods of
-  -- publishing, like a name server.
-  oil.writeto("server.ior", tostring(component:getIComponent()))
-  Log:info("ComplexHello iniciado com sucesso.")
+	local bindingID = icontentController:bindFacet(internalFacetList, "IHelloX")
+  
+  print "\nVerifica se o superComponente foi adicionado"
+  local superCompList = helloComponent2.ISuperComponent:getSuperComponents()
+  print(string.format("A faceta '%s' possui os seguintes superComponentes:", 
+      utils:getNameVersion(helloComponent2:getComponentId())))
+      
+  for _,superComp in ipairs(superCompList) do
+    superComp = orb:narrow(superComp, utils.ICOMPONENT_INTERFACE)
+    print("  " .. utils:getNameVersion(superComp:getComponentId()))
+  end
+  
+  print "\nRecupera todos os SubComponentes"
+  local subComponents = icontentController:getSubComponents()
+  for _, membershipDesc in pairs(membershipDescription) do 
+    print(membershipDesc.id, utils:getNameVersion(membershipDesc.iComponent:getComponentId()))  
+  end
+  
+  print "\nRemovendo o Subcomponente"
+  local ok = icontentController:removeSubComponent(membershipID2)
+  print("Removido? ", ok)
+  
+  print "\nRemovendo o Conector"
+  local facetList = component.IMetaInterface:getFacets()
+  local ok = icontentController:unbindFacet(bindingID)
+  local facetList2 = component.IMetaInterface:getFacets()
+  if ok and (#facetList ~= #facetList2) then
+    print("** Conector removido.")
+  else
+    print("** Conector não removido.")
+  end
+  
+  
+  Log:info("Teste realizado com Sucesso.")
+  os.exit(0)
 end)

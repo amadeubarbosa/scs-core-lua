@@ -55,11 +55,7 @@ function ContentController:addSubComponent(component)
 		error { compositeIdl.throw.InvalidComponent }
 	end
 
-	superCompFacet = orb:narrow(superCompFacet, utils.ISUPERCOMPONENT_INTERFACE)
-  if not superCompFacet then
-    error { compositeIdl.throw.InvalidComponent }
-  end 
-  
+	superCompFacet = orb:narrow(superCompFacet, utils.ISUPERCOMPONENT_INTERFACE)  
  	ok = pcall(superCompFacet.addSuperComponent, superCompFacet, context.IComponent)
 	if not ok then
 		error { compositeIdl.throw.ComponentFailure }
@@ -77,8 +73,8 @@ function ContentController:removeSubComponent(membershipId)
 	local context = self.context  
   local orb = context._orb
 
-	local ok subComponent = pcall(self.findComponent, self, membershipId)
-	if not ok or not subcomponent then
+	local ok, subComponent = pcall(self.findComponent, self, membershipId)
+	if not ok or not subComponent then
     Log:warn(string.format("MemberID:%s não foi encontrado no componente composto",membershipId))
     return false
 	end
@@ -88,13 +84,18 @@ function ContentController:removeSubComponent(membershipId)
     Log:error("Faceta ISuperComponent não encontrada")
 		return false
 	end
-
-	superCompFacet = orb:narrow(scFacet, utils.ISUPERCOMPONENT_INTERFACE)
-	ok = pcall(superCompFacet.removeSuperComponent, superCompFacet, context.IComponent)
+  
+  local removed
+	superCompFacet = orb:narrow(superCompFacet, utils.ISUPERCOMPONENT_INTERFACE)
+	ok, removed = pcall(superCompFacet.removeSuperComponent, superCompFacet, context.IComponent)
 	if not ok then
-    Log:error("Faceta encontrada não é da interface ISuperComponent.")
+    Log:error("Faceta encontrada não é ISuperComponent.")
 		return false
 	end
+  if not removed then 
+    Log:error("Faceta não foi removida do Subcomponente")
+    return false
+  end
 
 	self.componentSet[membershipId] = nil
   return true
@@ -181,17 +182,19 @@ function ContentController:unbindFacet(bindingId)
 
 	local facetName = self.facetConnectorsMap[bindingId]
 	if not facetName then
-		return
+		return false
 	end
 
 	local connector = context:getFacetByName(facetName)
 	context:removeFacet(facetName)
 
-
-	local status, err = oil.pcall(orb.deactivate, orb, connector) -- será?
+	local status, errMsg = pcall(orb.deactivate, orb, connector) -- será?
 	if not status then
-		-- throw??
+    Log:error("Erro ao desativar o servant",errMsg)
+		return false
 	end
+  
+  return true
 end
 
 function ContentController:bindReceptacle(subcomponents, internalReceptacleName, externalReceptacleName)

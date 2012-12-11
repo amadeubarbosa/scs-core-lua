@@ -81,7 +81,7 @@ Suite = {
     
     testFindComponent_InvalidID = function(self)
       local exception = Check.assertError(icontroller.findComponent, icontroller, math.random(10,100))
-      Check.assertEquals(exception[1], idl.throw.ComponentNotFound)      
+      Check.assertEquals(exception[1], idl.throw.ComponentNotFound)    
     end,
     
     --[[LATT não permite
@@ -93,5 +93,14 @@ Suite = {
       iComponent = orb:narrow(iComponent, utils.ICOMPONENT_INTERFACE)
       Check.assertEquals(iComponent:getComponentId().name, compositeComponent2:getComponentId.name)
     end,]]--
+    
+    testRemoveSubComponent_InvalidID = function(self)
+      Check.assertFalse(icontroller:removeSubComponent(888))
+    end,
+    
+    testUnbindFacet_InvalidID = function(self)
+      Check.assertFalse(icontroller:unbindFacet(888))
+    end,
+        
   },
 }

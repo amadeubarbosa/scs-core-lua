@@ -31,7 +31,7 @@ __index = memoize(function(method)
         return
       end
 
-      return simplesFunction(self[1], list)  
+      return returnFunction(self[1], list)  
     end
   end
 end, "k")
@@ -44,7 +44,7 @@ function __newindex(self, key, value)
 end
 
 ------------------------------------------------------------------------
-function simplesFunction(obj, list) 
+function returnFunction(obj, list) 
   local f
   
   if #list == 1 then 
@@ -57,11 +57,11 @@ function simplesFunction(obj, list)
   elseif type(list[1]) == "table" then f = obj.opList 
   end
   
-  local v = table.remove(list, 1)
-  for _,k in ipairs(list) do
-    v = f(v, k, #list)
+  local mainList = table.remove(list, 1)
+  for iteration,subList in ipairs(list) do
+    mainList = f(mainList, subList, iteration)
   end
-  return v 
+  return mainList 
 end
 
 

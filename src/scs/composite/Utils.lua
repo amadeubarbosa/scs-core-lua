@@ -11,5 +11,11 @@ Utils.ICONTENTCONTROLLER_INTERFACE = "IDL:scs/composite/IContentController:1.0"
 Utils.ISUPERCOMPONENT_NAME = "ISuperComponent"
 Utils.ISUPERCOMPONENT_INTERFACE = "IDL:scs/composite/ISuperComponent:1.0"
 
+Utils.ConnectorType = { 
+    consensus = "consesus",
+    replication = "replication",
+    cooperation = "cooperation"
+    }
+
 
 return Utils

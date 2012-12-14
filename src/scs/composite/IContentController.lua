@@ -120,7 +120,7 @@ function ContentController:findComponent(membershipId)
 end
 
 
-function ContentController:bindFacet(internalFacetList, externalFacetName)
+function ContentController:bindFacet(internalFacetList, connectorType, externalFacetName)
 	local context = self.context
 	local orb = context._orb
 	local componentsList = {}
@@ -165,6 +165,7 @@ function ContentController:bindFacet(internalFacetList, externalFacetName)
 
 	-- Cria o conector
 	local connector = ConnectorBuilder(componentsList)
+  SetConnectorType(connector)
   
   context:addFacet(externalFacetName, interfaceName, connector)
 
@@ -269,3 +270,37 @@ function ContentController:unbindReceptacle(bindingId)
 end
 
 return ContentController
+
+local function SetConnectorType(connector, connectorType)
+  if connectortype == "replication" then
+    connector.opBool = function (a,b) return a end
+    connector.opNumber = connector.opBool
+    connector.opString = connector.opBool
+    function connector.opList(mainList, subList)
+      return mainList
+    end
+  
+  elseif connectortype == "consensus" then
+    connector.opBool = function (a,b) return a and b end
+    connector.opNumber = function (a,b,lenght) return (a + b)/lenght end
+    connector.opString = function (a,b) return a end
+    function connector.opList(mainList, subList, iteration) -- Média ponderada
+      for i,elements in ipairs(subList) do
+        mainList[i] = (mainList[i] * iteration + elements * 1)/(iteration + 1)
+      end
+      return mainList
+    end
+  
+  elseif connectortype == "cooperation" then
+    connector.opBool = function (a,b) return a or b end
+    connector.opNumber = function (a,b) return a end
+    connector.opString = function (a,b) return a end
+    function connector.opList(mainList, subList)
+      for _,elements in ipairs(subList) do 
+        table.insert(mainList,elements) 
+      end
+      return mainList
+    end
+  end
+  
+end

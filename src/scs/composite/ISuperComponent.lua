@@ -10,6 +10,7 @@
 local oo = require "loop.base"
 local class = oo.class
 local pairs = pairs
+local Log = require "scs.util.Log"
 
 local utils = require "scs.composite.Utils"
 utils = utils()
@@ -36,7 +37,22 @@ end
 
 
 function ISuperComponent:removeSuperComponent(iComponent)
-	-- Não temos um instance ID. Não 
+	local context = self.context
+  local composite = context._orb:narrow(iComponent:getFacetByName(utils.ICONTENTCONTROLLER_NAME))
+  
+  local ok, compositeId = pcall(composite.getId, composite)
+  if not ok or not compositeId then
+    Log:error("ID não retornado pela funcao getId().")
+    return false
+  end 
+  
+  local remComponent = self.superComponents[compositeId]
+  if not remComponent then
+    Log:error(string.format("O id '%s' não existe", composite:getId()))
+    return false
+  end 
+  
+  self.superComponents[composite:getId()] = nil
   return true
 end
 

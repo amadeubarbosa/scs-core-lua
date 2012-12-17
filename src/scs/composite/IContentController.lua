@@ -165,7 +165,7 @@ function ContentController:bindFacet(internalFacetList, connectorType, externalF
 
 	-- Cria o conector
 	local connector = ConnectorBuilder(componentsList)
-  SetConnectorType(connector)
+  SetConnectorType(connector, connectorType)
   
   context:addFacet(externalFacetName, interfaceName, connector)
 
@@ -175,6 +175,45 @@ function ContentController:bindFacet(internalFacetList, connectorType, externalF
 
 	return bindingId
 
+end
+
+function ContentController:bindConnectorFacet(connectorID, internalFacetName, externalFacetName)
+  local context = self.context
+  
+  local ok, subcomponent = pcall(self.findComponent, self, connectorID)
+  if not ok or not subcomponent then    
+    error { compositeIdl.throw.ComponentNotFound, id = id }
+  end
+
+  local internalFacet = subcomponent:getFacetByName(internalFacetName)
+  if not internalFacet then
+    error { compositeIdl.throw.FacetNotAvailableInComponent }
+  end
+
+  local facetInComposite = context:getFacetByName(externalFacetName)    
+  if facetInComposite then
+    error { compositeIdl.throw.FacetAlreadyExists }
+  end
+  
+  local metaFacet = subcomponent:getFacetByName(utils.IMETAINTERFACE_NAME)
+  metaFacet = orb:narrow(metaFacet, utils.IMETAINFERFACE_INTERFACE)
+
+  local descriptions = metaFacet:getFacetsByName({facetBind.name})
+  if #descriptions < 1 then
+    error { compositeIdl.throw.FacetNotFound }
+  end
+
+  local facetDescription = descriptions[1]
+  local interfaceName = facetDescription.interface_name
+  local facetRef = facetDescription.facet_ref
+
+  context:registerFacet(externalFacetName, interfaceName, nil, facetRef, nil)
+  
+  local bindingId = self.bindingId
+	self.facetConnectorsMap[bindingId] = externalFacetName
+	self.bindingId  = bindingId + 1
+
+	return bindingId
 end
 
 function ContentController:unbindFacet(bindingId)
@@ -269,8 +308,6 @@ function ContentController:unbindReceptacle(bindingId)
 	self.receptacleConnectorsMap[bindingId] = nil
 end
 
-return ContentController
-
 local function SetConnectorType(connector, connectorType)
   if connectortype == "replication" then
     connector.opBool = function (a,b) return a end
@@ -301,6 +338,10 @@ local function SetConnectorType(connector, connectorType)
       end
       return mainList
     end
+  else
+    error { compositeIdl.throw.UnknownConnectorType } 
   end
   
 end
+
+return ContentController

@@ -12,6 +12,7 @@ idl = {
       ReceptacleNotFound = "scs.composite.ReceptacleNotFound",
       ReceptacleAlreadyExists = "scs.composite.ReceptacleAlreadyExists",
       ComponentFailure = "scs.composite.ComponentFailure",
+      UnknownConnectorType = "scs.composite.UnknownConnectorType",
   }
 }
 

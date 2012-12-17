@@ -93,7 +93,6 @@ oil.main(function()
     print("** Conector não removido.")
   end
   
-  
   Log:info("Teste realizado com Sucesso.")
   os.exit(0)
 end)

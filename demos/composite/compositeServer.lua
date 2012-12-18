@@ -50,7 +50,7 @@ oil.main(function()
 			{id = membershipID1, name = "IHello1"},
 			{id = membershipID2, name = "IHello2"}
 			}
-	icontentController:bindFacet(internalFacetList, "IHelloX")
+	icontentController:bindFacet(internalFacetList, utils.replication, "IHelloX")
 		
   -- publishes the IComponent facet's IOR to a file. We could publish any facet,
   -- since the _component() exists to obtain the IComponent facet, and any 

@@ -179,6 +179,7 @@ end
 
 function ContentController:bindConnectorFacet(connectorID, internalFacetName, externalFacetName)
   local context = self.context
+  local orb = context._orb
   
   local ok, subcomponent = pcall(self.findComponent, self, connectorID)
   if not ok or not subcomponent then    
@@ -198,7 +199,7 @@ function ContentController:bindConnectorFacet(connectorID, internalFacetName, ex
   local metaFacet = subcomponent:getFacetByName(utils.IMETAINTERFACE_NAME)
   metaFacet = orb:narrow(metaFacet, utils.IMETAINFERFACE_INTERFACE)
 
-  local descriptions = metaFacet:getFacetsByName({facetBind.name})
+  local descriptions = metaFacet:getFacetsByName({internalFacetName})
   if #descriptions < 1 then
     error { compositeIdl.throw.FacetNotFound }
   end
@@ -308,8 +309,8 @@ function ContentController:unbindReceptacle(bindingId)
 	self.receptacleConnectorsMap[bindingId] = nil
 end
 
-local function SetConnectorType(connector, connectorType)
-  if connectortype == "replication" then
+function SetConnectorType(connector, connectorType)
+  if connectortype ==  utils.replication then
     connector.opBool = function (a,b) return a end
     connector.opNumber = connector.opBool
     connector.opString = connector.opBool
@@ -317,7 +318,7 @@ local function SetConnectorType(connector, connectorType)
       return mainList
     end
   
-  elseif connectortype == "consensus" then
+  elseif connectortype == utils.consensus then
     connector.opBool = function (a,b) return a and b end
     connector.opNumber = function (a,b,lenght) return (a + b)/lenght end
     connector.opString = function (a,b) return a end
@@ -328,7 +329,7 @@ local function SetConnectorType(connector, connectorType)
       return mainList
     end
   
-  elseif connectortype == "cooperation" then
+  elseif connectortype == utils.cooperation then
     connector.opBool = function (a,b) return a or b end
     connector.opNumber = function (a,b) return a end
     connector.opString = function (a,b) return a end

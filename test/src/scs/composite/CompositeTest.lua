@@ -2,11 +2,15 @@ local oil = require "oil"
 local ComponentContext = require "scs.composite.ComponentContext"
 local Log = require "scs.util.Log"
 local oo = require "loop.base"
+local Idl = require "scs.composite.Idl"
+local CoreComponentContext = require "scs.core.ComponentContext"
+
 
 local utils = require "scs.composite.Utils"
 utils = utils()
 
 Log:level(4)
+
 
 --implementação da faceta IHello
 local Hello = oo.class{}
@@ -28,32 +32,65 @@ oil.main(function()
   orb:loadidlfile(idlPath .. "/hello.idl")
   oil.newthread(orb.run, orb)
 
-  -- Cria dois componentes Hello  
+  --- Cria quatro componentes Hello
+  -- Component1 e Component2 = Componente Hello normal
+  -- Component3 = Componente Hello com um Receptáculo
+  -- Componnet4 = Componente do SCS-Core  
   local componentId = { name = "Hello1", major_version = 1, minor_version = 0, patch_version = 0, platform_spec = "" }
   local helloComponent1 = ComponentContext(orb, componentId)
   helloComponent1:addFacet("IHello1", helloFacetInterface, Hello("SubComponent One"))	
   
-  local componentId = { name = "Hello2", major_version = 1, minor_version = 0, patch_version = 0, platform_spec = "" }
+  componentId = { name = "Hello2", major_version = 1, minor_version = 0, patch_version = 0, platform_spec = "" }
   local helloComponent2 = ComponentContext(orb, componentId)
   helloComponent2:addFacet("IHello2", helloFacetInterface, Hello("SubComponent Two"))
 
-	-- Cria o componente composto
-	local componentId = { name = "ComplexHello", major_version = 1, minor_version = 0, patch_version = 0, platform_spec = "" }
+  componentId = { name = "Hello3", major_version = 1, minor_version = 0, patch_version = 0, platform_spec = "" }
+  local helloComponent3 = ComponentContext(orb, componentId)
+  helloComponent3:addFacet("IHello3", helloFacetInterface, Hello("SubComponent Three"))
+  helloComponent3:addReceptacle("HelloReceptacle", helloFacetInterface, true)
+
+  componentId = { name = "Hello4", major_version = 1, minor_version = 0, patch_version = 0, platform_spec = "" }
+  local helloComponent4 = CoreComponentContext(orb, componentId)
+  helloComponent4:addFacet("IHello4", helloFacetInterface, Hello("SubComponent Three"))
+  
+	-- Cria dois componentes compostos
+	componentId = { name = "ComplexHello", major_version = 1, minor_version = 0, patch_version = 0, platform_spec = "" }
 	local component = ComponentContext(orb, componentId)
 	local icontentController = component:getFacetByName(utils.ICONTENTCONTROLLER_NAME).facet_ref
+  
+  componentId = { name = "ComplexHello2", major_version = 1, minor_version = 0, patch_version = 0, platform_spec = "" }
+	local component2 = ComponentContext(orb, componentId)
+	local icontentController2 = component:getFacetByName(utils.ICONTENTCONTROLLER_NAME).facet_ref
 	
 	-- Adiciona os componentes Hello no Componente Composto e cria uma faceta.
 	local membershipID1 = icontentController:addSubComponent(helloComponent1:getIComponent())
 	local membershipID2 = icontentController:addSubComponent(helloComponent2:getIComponent())
-	
-	-- Verificando que o componentes foram criados
+  local membershipID3 = icontentController:addSubComponent(helloComponent3:getIComponent())
+	  
+  -- Tenta adicionar um componente do SCS-Core no Componente Composto
+  local ok, errorMsg = pcall(icontentController.addSubComponent, icontentController, helloComponent4:getIComponent())
+  if ok then
+    error("Operacao nao permitida. Excecao deveria ser sido lancada")
+  elseif errorMsg[1] ~= idl.throw.InvalidComponent then
+    error("Excecao deveria ser ".. idl.throw.InvalidComponent .. " e foi " .. errorMsg[1])
+  end
+  
+  -- Tenta adicionar compartilhar um subcomponente que possui receptáculos
+  ok, errorMsg = pcall(icontentController.addSubComponent, icontentController, helloComponent3:getIComponent())
+  if ok then
+    error("Operacao nao permitida. Excecao deveria ser sido lancada")
+  elseif errorMsg[1] ~= idl.throw.UnshareableComponent then
+    error("Excecao deveria ser ".. idl.throw.UnshareableComponent .. " e foi " .. errorMsg[1])
+  end
+    
+	-- Verifica se o componentes foram criados
 	local membershipDescription = icontentController:getSubComponents()
 	for _, desc in pairs(membershipDescription) do 
 		local iComponent = orb:narrow(desc.iComponent, utils.ICOMPONENT_INTERFACE)
 		print(string.format("  MembershipID = %s | ComponentID.Name = %s", desc.id, iComponent:getComponentId().name))
 	end
   
-    print "\nProcura o componente Adicionado"
+  print "\nProcura o componente Adicionado"
   local iComponent = icontentController:findComponent(membershipID2)
   print(utils:getNameVersion(iComponent:getComponentId()))
 	
@@ -61,7 +98,7 @@ oil.main(function()
 			{id = membershipID1, name = "IHello1"},
 			{id = membershipID2, name = "IHello2"}
 			}
-	local bindingID = icontentController:bindFacet(internalFacetList, "IHelloX")
+	local bindingID = icontentController:bindFacet(internalFacetList, utils.replication,  "IHelloX")
   
   print "\nVerifica se o superComponente foi adicionado"
   local superCompList = helloComponent2.ISuperComponent:getSuperComponents()
@@ -79,11 +116,11 @@ oil.main(function()
     print(membershipDesc.id, utils:getNameVersion(membershipDesc.iComponent:getComponentId()))  
   end
   
-  print "\nRemovendo o Subcomponente"
+  print "\Remove o Subcomponente"
   local ok = icontentController:removeSubComponent(membershipID2)
   print("Removido? ", ok)
   
-  print "\nRemovendo o Conector"
+  print "\Remove o Conector"
   local facetList = component.IMetaInterface:getFacets()
   local ok = icontentController:unbindFacet(bindingID)
   local facetList2 = component.IMetaInterface:getFacets()

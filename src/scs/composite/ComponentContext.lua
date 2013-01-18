@@ -7,6 +7,7 @@
 
 local ISuperComponent = require "scs.composite.ISuperComponent"
 local IContentController = require "scs.composite.IContentController"
+local IReceptacles = require "scs.composite.IReceptacles"
 local SuperComponentContext = require "scs.core.ComponentContext"
 local oo = require "loop.simple"
 local class = oo.class
@@ -20,6 +21,7 @@ function ComponentContext:__new(orb, id, basicKeys)
   local component = SuperComponentContext.__new(self, orb, id, basicKeys)
   addCompositeFacets(component, basicKeys)
   
+  component:updateFacet(utils.IRECEPTACLES_NAME, IReceptacles())
   return component
 end
 

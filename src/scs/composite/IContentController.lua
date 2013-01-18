@@ -47,18 +47,28 @@ function ContentController:addSubComponent(component)
 
   local subIComponent = orb:narrow(component, utils.ICOMPONENT_INTERFACE)
   if not subIComponent then
-    error { compositeIdl.throw.InvalidComponent }
+    error { _repID = compositeIdl.throw.InvalidComponent }
   end
 
 	local ok, superCompFacet = pcall(subIComponent.getFacetByName, subIComponent, utils.ISUPERCOMPONENT_NAME)
 	if not ok or not superCompFacet then
-		error { compositeIdl.throw.InvalidComponent }
+		error { _repID = compositeIdl.throw.InvalidComponent }
 	end
+  superCompFacet = orb:narrow(superCompFacet, utils.ISUPERCOMPONENT_INTERFACE)  
+  
+  ok, metaInterfaceFacet = pcall(subIComponent.getFacetByName, subIComponent, utils.IMETAINTERFACE_NAME)
+	if not ok or not metaInterfaceFacet then
+		error { _repID = compositeIdl.throw.InvalidComponent }
+	end
+  metaInterfaceFacet = orb:narrow(metaInterfaceFacet, utils.IMETAINTERFACE_INTERFACE)  
 
-	superCompFacet = orb:narrow(superCompFacet, utils.ISUPERCOMPONENT_INTERFACE)  
+  if #metaInterfaceFacet:getReceptacles() > 0 and #superCompFacet:getSuperComponents() > 0 then
+    error { _repID = compositeIdl.throw.UnshareableComponent }
+  end
+	
  	ok = pcall(superCompFacet.addSuperComponent, superCompFacet, context.IComponent)
-	if not ok then
-		error { compositeIdl.throw.ComponentFailure }
+	if not ok then 
+		error { _repID = compositeIdl.throw.ComponentFailure }
 	end
 
 	local membershipId = self.membershipId
@@ -113,7 +123,7 @@ end
 
 function ContentController:findComponent(membershipId)
 	if not self.componentSet[membershipId] then
-		error { compositeIdl.throw.ComponentNotFound }
+		error { _repID = compositeIdl.throw.ComponentNotFound }
 	end
 
 	return self.componentSet[membershipId]
@@ -129,17 +139,17 @@ function ContentController:bindFacet(internalFacetList, connectorType, externalF
 	for _,facetBind in ipairs(internalFacetList) do
 		local ok, subcomponent = pcall(self.findComponent, self, facetBind.id)
 		if not ok or not subcomponent then    
-			error { compositeIdl.throw.ComponentNotFound, id = id }
+			error { _repID = compositeIdl.throw.ComponentNotFound, id = id }
 		end
 
 		local internalFacet = subcomponent:getFacetByName(facetBind.name)
 		if not internalFacet then
-			error { compositeIdl.throw.FacetNotAvailableInComponent }
+			error { _repID = compositeIdl.throw.FacetNotAvailableInComponent }
 		end
 
 		local facetInComposite = context:getFacetByName(externalFacetName)    
 		if facetInComposite then
-			error { compositeIdl.throw.FacetAlreadyExists }
+			error { _repID = compositeIdl.throw.FacetAlreadyExists }
 		end
 
 		local metaFacet = subcomponent:getFacetByName(utils.IMETAINTERFACE_NAME)
@@ -148,7 +158,7 @@ function ContentController:bindFacet(internalFacetList, connectorType, externalF
 
 		local descriptions = metaFacet:getFacetsByName({facetBind.name})
 		if #descriptions < 1 then
-			error { compositeIdl.throw.FacetNotFound }
+			error { _repID = compositeIdl.throw.FacetNotFound }
 		end
 
 		local facetDescription = descriptions[1]
@@ -156,7 +166,7 @@ function ContentController:bindFacet(internalFacetList, connectorType, externalF
 		if not interfaceName then
       interfaceName = facetDescription.interface_name
 		elseif interfaceName ~= facetDescription.interface_name then
-			error { compositeIdl.throw.IncompatibleInterfaces }
+			error { _repID = compositeIdl.throw.IncompatibleInterfaces }
 		end
 
 		local facetRef = orb:narrow(facetDescription.facet_ref, interfaceName)
@@ -166,7 +176,7 @@ function ContentController:bindFacet(internalFacetList, connectorType, externalF
 	-- Cria o conector
 	local connector = ConnectorBuilder(componentsList)
   SetConnectorType(connector, connectorType)
-  
+
   context:addFacet(externalFacetName, interfaceName, connector)
 
 	local bindingId = self.bindingId
@@ -183,17 +193,17 @@ function ContentController:bindConnectorFacet(connectorID, internalFacetName, ex
   
   local ok, subcomponent = pcall(self.findComponent, self, connectorID)
   if not ok or not subcomponent then    
-    error { compositeIdl.throw.ComponentNotFound, id = id }
+    error { _repID = compositeIdl.throw.ComponentNotFound, id = id }
   end
 
   local internalFacet = subcomponent:getFacetByName(internalFacetName)
   if not internalFacet then
-    error { compositeIdl.throw.FacetNotAvailableInComponent }
+    error { _repID = compositeIdl.throw.FacetNotAvailableInComponent }
   end
 
   local facetInComposite = context:getFacetByName(externalFacetName)    
   if facetInComposite then
-    error { compositeIdl.throw.FacetAlreadyExists }
+    error { _repID = compositeIdl.throw.FacetAlreadyExists }
   end
   
   local metaFacet = subcomponent:getFacetByName(utils.IMETAINTERFACE_NAME)
@@ -201,7 +211,7 @@ function ContentController:bindConnectorFacet(connectorID, internalFacetName, ex
 
   local descriptions = metaFacet:getFacetsByName({internalFacetName})
   if #descriptions < 1 then
-    error { compositeIdl.throw.FacetNotFound }
+    error { _repID = compositeIdl.throw.FacetNotFound }
   end
 
   local facetDescription = descriptions[1]
@@ -248,25 +258,25 @@ function ContentController:bindReceptacle(subcomponents, internalReceptacleName,
 
 		local ok, subcomponent = pcall(self.findComponent, self, id)
 		if not ok or not subcomponent then
-			error { compositeIdl.throw.ComponentNotFound, id = id }
+			error { _repID = compositeIdl.throw.ComponentNotFound, id = id }
 		end
 
 		local metaFacet = subcomponent:getFacetByName(utils.IMETAINFERFACE_NAME)
 		if not metaFacet then
-			error { compositeIdl.throw.ReceptacleNotAvailableInComponent }
+			error { _repID = compositeIdl.throw.ReceptacleNotAvailableInComponent }
 		end
 		metaFacet = orb:narrow(metaFacet, utils.IMETAINFERFACE_INTERFACE)
 
 		local ireceptacleFacet = subcomponent:getFacetByName(utils.IRECEPTACLE_NAME)
 		if not ireceptacleFacet then
-			error { compositeIdl.throw.ReceptacleNotAvailableInComponent }
+			error { _repID = compositeIdl.throw.ReceptacleNotAvailableInComponent }
 		end
 		ireceptacleFacet = orb:narrow(ireceptacleFacet, utils.IRECEPTACLE_INTERFACE)
 
 
 		local descriptions = metaFacet:getReceptaclesByName({internalReceptacleName})
 		if #descriptions < 1 then
-			error { compositeIdl.throw.ReceptacleNotFound }
+			error { _repID = compositeIdl.throw.ReceptacleNotFound }
 		end
 
 		local recptacleDescription = descriptions[1]
@@ -275,7 +285,7 @@ function ContentController:bindReceptacle(subcomponents, internalReceptacleName,
 		if not interfaceName then
 			interfaceName = recptacleDescription.interface_name
 		elseif interfaceName ~= recptacleDescription.interface_name then
-			error { compositeIdl.throw.IncompatibleInterfaces }
+			error { _repID = compositeIdl.throw.IncompatibleInterfaces }
 		end
 
 
@@ -340,7 +350,7 @@ function SetConnectorType(connector, connectorType)
       return mainList
     end
   else
-    error { compositeIdl.throw.UnknownConnectorType } 
+    error { _repID = compositeIdl.throw.UnknownConnectorType } 
   end
   
 end

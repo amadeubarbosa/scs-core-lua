@@ -7,6 +7,7 @@ local utils = require "scs.composite.Utils"
 utils = utils()
 
 Log:level(4)
+oil.verbose:level(1)
 
 local receptacleName = "HelloReceptacle"
 
@@ -45,7 +46,9 @@ oil.main(function()
   orb:loadidlfile(idlPath .. "/hello.idl")
   oil.newthread(orb.run, orb)
 
-  -- Cria dois componentes Hello  
+  --- Cria três componentes Hello
+  -- Component1 e Component2 = Componente Hello normal
+  -- Component3 = Componente que ficará fora do componente composto
   local componentId = { name = "Hello1", major_version = 1, minor_version = 0, patch_version = 0, platform_spec = "" }
   local helloComponent1 = ComponentContext(orb, componentId)
   helloComponent1:addFacet("IHello1", helloFacetInterface, Hello("SubComponent One"))	
@@ -53,6 +56,10 @@ oil.main(function()
   local componentId = { name = "Hello2", major_version = 1, minor_version = 0, patch_version = 0, platform_spec = "" }
   local helloComponent2 = ComponentContext(orb, componentId)
   helloComponent2:addFacet("IHello2", helloFacetInterface, Hello("SubComponent Two"))
+
+  componentId = { name = "Hello3", major_version = 1, minor_version = 0, patch_version = 0, platform_spec = "" }
+  local helloComponent3 = ComponentContext(orb, componentId)
+  helloComponent3:addFacet("IHello3", helloFacetInterface, Hello("SubComponent Three"))
 
   -- Cria o conector
   local componentId = { name = "Hello", major_version = 1, minor_version = 0, patch_version = 0, platform_spec = "" }
@@ -67,20 +74,27 @@ oil.main(function()
 
   -- Adiciona o conector
   local membershipIDConnector = icontentController:addSubComponent(helloConnector:getIComponent())
-  
-  -- Verifica se um objeto fora do Componente Composto pode conectar em um componente de dentro do componente composto.
-	-- TODO: !!!
-  
-  
+   
 	-- Adiciona os componentes Hello no Componente Composto e cria uma faceta.
 	local membershipID1 = icontentController:addSubComponent(helloComponent1:getIComponent())
 	local membershipID2 = icontentController:addSubComponent(helloComponent2:getIComponent())
 	
-  -- Conectar os subcomponentes no Conector.
+  -- Conecta os subcomponentes no Conector.
   local helloReceptacle = helloConnector:getFacetByName(utils.IRECEPTACLES_NAME)  
   helloReceptacle = orb:narrow(helloReceptacle.facet_ref, utils.IRECEPTACLES_INTERFACE) 
   helloReceptacle:connect(receptacleName, helloComponent1:getFacetByName("IHello1").facet_ref)
   helloReceptacle:connect(receptacleName, helloComponent2:getFacetByName("IHello2").facet_ref)
+  
+  -- Tenta conectar o componente que está fora no componente composto no conector
+  local ok, errorMsg = pcall(helloReceptacle.connect, helloReceptacle, receptacleName, helloComponent3:getFacetByName("IHello3").facet_ref)
+  print "---"
+  for i,k in pairs(errorMsg) do print(i,k) end
+  print "---"
+  if ok then
+    error("Operacao nao permitida. Excecao deveria ser sido lancada")
+  elseif errorMsg[1] ~= idl.throw.InvalidConnection then
+    error("Excecao deveria ser ".. idl.throw.InvalidConnection .. " e foi " .. errorMsg[1])
+  end  
   
 	-- Verificando que o componentes foram criados
 	local membershipDescription = icontentController:getSubComponents()

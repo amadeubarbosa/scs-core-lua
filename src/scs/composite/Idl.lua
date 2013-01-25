@@ -1,9 +1,7 @@
 
--- Utilizar o padrão do Openbus
-
 idl = {
   throw = {
-      FacetNotAvailableInComponent = "IDL:scs/composite/FacetNotAvailableInComponent:1.0",
+      FacetNotFound = "IDL:scs/composite/FacetNotFound:1.0",
       InvalidComponent = "IDL:scs/composite/InvalidComponent:1.0",
       ComponentNotFound = "IDL:scs/composite/ComponentNotFound:1.0",
       FacetNotFound = "IDL:scs/composite/FacetNotFound:1.0",
@@ -14,7 +12,7 @@ idl = {
       ComponentFailure = "IDL:scs/composite/ComponentFailure:1.0",
       UnknownConnectorType = "IDL:scs/composite/UnknownConnectorType:1.0",
       UnshareableComponent = "IDL:scs/composite/UnshareableComponent:1.0",
-      InvalidConnection = "IDL:scs/core/InvalidConnection:1.0",
+      InvalidConnection = "IDL:scs/core/InvalidConnection:1.0",      
   }
 }
 

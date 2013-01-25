@@ -3,5 +3,5 @@
 lua compositeServer.lua &
 sleep 1
 SERVERPID=$!
-lua client.lua
+lua compositeClient.lua
 kill -9 $SERVERPID

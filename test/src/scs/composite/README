@@ -7,6 +7,7 @@ Testes LATT - O LATT sofreu uma pequena alteracao no modulo Check para permitir 
   lua src/scs/composite/BeforeCompositeTests.lua &
   run_unit_test.sh ISuperComponentTest.lua
   run_unit_test.sh IContentControllerTest.lua
+  run_unit_test.sh IReceptacleTest.lua
 
 Por limitacao do LATT, foi criado um outro teste que exercita algumas funcoes que nao foram exercitadas no 'teste LATT'.
   cd $SCS_PROJECT/test/src/scs/composite/

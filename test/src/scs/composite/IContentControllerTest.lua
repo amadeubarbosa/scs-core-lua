@@ -40,7 +40,7 @@ Suite = {
       compositeComponent = orb:newproxy("corbaloc::localhost:2620/CompositeComponent")
       compositeComponent = orb:narrow(compositeComponent, utils.IComponent)
     end,
-    
+        
     testId = function(self)    
       local icontroller2 = compositeComponent:getFacetByName(utils.ICONTENTCONTROLLER_NAME)
       icontroller2 = orb:narrow(icontroller2, utils.ICONTENTCONTROLLER_INTERFACE)
@@ -59,10 +59,10 @@ Suite = {
     
     testAddSubComponent_CoreComponent = function(self)
       local exception = Check.assertError(icontroller.addSubComponent, icontroller, coreComponent)      
-      Check.assertEquals(exception._repID, idl.throw.InvalidComponent)
+      Check.assertEquals(idl.throw.InvalidComponent, exception._repid)
     end,
     
-    testremoveSubComponent_InvalidNumber = function(self)
+    testremoveSubComponent_ID = function(self)
         Check.assertFalse(icontroller:removeSubComponent(math.random(10,100)))
     end,
     
@@ -81,7 +81,7 @@ Suite = {
     
     testFindComponent_InvalidID = function(self)
       local exception = Check.assertError(icontroller.findComponent, icontroller, math.random(10,100))
-      Check.assertEquals(exception._repID, idl.throw.ComponentNotFound)
+      Check.assertEquals(idl.throw.ComponentNotFound, exception._repid)
     end,
     
     --[[LATT não permite
@@ -94,12 +94,25 @@ Suite = {
       Check.assertEquals(iComponent:getComponentId().name, compositeComponent:getComponentId.name)
     end,]]--
     
-    testRemoveSubComponent_InvalidID = function(self)
-      Check.assertFalse(icontroller:removeSubComponent(888))
-    end,
+    testBindConnectorFacet_InvalidID = function(self)
+      local testId = math.random(10,100)
+      local exception = Check.assertError(icontroller.bindConnectorFacet, icontroller, testId, "IHello", "IHelloX")
+      Check.assertEquals(idl.throw.ComponentNotFound, exception._repid)
+      Check.assertEquals(testId, exception.id)
+    end,    
     
-    testUnbindFacet_InvalidID = function(self)
-      Check.assertFalse(icontroller:unbindFacet(888))
+    testUnbind_InvalidID = function(self)
+      Check.assertFalse(icontroller:unbind(888))
+    end,
+        
+    testGetSubComponents_EmptyList = function(self)
+      local emptyList = icontroller:getSubComponents()
+      Check.assertEmpty(emptyList)      
+    end,
+
+    testRetrieveBindings_EmptyList = function(self)
+      local emptyList = icontroller:retrieveBindings()
+      Check.assertEmpty(emptyList)
     end,
         
   },

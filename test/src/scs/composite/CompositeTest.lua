@@ -70,17 +70,17 @@ oil.main(function()
   -- Tenta adicionar um componente do SCS-Core no Componente Composto
   local ok, errorMsg = pcall(icontentController.addSubComponent, icontentController, helloComponent4:getIComponent())
   if ok then
-    error("Operacao nao permitida. Excecao deveria ser sido lancada")
-  elseif errorMsg[1] ~= idl.throw.InvalidComponent then
-    error("Excecao deveria ser ".. idl.throw.InvalidComponent .. " e foi " .. errorMsg[1])
+    error("Operacao nao permitida. Excecao deveria ser sido lancada.")
+  elseif errorMsg._repid ~= idl.throw.InvalidComponent then
+    error("Excecao deveria ser ".. idl.throw.InvalidComponent .. " e foi " .. errorMsg._repid)
   end
   
   -- Tenta adicionar compartilhar um subcomponente que possui receptáculos
   ok, errorMsg = pcall(icontentController.addSubComponent, icontentController, helloComponent3:getIComponent())
   if ok then
     error("Operacao nao permitida. Excecao deveria ser sido lancada")
-  elseif errorMsg[1] ~= idl.throw.UnshareableComponent then
-    error("Excecao deveria ser ".. idl.throw.UnshareableComponent .. " e foi " .. errorMsg[1])
+  elseif errorMsg._repid ~= idl.throw.UnshareableComponent then
+    error("Excecao deveria ser ".. idl.throw.UnshareableComponent .. " e foi " .. errorMsg_repid)
   end
     
 	-- Verifica se o componentes foram criados
@@ -102,7 +102,7 @@ oil.main(function()
   
   print "\nVerifica se o superComponente foi adicionado"
   local superCompList = helloComponent2.ISuperComponent:getSuperComponents()
-  print(string.format("A faceta '%s' possui os seguintes superComponentes:", 
+  print(string.format("O componente '%s' possui os seguintes superComponentes:", 
       utils:getNameVersion(helloComponent2:getComponentId())))
       
   for _,superComp in ipairs(superCompList) do
@@ -122,7 +122,7 @@ oil.main(function()
   
   print "\Remove o Conector"
   local facetList = component.IMetaInterface:getFacets()
-  local ok = icontentController:unbindFacet(bindingID)
+  local ok = icontentController:unbind(bindingID)
   local facetList2 = component.IMetaInterface:getFacets()
   if ok and (#facetList ~= #facetList2) then
     print("** Conector removido.")

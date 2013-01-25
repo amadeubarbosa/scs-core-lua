@@ -1,0 +1,86 @@
+#ifndef CONFIGURATOR
+#define CONFIGURATOR
+#include "monitoring.idl"
+/**
+ * @brief Interface com funcionalidades para a configuração de salas de captura da infraestrutura do CAS
+ *
+ * @note Componentes que implementam esta faceta devem realizar a conexão de SpeedCars à salas, bem como
+ * a configuração destas, mantendo consistente a estrutura de componentes para a finalidade do evento atual
+ * da sala
+ * 
+ * @remarks Para mais informações sobre a especificação das interfaces e
+ * arquitetura do CAS, consulte: https://tecgraf.puc-rio.br/cas
+ *
+ * @author Rafael Brandão
+ * @author Airton Libório
+ * @author Paulo França
+ */
+
+module cas {
+
+  /**
+   * Módulo de interações associadas com uma sala
+   */
+  module room {
+
+    typedef long ConnectionId;
+
+    /**
+     * Interface com as funcionalidades de configuração (reconfiguração, reconexão) dos componentes de uma sala.
+     * Este componente é responsável pela configuração inicial da sala (baseado no perfil do evento), bem
+     * como a manutenção "ativa" dela, ou seja, ele é responsável por verificar constantemente a presença de novos
+     * dispositivos e a consequente inclusão deles na sala (caso seja coerente com o perfil do evento social da sala)
+     */
+    interface IRoomConfigurator {
+
+      /**
+       * TODO: Para a implementação desta funcionalidade é necessário que o componente DataRepository esteja funcional
+       *
+       * Define a configuração de uma determinada sala através de um arquivo de configuração (em Lua?)
+       * Um arquivo de configuração define quais componentes devem estar presentes dada a funcionalidade do evento social.
+       * Por exemplo, salas com apresentações devem conter pelo menos um componente para captura de PPTs; Salas de vigilância
+       * devem conter pelo menos um dispositivo de captura de vídeo, etc.
+       * 
+       * @param[in] Room Sala cuja configuração interna deve refletir o perfil do evento que está acontecendo
+       * @param[in] EventID Identificador do evento que ocorrerá na sala
+       * @param[in] Perfil String que define o perfil da sala, os valores possíveis são: "presentation", "vigilance"
+       *
+       * @return True se a configuração da sala foi corretamente definida, False caso esta configuração não possa ser atribuída
+       * a sala especificada
+       */
+      //boolean setConfiguration(in IRoom Room, in long EventID, in string Perfil);
+
+      /**
+       * Configura e conecta um componente (SpeedCar ou de pós-processamento) em uma sala
+       * @param[in] component Referência para o componente que deseja se conectar a sala
+       * @return Identificador único da conexão do componente na sala se o componente foi corretamente conectado, -1 caso contrário
+       */
+      ConnectionId connectComponent(in Object comp);
+
+      /**
+       * Desconecta um componente da sala definida nas suas propriedades
+       * @param[in] connectionId Identificador da conexão do componente na sala
+       * @return true se o componente foi corretamente desconectado na sala, false caso a desconexao nao seja bem sucedida
+       */
+      boolean disconnectComponent(in ConnectionId connection_Id);
+
+      /**
+       * Registra um ouvinte para monitorar eventos de conexão e desconexão de SpeedCars na sala configurada
+       * @param[in] monitor Ouvinte que será notificado
+       * @return Um identificador único para esse ouvinte
+       **/
+      unsigned long addSpeedcarListener(in cas::monitoring::ICasEvent monitor);
+
+      /**
+       * Remove um ouvinte de eventos de conexão de SpeedCars
+       * O ouvinte removido não receberá mais notificações sobre eventos de conexão de SpeedCars
+       * @param[in] listener Identificador do ouvinte recebido através de uma chamada addSpeedcarListener
+       */
+      void removeSpeedcarListener(in unsigned long listener);
+
+    };
+  };
+};
+
+#endif
+

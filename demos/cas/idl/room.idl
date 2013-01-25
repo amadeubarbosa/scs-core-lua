@@ -1,0 +1,80 @@
+#ifndef ROOM
+#define ROOM
+
+#include "monitoring.idl"
+
+/**
+ * @brief Interface com funcionalidades para as salas de captura da infraestrutura do CAS
+ *
+ * @note Componentes que implementam esta faceta devem agir como "membranas" para SpeedCars
+ * conectados
+ * 
+ * @remarks Para mais informações sobre a especificação das interfaces e
+ * arquitetura do CAS, consulte: https://tecgraf.puc-rio.br/cas
+ *
+ * @author Rafael Brandão
+ * @author Airton Libório
+ * @author Paulo França
+ */
+
+module cas {
+
+  /**
+   * Módulo de interações associadas com uma sala
+   */
+  module room {
+
+    /**
+     * Interface com as funcionalidades de uma sala que agregadora de 
+     * serviços diversos (gravadores de eventos, transferidores de mídias e transcodificadores)
+     * O desenvolvedor pode recuperar a lista dos SpeedCars associados através das facetas e conexões SCS
+     * e interagir diretamente com os dispositivos.
+     */
+    interface IRoom {
+
+      /**
+       * Retorna o estado da sala. Este estado está relacionado ao estado dos componentes que fazem parte
+       * da sala, cabendo a sala analisar o estado de seus componentes internos e então estabelecer seu próprio estado
+       * @return Uma string com valor que representa o estado da sala, com os possíveis valores: "not configured", 
+       * "ready", "recording", "transferring", "postprocessing" e "finished"
+       * TODO: Rever os estados acima
+       */
+      string getStatus();
+
+      /**
+       * Retorna o nome dado a esta sala
+       * @return Uma string com o nome definido para esta sala
+       */
+      string getName();
+
+      /**
+       * Retorna o perfil do evento em andamento nesta sala
+       * @return Uma string com o perfil de gravação para esta sala
+       */
+      string getCurrentEventProfile();
+
+      /**
+       * Define o perfil corrent desta sala
+       * @param[in] profile String com o perfil a ser definido para esta sala
+       */
+      void setCurrentEventProfile(in string profile);
+
+      /**
+       * Retorna o identificador do evento corrente desta sala
+       * @return Identificador do evento atual desta sala. Caso nenhum evento esteja ocorrendo nesta sala
+       * uma string vazia é retornada
+       */
+      string getCurrentEventID();
+
+      /**
+       * Seta o identificador do evento em andamento na sala
+       * @param[in] eventID Identificador do evento
+       */
+      void setCurrentEventID(in string eventID);
+      
+    };
+  };
+};
+
+#endif
+

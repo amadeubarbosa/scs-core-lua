@@ -1,0 +1,123 @@
+#ifndef DATA_IDL
+#define DATA_IDL
+
+#include "dataRepository.idl"
+
+/**
+ * @brief Interface para transferência de dados dos componentes da infraestrutura do CAS
+ *
+ * @note Esta é apenas uma das facetas que SpeedCars devem implementar para
+ * que possam ser integrados ao CAS. Esta faceta é MANDATÓRIA.
+ * 
+ * @see IRecord (mandatória)
+ * @see IConfigurable (mandatória)
+ * @see IComponentChecker (opcional)
+ * @see IPreview (opcional)
+ * @see IPTZControl (opcional)
+ *
+ * @remarks Para mais informações sobre a especificação das interfaces e
+ * arquitetura do CAS, consulte: https://tecgraf.puc-rio.br/cas
+ *
+ * @author Rafael Brandão
+ * @author Airton Libório
+ * @author Paulo França
+ */
+
+module cas {
+
+  /**
+   * Módulo de transferência de dados físicos (mídias)
+   */
+  module transfer {
+
+    /* Exceções de transferência de dados */
+    
+    /**
+     * @exception Dados não-disponíveis para transferência
+     */
+    exception DataNotAvailable { string msg; };
+    
+    /**
+     * @exception Erro durante a transferência
+     */
+    exception DataTransferError { string msg; };
+
+    /**
+     * Interface que define a estrutura de listeners de progresso 
+     * da transferência de arquivos das mídidas capturadas
+     */
+    interface IProgressListener { 
+
+	    /**
+	     * Recebe a notificação do progresso a transferência
+	     * @param[in] eventDescriptor O evento que está sendo pós-processado
+	     * @param[in] progress Porcentagem do andamento a transferência
+	     */ 
+	    void notifyProgress(in cas::data::Event eventDescriptor, in float progress);
+
+	    /**
+	     * Notificação de finalização da transferência
+	     * @param[in] eventDescriptor O evento que está sendo transferido
+	     */ 
+	    void finished(in cas::data::Event eventDescriptor);
+
+	    /**
+	     * Indica a ocorrência de um erro durante a transferência
+	     * @param[in] eventDescriptor O evento que estava sendo transferido
+	     * @param[in] reason String com o motivo pelo qual a transferência falhou
+	     */ 
+	    void error(in cas::data::Event eventDescriptor, in string reason);
+    };
+
+    /**
+     * Faceta de transferência de mídias capturadas durante a gravação
+     */
+    interface IDataTransfer {
+
+	    /**
+	     * Transfere mídias capturadas para o servidor
+	     * @throws DataNotAvailable Quando não houver dados a serem transferidos (nenhum evento foi gravado)
+	     * @throws DataTransferError Quando ocorrer um erro durante a transferência
+	     */
+	    void transferRecordedData() raises(DataNotAvailable, DataTransferError);
+
+	    /**
+	     * Transfere mídias capturadas em um determinado evento para o servidor
+	     * @param[in] eventDescriptor Descritor do evento cujos dados serão transferidos para o servidor
+	     * @throws DataNotAvailable Quando não houver dados a serem transferidos para o referido evento
+	     * @throws DataTransferError Quando ocorrer um erro durante a transferência
+	     */
+	    void transferRecordedDataFromEvent(in cas::data::Event eventDescriptor) raises(DataNotAvailable, DataTransferError);
+
+	    /**
+	     * Retorna o estado da transferência dos dados
+	     * @param[in] eventID Identificador do evento cujos dados serão transferidos para o servidor
+	     * @return Uma string com um dos seguintes valores: "unavailable", "not_transfered", "transferring" e "finished"
+	     */
+	    string getStatus(in cas::data::Event eventDescriptor);
+
+	    /**
+	     * Recebe a notificação do progresso da transferência
+	     * @param[in] eventDescriptor O evento que está sendo transferido
+	     * @param[in] progress Porcentagem do andamento do pós-processamento
+	     */ 
+	    long addProgressListener(in IProgressListener listener);
+
+	    /**
+	     * Remove um ouvinte de pós-processamento
+	     * O ouvinte removido não receberá mais notificações sobre o andamento da transferência
+	     * @param[in] listener Objeto ouvinte
+	     */
+	    void removeProgressListener(in long listenerID);
+
+	    /**
+	     * Recupera o progresso do processamento
+	     * @return Valor de porcentagem indicando o progresso. Caso não haja transferência em andamento, o valor retornado será negativo 
+	     */
+	    float getProgress();
+    };
+  };
+};
+
+#endif
+

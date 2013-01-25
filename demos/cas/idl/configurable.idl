@@ -1,0 +1,113 @@
+#ifndef CONFIGURABLE
+#define CONFIGURABLE
+
+/**
+ * @brief Interface para configuração de componentes da infraestrutura do CAS
+ *
+ * @note Esta é apenas uma das facetas que SpeedCars devem implementar para
+ * que possam ser integrados ao CAS. Esta faceta é MANDATÓRIA.
+ * 
+ * @see IRecord (mandatória)
+ * @see IDataTransfer (mandatória)
+ * @see IComponentChecker (opcional)
+ * @see IPreview (opcional)
+ * @see IPTZControl (opcional)
+ *
+ * @remarks Para mais informações sobre a especificação das interfaces e
+ * arquitetura do CAS, consulte: https://tecgraf.puc-rio.br/cas
+ *
+ * @author Rafael Brandão
+ * @author Airton Libório
+ */
+
+module cas {
+
+  /**
+   * @brief Módulo de configuração de componentes CAS
+   * @author Rafael Brandão
+   * @author Airton Libório
+   */
+  module configuration {
+
+    /**
+     * @brief Estrutura de propriedade suportada pelo SpeedCar
+     */
+    struct Property {
+      /**
+       * @brief Nome da propriedade
+       */
+      string name;
+
+      /**
+       * @brief Valor da propriedade
+       */
+      string value;
+    };
+
+    /* Exceções de configuração */
+
+    /**
+     * @exception UnsupportedProperty Propriedades não suportadas por componentes.
+     */
+    exception UnsupportedProperty { string msg; }; 
+
+    /**
+     * @exception MalformedValue O valor da propriedade não foi bem formado
+     */
+    exception MalformedValue { string msg; };
+
+    /**
+     * @exception CannotSetProperty Usado quando o componente não pode setar a propriedade do componente
+     */
+    exception CannotSetProperty { string msg; };
+
+    /**
+     * @brief Conjunto de propriedades suportadas pelo componente
+     */
+    typedef sequence<Property> supportedProperties;
+
+    /**
+     * @brief Conjunto de nomes de propriedades suportadas pelo componente
+     */
+    typedef sequence<string> supportedPropertiesNames;
+
+    /**
+     * @brief Interface que permite a configuração de SpeedCars. As configurações suportadas são
+     * pertinentes a cada componente que implementa essa interface.
+     * @author Rafael Brandão
+     * @author Airton Libório
+     */ 
+    interface IConfigurable {
+
+      /**
+       * @brief Seta uma propriedade de configuração
+       * @param[in] prop Propriedade a ser definida
+       * @throws UnsupportedProperty Lançada quando uma propriedade tem um nome não reconhecido pelo componente ou valor fora de escopo
+       */ 
+      void setProperty(in Property prop) raises (UnsupportedProperty, CannotSetProperty, MalformedValue);
+
+      /**
+       * @brief Recupera uma propriedade de configuração
+       * @param[in] key Chave da propriedade a ser recuperada
+       * @return A propriedade
+       * @throws UnsupportedProperty Lançada quando o nome não se encontra na lista de propriedades suportadas pelo componente 
+       */ 
+      Property getProperty(in string key) raises (UnsupportedProperty);
+
+      /**
+       * @brief Recupera uma lista (de objetos Property) com as propriedades de configuração setadas do componente
+       * @return Lista de propriedades do componente
+       */
+      supportedProperties getProperties();
+
+      /**
+       * @brief Retorna a lista de propriedades suportadas pelo SpeedCar
+       * @return Lista de propriedades suportadas pelo componente
+       */
+      supportedPropertiesNames getSupportedProperties();
+    };
+  };
+};
+
+#endif
+

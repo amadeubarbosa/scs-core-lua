@@ -1,0 +1,63 @@
+#ifndef MONITORING_IDL
+#define MONITORING_IDL
+
+/**
+ * @brief Interface para monitoramento dos componentes da infraestrutura do CAS
+ *
+ * @note Esta é apenas uma das facetas que SpeedCars devem implementar para
+ * que possam ser integrados ao CAS. Esta faceta é OPCIONAL.
+ * 
+ * @see IRecord (mandatória)
+ * @see IConfigurable (mandatória)
+ * @see IDataTransfer (mandatória)
+ * @see IPreview (opcional)
+ * @see IPTZControl (opcional)
+ *
+ * @remarks Para mais informações sobre a especificação das interfaces e
+ * arquitetura do CAS, consulte: https://tecgraf.puc-rio.br/cas
+ *
+ * @author Paulo França
+ */
+
+module cas {
+  module monitoring {
+
+    /** \brief Indica que ocorreu um erro no dispositivo gerenciado pelo componente. */
+    exception DeviceFail { string reason; };
+
+    /** \brief Indica que ocorreu que o componente não
+           pode realizar a gravação porque não há espaço no disco local. */
+    exception DiskFull {};
+
+    /** \brief Indica que o componente não teve acesso ao diretório de gravação das mÃ­dias. */
+    exception UnaccessableRecordDir { string reason; };
+
+    /** \brief Indica que ocorreu uma falha no componente. */
+    exception UnkownFail { string reason; };
+
+    interface IComponentChecker {
+      /** \brief Verifica se o componente estão rodando e repondendo. 
+        \return \i true se o componente está rodando e respondendo ou \i false caso contrário. */ 
+      boolean isAlive();
+      /** \brief Método que verifica se o componente está fucional. 
+          \return true se o componente está ok ou, caso contrário, lança uma exceção que 
+          indica a natureza do problema encontrado. */
+      boolean isWorking() raises (DeviceFail, DiskFull, UnkownFail, UnaccessableRecordDir);
+    };
+
+    /** \brief Define metodos que devem ser implementados por um ouvinte 
+        interessado em eventos de algum componente do CAS. */
+    interface ICasEvent {
+      void failed (in string name, in string reason);
+      void connected (in string name);
+      void disconnect (in string name);
+    };
+
+    /** Interface da nova versão do CAS */
+    interface IComponentListener {
+      void failed (in string name, in string reason, in boolean fatal);
+      void connected (in string name);
+      void disconnected (in string name);
+    };
+  };
+};

@@ -1,0 +1,96 @@
+#ifndef RECORDER
+#define RECORDER
+
+#include "dataRepository.idl"
+
+/**
+ * @brief Interface com funcionalidades para captura de mídias por um SpeedCar
+ *
+ * @note Esta é apenas uma das facetas que SpeedCars podem implementar para
+ * que possam ser integrados à infraestrutura do CAS. Esta faceta é MANDATÓRIA.
+ * 
+ * @see IRecord (mandatória)
+ * @see IDataTransfer (mandatória)
+ * @see IConfigurable (mandatória)
+ * @see IComponentChecker (opcional)
+ * @see IPTZControl (opcional)
+ * @see ISlideControl (opcional)
+ *
+ * @remarks Para mais informações sobre a especificação das interfaces e
+ * arquitetura do CAS, consulte: https://tecgraf.puc-rio.br/cas
+ *
+ * @author Rafael Brandão
+ * @author Airton Libório
+ */
+
+module cas {
+
+  /**
+   * Módulo de gravação de eventos
+   */
+  module recorder {
+
+    /* Exceções para o tratamento de erros na interface IRecord */
+
+    /**
+     * @exception NotRecording Componente não se encontra em estado de gravação
+     */
+    exception NotRecording { string msg; };
+
+    /**
+     * @exception AlreadyRecording Componente já se encontra em estado de gravação
+     */
+    exception AlreadyRecording { string msg; };
+
+    /**
+     * @exception NotConfigured Componente ainda não se encontra devidamente configurado
+     */
+    exception NotConfigured { string msg; };
+
+	/**
+	* @exception StartRecordFail Ocorreu um erro no componente que impediu o inicio da gravação
+	*/
+	exception StartRecordFailure { string reason; };
+
+
+    /**
+     * Interface que define as funcionalidades básicas de controle de captura de eventos multimídia
+     * @author Rafael Brandão
+     * @author Airton Libório
+     */
+    interface IRecord {
+
+      /**
+       * Inicia a gravação de um determinado evento
+       * Para que essa funcionalidade seja utilizada sem problemas, o componente precisa já
+       * estar devidamente configurado, inclusive com informações da apresentação (eventID incluso)
+       * as configurações deve estar o EventID que identifica o evento que este dispositivo está capturando.
+       * @throws NotConfigured Componente não está devidamente configurado para a captura
+       * @throws AlreadyRecording Componente já encontra-se gravando um evento
+       */ 
+      void startRecord() raises(NotConfigured, AlreadyRecording, StartRecordFailure);
+
+      /**
+       * Retorna o estado da entidade de gravação
+       * @return Uma string com valor "ready" ou "recording"
+       */
+      string getStatus();
+
+      /**
+       * Finaliza a gravação de um evento
+       * @throws NotRecording Componente não pode parar a gravação pois está em estado "ready"
+       */
+      void stopRecord() raises(NotRecording);
+
+      /**
+       * Descarta os dados capturados pelo componente
+       * O componente desfaz-se de quaisquer dados capturados
+       * @throws NotRecording Lançada quando o componente estiver em estado "ready", pois não há dados para serem descartados
+       */
+      void discardRecordedData() raises(NotRecording);
+    };
+  };
+};
+
+#endif
+

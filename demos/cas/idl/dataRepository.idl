@@ -1,0 +1,184 @@
+#ifndef DATA_REPOSITORY
+#define DATA_REPOSITORY
+
+#include "configurable.idl"
+
+/**
+ * @brief Interface de serviços providos pelo CAS
+ * @brief As interfaces abaixo são utilizadas no serviço do CAS, por componentes diversos
+ * @author Rafael Brandão
+ * @author Airton Libório
+ */
+module cas {
+
+  /**
+   * @brief Módulo de persistência de dados da aplicação
+   * @author Airton Libório
+   */
+  module data {
+
+    /**
+     * @brief Enumeração dos meses do ano para mapeamento com o banco de dados
+     */
+    enum Months { JANUARY, FEBRUARY, MARCH, APRIL, MAY, JUNE, JULY, AUGUST, SEPTEMBER, OCTOBER, NOVEMBER, DECEMBER };
+
+    /**
+     * @brief Enumeração dos tipos de SpeedCars da versão corrente (2.0)
+     */
+    enum SpeedCar { SCPOWERPOINT, SCAUDIO, SCBROFFICE, SCVIDEO, SCSCREEN };
+                                                                                                       
+    /**
+     * @brief Estrutura de indicação do tipo da entidade de captura
+     */
+    struct CaptureEntityType {
+      /**
+       * @brief Identificador do tipo de entidade
+       */
+       SpeedCar entityType;
+
+      /**
+        * @brief Nome da entidade de captura
+        */
+       string name;
+
+       /**
+        * @brief Descrição da entidade de captura
+        */
+       string description;
+     };
+
+     typedef sequence<cas::configuration::Property> Properties;
+
+     /**
+      * Representação de uma entidade de captura
+      */ 
+     struct CaptureEntity {
+       /**
+        * @brief Tipo da entidade de captura
+        */
+       CaptureEntityType entityType;
+
+       /**
+        * @brief Descrição da entidade
+        */
+       string description;
+
+       /**
+        * @brief As propriedades associadas com a entidade de captura
+        */
+        Properties entityProperties;
+     };
+
+     typedef sequence<CaptureEntity> CaptureEntities;
+     
+     /**
+      * Entidade de representação de um perfil de gravação
+      */
+     struct RecordingProfile {
+       /**
+        * @brief Nome do perfil de gravação
+        */
+       string name;
+
+       /**
+        * @brief Entidades de captura associadas a um perfil
+        */
+        CaptureEntities profileCaptureEntities;
+     };
+
+
+    /**
+     * @brief Estrutura de representação de uma sala de gravação
+     */
+    struct Room {
+      /**
+       * @brief O nome da sala
+       */
+      string name;
+
+      /**
+       * @brief A descrição da sala
+       */
+      string description;
+
+      /**
+       * @brief O perfil de gravação da sala
+       * TODO: Dada a conversa que tivemos com o Portella, ver se isso se encaixa aqui
+       */
+      //RecordingProfile recordingProfile;
+    };
+
+     /**
+      * @brief Estrutura de representação do timestamp de captura de um evento
+      */
+      struct Date {
+        /**
+         * @brief Valor de dia
+         */
+        unsigned short day;
+
+        /**
+         * @brief Valor de mes
+         */
+        Months month;
+
+        /**
+         * @brief Valor de ano
+         */
+        unsigned short year;
+
+        /**
+         * @brief Valor de hora
+         */
+        unsigned short hour;
+
+        /**
+         * @brief Valor de minutos
+         */
+        unsigned short minute;
+
+        /**
+         * @brief Valor de segundos
+         */
+        unsigned short seconds;
+      };
+
+     /**
+      * @brief Estrutura de mapeamento com o evento do banco de dados
+      */
+     struct Event {
+       /**
+        * @brief Id do evento
+        */
+       string eventId;
+
+       /**
+        * @brief O nome do evento
+        */
+       string name;
+
+       /**
+        * @brief Descrição do evento
+        */
+       string description;
+
+       /**
+        * @brief O nome do apresentador
+        */
+       string presenterName;
+
+       /**
+        * @brief Horário de início da gravação do evento
+        */
+       Date startDate;
+
+       /**
+        * @brief Horário de fim de gravação do evento
+        */
+       Date finishDate;
+    };
+  };
+};
+
+#endif
+

@@ -22,7 +22,7 @@ function IReceptacles:__new(orb, id, basicKeys)
   return receptacles
 end
 
-function newConnect(self, receptacle, connection)
+function newConnect(self, name, connection)
   local context = self.context
   local orb = context._orb
 
@@ -35,7 +35,7 @@ function newConnect(self, receptacle, connection)
   local ok, connISuperCompFacet = pcall(connIComponentFacet.getFacetByName, 
       connIComponentFacet, utils.ISUPERCOMPONENT_NAME)
   if not ok or not connISuperCompFacet then
-    error { compositeIdl.throw.InvalidConnection }
+    error { _repid = compositeIdl.throw.InvalidConnection }
   end
   connISuperCompFacet = orb:narrow(connISuperCompFacet, utils.ISUPERCOMPONENT_INTERFACE)  
   local connSuperComponentList = connISuperCompFacet:getSuperComponents()
@@ -43,8 +43,7 @@ function newConnect(self, receptacle, connection)
 
   if ((#superComponentList > 0 and #connSuperComponentList == 0)
       or (#superComponentList == 0 and #connSuperComponentList > 0)) then
-    print "AQUI TEM ERRO DO OIL?"
-    error { compositeIdl.throw.InvalidConnection }    
+    error { _repid = compositeIdl.throw.InvalidConnection }
   end
   
   for _,superComponent in pairs(superComponentList) do
@@ -58,12 +57,12 @@ function newConnect(self, receptacle, connection)
       connSuperContentFacet = orb:narrow(connSuperContentFacet, utils.ICONTENTCONTROLLER)
 			
       if superContentFacet:getId() == connSuperContentFacet:getId() then
-        return SuperIReceptacles.connect(self, receptacle, connection)
+        return SuperIReceptacles.connect(self, name, connection)
       end
     end
   end
 
-  error { compositeIdl.throw.InvalidConnection }
+  error { _repid = compositeIdl.throw.InvalidConnection }
 end
 
 return IReceptacles

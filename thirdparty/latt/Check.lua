@@ -60,3 +60,9 @@ function assertNotNil(variable)
     error("The variable shouldn't be nil.", 2)
   end
 end
+
+function assertEmpty(variable)
+  if #variable ~= 0 then
+    error("The variable must be empty. Actual value [" .. #variable .. "].") 
+  end
+end

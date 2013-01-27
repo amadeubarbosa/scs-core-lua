@@ -36,10 +36,10 @@ function connect(self, receptacle, object)
   local context = self.context
   local desc = context._receptacles[receptacle]
   if not desc then
-    error{ "IDL:scs/core/InvalidName:1.0", name = receptacle }
+    error{ _repid = "IDL:scs/core/InvalidName:1.0", name = receptacle }
   end
   if not object then
-    error{ "IDL:scs/core/InvalidConnection:1.0" }
+    error{ _repid = "IDL:scs/core/InvalidConnection:1.0" }
   end
   local status, err
   if object._is_a then
@@ -54,12 +54,12 @@ function connect(self, receptacle, object)
     end
   end
   if not (status and err) then
-    error{ "IDL:scs/core/InvalidConnection:1.0" }
+    error{ _repid = "IDL:scs/core/InvalidConnection:1.0" }
   end
   object = context._orb:narrow(object, desc.interface_name)
 
   if (self._numConnections >= self._maxConnections) then
-    error{ "IDL:scs/core/ExceededConnectionLimit:1.0" }
+    error{ _repid = "IDL:scs/core/ExceededConnectionLimit:1.0" }
   end
 
   -- it's not possible to use the '#' operator to find out the number of
@@ -68,7 +68,7 @@ function connect(self, receptacle, object)
   --    (i.e. 1, 2, 4, 5, ...) and the operator may return a wrong size.
   -- b) The number of connections is per component, not per receptacle.
   if not desc.is_multiplex and self._numConnections > 0 then
-    error{ "IDL:scs/core/AlreadyConnected:1.0" }
+    error{ _repid = "IDL:scs/core/AlreadyConnected:1.0" }
   end
 
   self._nextConnId = self._nextConnId + 1
@@ -89,11 +89,11 @@ function disconnect(self, connId)
   local desc = self._receptsByConId[connId]
 
   if connId <= 0 then
-    error{ "IDL:scs/core/InvalidConnection:1.0" }
+    error{ _repid = "IDL:scs/core/InvalidConnection:1.0" }
   end
 
   if not desc then
-    error{ "IDL:scs/core/NoConnection:1.0" }
+    error{ _repid = "IDL:scs/core/NoConnection:1.0" }
   end
 
   desc.connections[connId] = nil
@@ -112,6 +112,6 @@ function getConnections(self, receptacle)
   if self._receptacles[receptacle] then
     return utils:convertToArray(self._receptacles[receptacle].connections)
   end
-  error{ "IDL:scs/core/InvalidName:1.0", name = receptacle }
+  error{ _repid = "IDL:scs/core/InvalidName:1.0", name = receptacle }
 end
 

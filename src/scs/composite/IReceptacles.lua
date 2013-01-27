@@ -1,7 +1,7 @@
 --
 -- SCS
 -- IReceptacles.lua
--- Description: Implementacao de IReceptacles que estende da implementacao base (SCS-Core
+-- Description: Implementacao de IReceptacles que estende da implementacao base (SCS-Core)
 -- Version: 1.0
 --
 
@@ -30,7 +30,7 @@ function newConnect(self, name, connection)
   superComponentFacet = orb:narrow(superComponentFacet, utils.ISUPERCOMPONENT_INTERFACE)  
   local superComponentList = superComponentFacet:getSuperComponents()
 
-  -- Obter a SuperComponentList da conexão  
+  -- Obter a SuperComponentList da conexão
   local connIComponentFacet = orb:narrow(connection:_component(),utils.ICOMPONENT_INTERFACE)	
   local ok, connISuperCompFacet = pcall(connIComponentFacet.getFacetByName, 
       connIComponentFacet, utils.ISUPERCOMPONENT_NAME)
@@ -39,7 +39,6 @@ function newConnect(self, name, connection)
   end
   connISuperCompFacet = orb:narrow(connISuperCompFacet, utils.ISUPERCOMPONENT_INTERFACE)  
   local connSuperComponentList = connISuperCompFacet:getSuperComponents()
-
 
   if ((#superComponentList > 0 and #connSuperComponentList == 0)
       or (#superComponentList == 0 and #connSuperComponentList > 0)) then

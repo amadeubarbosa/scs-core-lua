@@ -298,18 +298,17 @@ function ContentController:bindReceptacle(subcomponents, internalReceptacleName,
       error { _repid = compositeIdl.throw.ComponentNotFound, id = id }
     end
 
-    local metaFacet = subcomponent:getFacetByName(utils.IMETAINFERFACE_NAME)
-    if not metaFacet then
-      error { _repid = compositeIdl.throw.ReceptacleNotAvailableInComponent }
-    end
-    metaFacet = orb:narrow(metaFacet, utils.IMETAINFERFACE_INTERFACE)
-
     local ireceptacleFacet = subcomponent:getFacetByName(utils.IRECEPTACLE_NAME)
     if not ireceptacleFacet then
       error { _repid = compositeIdl.throw.ReceptacleNotAvailableInComponent }
     end
     ireceptacleFacet = orb:narrow(ireceptacleFacet, utils.IRECEPTACLE_INTERFACE)
 
+    local metaFacet = subcomponent:getFacetByName(utils.IMETAINFERFACE_NAME)
+    if not metaFacet then
+      error { _repid = compositeIdl.throw.ReceptacleNotAvailableInComponent }
+    end
+    metaFacet = orb:narrow(metaFacet, utils.IMETAINFERFACE_INTERFACE)
 
     local descriptions = metaFacet:getReceptaclesByName({internalReceptacleName})
     if #descriptions < 1 then
@@ -325,7 +324,6 @@ function ContentController:bindReceptacle(subcomponents, internalReceptacleName,
       error { _repid = compositeIdl.throw.IncompatibleInterfaces }
     end
 
-
     table.insert(componentsList, ireceptacleFacet)
   end
 
@@ -340,6 +338,44 @@ function ContentController:bindReceptacle(subcomponents, internalReceptacleName,
   return bindingId
 end
 
+function ContentController:bindConnectorReceptacles(connectorID, internalReceptacleName, externalReceptacleName)
+  local context = self.context
+  local orb = context._orb
+
+  local ok, subcomponent = pcall(self.findComponent, self, id)
+   if not ok or not subcomponent then
+    error { _repid = compositeIdl.throw.ComponentNotFound, id = id }
+  end
+
+  local isubReceptacle = subcomponent:getFacetByName(utils.IRECEPTACLE_NAME)
+  if not ireceptacleFacet then
+    error { _repid = compositeIdl.throw.ReceptacleNotAvailableInComponent }
+  end
+  isubReceptacle = orb:narrow(isubReceptacle, utils.IRECEPTACLE_INTERFACE)
+
+  local metaFacet = subcomponent:getFacetByName(utils.IMETAINFERFACE_NAME)
+  if not metaFacet then
+    error { _repid = compositeIdl.throw.ReceptacleNotAvailableInComponent }
+  end
+  metaFacet = orb:narrow(metaFacet, utils.IMETAINFERFACE_INTERFACE)
+
+  local descriptions = metaFacet:getReceptaclesByName({internalReceptacleName})
+  if #descriptions < 1 then
+    error { _repid = compositeIdl.throw.ReceptacleNotFound }
+  end
+
+  local recptacleDescription = descriptions[1]
+  isMultiplex = recptacleDescription.isMultiplex
+  interfaceName = recptacleDescription.interface_name
+
+  context:registerFacet(externalReceptacleName, interfaceName, nil, facetRef, nil)
+
+  local bindingId = self.bindingId
+  self.receptacleConnectorsMap[bindingId] = externalReceptacleName
+  self.bindingId  = bindingId + 1
+
+  return bindingId
+end
 
 
 function SetConnectorType(connector, connectorType)

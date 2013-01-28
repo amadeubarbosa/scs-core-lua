@@ -17,13 +17,14 @@
     composto Room
     3. Funções auxiliares
     4. Execucao do demo
-      3.1 Criar os componentes RoomConfigurator e Room
-      3.2 Criar dois SpeedCars
-      3.3 Adicionar os SpeedCars no Room utilizando o RoomConfigurator
-      3.4 Iniciar Gravacao
-      3.5 Verificar se a interface IComponentListener informou que a gravacao
-      foi iniciada com sucesso
-      3.6 Verificar se os SpeedCars estao no estado 'recording'
+      4.1 Criar os componentes RoomConfigurator e Room
+      4.2 RoomConfigurator encontra o Room e o configura
+      4.3 Simula o painel de controles recebendo informacoes sobre o componente Room e os SpeedCars
+      4.4 Criar dois SpeedCars
+      4.5 SpeedCars encontram o RoomConfigurator específico e pedem para serem adicionados no Room
+      4.6 Verificar se os SpeedCars estao no estado 'ready'
+      4.7 Iniciar Gravacao
+      4.8 Verificar se os SpeedCars estao no estado 'recording'
 
   [1] https://jira.tecgraf.puc-rio.br/confluence/display/CASPUB/Capture+and+Access+System
 ----------------------------------------------------------------------]]
@@ -53,15 +54,13 @@ local IConfigurable =  class()
 
 local IDataTransfer = class()
 
-local IComponentListener = class()
-IComponentListener.connected  = function(name) 
-  return string.format("O SpeedCar %s foi conectado com sucesso.", name) 
+local IActivitiesListener = class()
+IActivitiesListener.connected  = function(self, name)
+  return string.format("O SpeedCar %s foi conectado com sucesso.", name)
 end
-IComponentListener.disconnected  = function(self)
+IActivitiesListener.disconnected  = function(self, name)
  return string.format("O SpeedCar %s foi desconectado com sucesso.", name)
 end
-
-local ICasEvent = class()
 
 -- Faceta do Componente Room
 local IRoom = class()
@@ -104,33 +103,37 @@ function IRoomConfigurator:connectComponent(speedCarComponent)
   dataTransfReceptacles = orb:narrow(dataTransfReceptacles, "IDL:scs/core/IReceptacles:1.0")
   dataTransfReceptacles:connect("IDataTransfer", scDataTransf)
 
-  -- Conectar a faceta do Speedcar no conector IComponentChecker
-  local scChecker = speedCarComponent:getFacetByName("IComponentChecker")
-  local checkerConn = contentController:findComponent(connectorsIdMap.IChecker)
+  -- Conectar a faceta do Speedcar no conector IActivitiesListener
+  local scChecker = speedCarComponent:getFacetByName("IActivitiesListener")
+  local checkerConn = contentController:findComponent(connectorsIdMap.IActivitiesListener)
   checkerReceptacles = checkerConn:getFacetByName("IReceptacles")
   checkerReceptacles = orb:narrow(checkerReceptacles, "IDL:scs/core/IReceptacles:1.0")
-  checkerReceptacles:connect("IChecker", scChecker)
+  checkerReceptacles:connect("IActivitiesListener", scChecker)
 end
 
 ------------------------------------------------------------------------
 -- 2. Implementacao dos conectores
 ------------------------------------------------------------------------
 
+-- Connector IReceptacles
+--local IRecepaclesConn =
+
+
 -- Conectores do Room
 local IRecordConnector = class()
 function IRecordConnector:call(facetName,facetInterface, functionName)
   local context = self.context
   local orb = context._orb
-  
+
   local returnList = {}
-  
+
   receptacle = context:getReceptacleByName(facetName)
   for _,facet in pairs(receptacle.connections) do
-    facet = orb:narrow(facet.objref, facetInterface)  
+    facet = orb:narrow(facet.objref, facetInterface)
     local ok, returnValue = pcall(facet[functionName], facet)
     table.insert(returnList, returnValue)
   end
-  
+
   return returnList
 end
 
@@ -140,13 +143,13 @@ end
 function IRecordConnector:getStatus()
   local mainStatus = "ready"
   statusList = self:call("IRecord","IDL:cas/recorder/IRecord:1.0", "getStatus")
-  
-  for _,status in pairs(statusList) do 
+
+  for _,status in pairs(statusList) do
     if mainStatus ~= status then
       mainStatus = status
     end
   end
-  
+
   return mainStatus
 end
 
@@ -198,13 +201,13 @@ function AddConectors(orb, roomIContent)
   membershipIdMap.IDataTransfer = roomIContent:addSubComponent(dataTransferConnComponent.IComponent)
   roomIContent:bindConnectorFacet(membershipIdMap.IDataTransfer, "IDataTransfer", "IDataTransfer")
 
-  -- ComponentChecker Connector
-  connectorCompId = { name = "ComponentCheckerConnector", major_version = 1, minor_version = 0, patch_version = 0, platform_spec = "" }
+  -- ActivitiesListener Connector
+  connectorCompId = { name = "ActivitiesListenerConnector", major_version = 1, minor_version = 0, patch_version = 0, platform_spec = "" }
   local checkerConnComponent = ComponentContext(orb, connectorCompId)
-  checkerConnComponent:addFacet("IChecker", "IDL:cas/monitoring/IComponentChecker:1.0", IComponentChecker())
-  checkerConnComponent:addReceptacle("IChecker", "IDL:cas/monitoring/IComponentChecker:1.0", true)
-  membershipIdMap.IChecker = roomIContent:addSubComponent(checkerConnComponent.IComponent)
-  roomIContent:bindConnectorFacet(membershipIdMap.IChecker, "IChecker", "IChecker")
+  checkerConnComponent:addFacet("IActivitiesListener", "IDL:cas/monitoring/IActivitiesListener:1.0", IActivitiesListener())
+  checkerConnComponent:addReceptacle("IActivitiesListener", "IDL:cas/monitoring/IActivitiesListener:1.0", true)
+  membershipIdMap.IActivitiesListener = roomIContent:addSubComponent(checkerConnComponent.IComponent)
+  --roomIContent:bindConnectorReceptacle(membershipIdMap.IActivitiesListener, "IActivitiesListener", "IActivitiesListener")
 
   return membershipIdMap
 end
@@ -215,7 +218,7 @@ function CreateSpeedCar(orb)
   speedCar:addFacet("IRecord", "IDL:cas/recorder/IRecord:1.0", IRecord())
   speedCar:addFacet("IConfigurable", "IDL:cas/configuration/IConfigurable:1.0", IConfigurable())
   speedCar:addFacet("IDataTransfer", "IDL:cas/transfer/IDataTransfer:1.0", IDataTransfer())
-  speedCar:addFacet("IComponentChecker", "IDL:cas/monitoring/IComponentChecker:1.0", IComponentChecker())
+  speedCar:addFacet("IActivitiesListener", "IDL:cas/monitoring/IActivitiesListener:1.0", IActivitiesListener())
   return speedCar.IComponent
 end
 
@@ -246,17 +249,26 @@ oil.main(function()
 
   local roomIComponent = CreateRoom(orb)
 
------ 4.2 RoomConfigurator encontra o Room e o configura
+---- 4.2 RoomConfigurator encontra o Room e o configura
   roomConfiguratorComponent.room = roomIComponent
   local roomIContentController  = roomIComponent:getFacetByName("IContentController")
   local membershipIdMap = AddConectors(orb, roomIContentController)
   roomConfiguratorComponent.membershipIdMap = membershipIdMap
 
------ 4.3 Criar dois SpeedCars
+---- 4.3 Simula o painel de controles recebendo informacoes sobre o componente Room e os SpeedCars
+  local controlPainer = ComponentContext(orb, componentId)
+  controlPainer:addFacet("IActivitiesListener", "IDL:cas/monitoring/IActivitiesListener:1.0", IActivitiesListener())
+  local controlPainelListener = controlPainer.IComponent:getFacetByName("IActivitiesListener")
+  local controlPainelListener = orb:narrow(controlPainelListener, "IDL:cas/monitoring/IActivitiesListener:1.0")
+  local roomRecepacles = roomIComponent:getFacetByName("IReceptacles")
+  --roomRecepacles:connect("IActivitiesListener", controlPainelListener)
+
+
+---- 4.4 Criar dois SpeedCars
   local speedCarComponent1 = CreateSpeedCar(orb)
   local speedCarComponent2 = CreateSpeedCar(orb)
 
----- 4.4 SpeedCars encontram o RoomConfigurator específico e pedem para serem adicionados no Room
+---- 4.5 SpeedCars encontram o RoomConfigurator específico e pedem para serem adicionados no Room
   roomConfiguratorComponent = findSpeedCarRoom()
   if not roomConfiguratorComponent then
     print "Room Configurator não foi encontrado"
@@ -268,16 +280,16 @@ oil.main(function()
   roomContentController:connectComponent(speedCarComponent1)
   roomContentController:connectComponent(speedCarComponent2)
 
----- 4.5 Verificar se os SpeedCars estao no estado 'ready'
+---- 4.6 Verificar se os SpeedCars estao no estado 'ready'
   local roomRecord = roomIComponent:getFacetByName("IRecord")
   roomRecord = orb:narrow(roomRecord, "IDL:cas/recorder/IRecord:1.0")
   local status = roomRecord:getStatus()
   print ("SpeedCar status: " .. status)
 
----- 4.6 Iniciar Gravacao
+---- 4.7 Iniciar Gravacao
   roomRecord:startRecord()
 
----- 4.7 Verificar se os SpeedCars estao no estado 'recording'
+---- 4.8 Verificar se os SpeedCars estao no estado 'recording'
   status = roomRecord:getStatus()
   print ("SpeedCar status: " .. status)
 

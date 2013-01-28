@@ -20,21 +20,21 @@ local ComponentContext = class({}, SuperComponentContext)
 function ComponentContext:__new(orb, id, basicKeys)
   local component = SuperComponentContext.__new(self, orb, id, basicKeys)
   addCompositeFacets(component, basicKeys)
-  
+
   component:updateFacet(utils.IRECEPTACLES_NAME, IReceptacles())
   return component
 end
 
 function addCompositeFacets(component, basicKeys)
-	local basicKeys = basicKeys or {}
-	  
-	component:addFacet(utils.ICONTENTCONTROLLER_NAME,
-			utils.ICONTENTCONTROLLER_INTERFACE,
+  local basicKeys = basicKeys or {}
+
+  component:addFacet(utils.ICONTENTCONTROLLER_NAME,
+      utils.ICONTENTCONTROLLER_INTERFACE,
       IContentController(), basicKeys.IContentController)
-      
+
    component:addFacet(utils.ISUPERCOMPONENT_NAME,
       utils.ISUPERCOMPONENT_INTERFACE,
-			ISuperComponent(), basicKeys.ISuperComponent)
+      ISuperComponent(), basicKeys.ISuperComponent)
 end
 
 

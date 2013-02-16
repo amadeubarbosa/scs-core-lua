@@ -119,15 +119,15 @@ function ContentController:retrieveBindings()
   local bindDesc = {}
 
   for _, facet in pairs(context:getFacets()) do
-	if facet.bindingId then
-		table.insert(bindDesc, { id = facet.bindingId, name = facet.name, isFacet = true })
-	end
+  if facet.bindingId then
+    table.insert(bindDesc, { id = facet.bindingId, name = facet.name, isFacet = true })
+  end
   end
 
   for _, receptacle in pairs(context:getReceptacles()) do
-	if facet.bindingId then
-		table.insert(bindDesc, { id = receptacle.bindingId, name = receptacle.name, isFacet = false })
-	end
+  if facet.bindingId then
+    table.insert(bindDesc, { id = receptacle.bindingId, name = receptacle.name, isFacet = false })
+  end
   end
 
   return bindDesc
@@ -184,35 +184,35 @@ local function unbindFacet(self, bindingId)
   local orb = context._orb
 
   local facets = context:getFacets()
-	for _,facet in ipairs(facets) do 
-		if facet.bindingId == bindingId then	
-			local connector = context:getFacetByName(facet.name)
-			context:removeFacet(facet.name)
+  for _,facet in ipairs(facets) do
+    if facet.bindingId == bindingId then
+      local connector = context:getFacetByName(facet.name)
+      context:removeFacet(facet.name)
 
-			local status, errMsg = pcall(orb.deactivate, orb, connector)
-			if not status then
-				Log:error("Erro ao desativar o servant",errMsg)
-				return false
-			end
-			return true
-		end
-	end
-	
-	return false
+      local status, errMsg = pcall(orb.deactivate, orb, connector)
+      if not status then
+        Log:error("Erro ao desativar o servant",errMsg)
+        return false
+      end
+      return true
+    end
+  end
+
+  return false
 end
-  
+
 local function unbindReceptacle(self, bindingId)
   local context = self.context
 
-	local receptacles = context:getReceptacles()
-	for _,receptacle in ipairs(receptacles) do 
-		if receptacle.bindingId == bindingId then	
-			context:removeReceptacle(receptacle.name)
-			return true
-		end
-	end
+  local receptacles = context:getReceptacles()
+  for _,receptacle in ipairs(receptacles) do
+    if receptacle.bindingId == bindingId then
+      context:removeReceptacle(receptacle.name)
+      return true
+    end
+  end
 
-	return false
+  return false
 end
 
 function ContentController:unbind(bindingId)

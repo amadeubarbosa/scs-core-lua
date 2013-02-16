@@ -85,14 +85,6 @@ oil.main(function()
   helloReceptacle:connect(receptacleName, helloComponent1:getFacetByName("IHello1").facet_ref)
   helloReceptacle:connect(receptacleName, helloComponent2:getFacetByName("IHello2").facet_ref)
 
-  -- Tenta conectar o componente que está fora no componente composto no conector
-  local ok, errorMsg = pcall(helloReceptacle.connect, helloReceptacle, receptacleName, helloComponent3:getFacetByName("IHello3").facet_ref)
-  if ok then
-    error("Operacao nao permitida. Excecao deveria ser sido lancada")
-  elseif errorMsg._repid ~= idl.throw.InvalidConnection then
-    error("Excecao deveria ser ".. idl.throw.InvalidConnection .. " e foi " .. errorMsg._repid)
-  end
-
   -- Verificando que o componentes foram criados
   local membershipDescription = icontentController:getSubComponents()
   for _, desc in pairs(membershipDescription) do
@@ -100,7 +92,7 @@ oil.main(function()
     print(string.format("  MembershipID = %s | ComponentID.Name = %s", desc.id, iComponent:getComponentId().name))
   end
 
-  local bindingID = icontentController:bindConnectorFacet(membershipIDConnector, "IHello", "IHelloX")
+  local bindingID = icontentController:bindFacet(membershipIDConnector, "IHello", "IHelloX")
 
   print "\nImprime os bindings cridos"
   local bindDescList = icontentController:retrieveBindings()

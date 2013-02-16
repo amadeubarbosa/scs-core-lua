@@ -18,16 +18,11 @@ local ConnectorBuilder = require "scs.composite.Publisher"
 
 local ContentController = class()
 
-
-
 function ContentController:__new()
 
   return oo.rawnew(self, {
       creationDate = os.date("%Y%m%d-%X"),
       membershipId = 1, -- Representa os subcomponentes
-      bindingId = 1, -- Representa os conectores criados
-      facetConnectorsMap = {},
-      receptacleConnectorsMap = {},
       componentSet = {},
   })
 end
@@ -120,14 +115,19 @@ function ContentController:getSubComponents()
 end
 
 function ContentController:retrieveBindings()
+  local context = self.context
   local bindDesc = {}
 
-  for id, facetName in pairs(self.facetConnectorsMap) do
-    table.insert(bindDesc, { id = id, name = facetName, isFacet = true })
+  for _, facet in pairs(context:getFacets()) do
+	if facet.bindingId then
+		table.insert(bindDesc, { id = facet.bindingId, name = facet.name, isFacet = true })
+	end
   end
 
-  for id, receptacleName in pairs(self.receptacleConnectorsMap) do
-    table.insert(bindDesc, { id = id, name = receptacleName, isFacet = false })
+  for _, receptacle in pairs(context:getReceptacles()) do
+	if facet.bindingId then
+		table.insert(bindDesc, { id = receptacle.bindingId, name = receptacle.name, isFacet = false })
+	end
   end
 
   return bindDesc
@@ -142,64 +142,7 @@ function ContentController:findComponent(membershipId)
 end
 
 
-function ContentController:bindFacet(internalFacetList, connectorType, externalFacetName)
-  local context = self.context
-  local orb = context._orb
-  local componentsList = {}
-  local interfaceName = nil
-
-  for _,facetBind in ipairs(internalFacetList) do
-    local ok, subcomponent = pcall(self.findComponent, self, facetBind.id)
-    if not ok or not subcomponent then
-      error { _repid = compositeIdl.throw.ComponentNotFound, id = id }
-    end
-
-    local internalFacet = subcomponent:getFacetByName(facetBind.name)
-    if not internalFacet then
-      error { _repid = compositeIdl.throw.FacetNotAvailableInComponent }
-    end
-
-    local facetInComposite = context:getFacetByName(externalFacetName)
-    if facetInComposite then
-      error { _repid = compositeIdl.throw.FacetAlreadyExists }
-    end
-
-    local metaFacet = subcomponent:getFacetByName(utils.IMETAINTERFACE_NAME)
-
-    metaFacet = orb:narrow(metaFacet, utils.IMETAINFERFACE_INTERFACE)
-
-    local descriptions = metaFacet:getFacetsByName({facetBind.name})
-    if #descriptions < 1 then
-      error { _repid = compositeIdl.throw.FacetNotFound }
-    end
-
-    local facetDescription = descriptions[1]
-
-    if not interfaceName then
-      interfaceName = facetDescription.interface_name
-    elseif interfaceName ~= facetDescription.interface_name then
-      error { _repid = compositeIdl.throw.IncompatibleInterfaces }
-    end
-
-    local facetRef = orb:narrow(facetDescription.facet_ref, interfaceName)
-    table.insert(componentsList, facetRef)
-  end
-
-  -- Cria o conector
-  local connector = ConnectorBuilder(componentsList)
-  SetConnectorType(connector, connectorType)
-
-  context:addFacet(externalFacetName, interfaceName, connector)
-
-  local bindingId = self.bindingId
-  self.facetConnectorsMap[bindingId] = externalFacetName
-  self.bindingId  = bindingId + 1
-
-  return bindingId
-
-end
-
-function ContentController:bindConnectorFacet(connectorID, internalFacetName, externalFacetName)
+function ContentController:bindFacet(connectorID, internalFacetName, externalFacetName)
   local context = self.context
   local orb = context._orb
 
@@ -230,51 +173,46 @@ function ContentController:bindConnectorFacet(connectorID, internalFacetName, ex
   local interfaceName = facetDescription.interface_name
   local facetRef = facetDescription.facet_ref
 
-  context:registerFacet(externalFacetName, interfaceName, nil, facetRef, nil)
+  context:registerFacet(externalFacetName, interfaceName, facetRef, nil)
+  context:setFacetAsBind(externalFacetName)
 
-  local bindingId = self.bindingId
-  self.facetConnectorsMap[bindingId] = externalFacetName
-  self.bindingId  = bindingId + 1
-
-  return bindingId
+  return context:getFacetByName(externalFacetName).bindingId
 end
 
 local function unbindFacet(self, bindingId)
   local context = self.context
   local orb = context._orb
 
-  local facetName = self.facetConnectorsMap[bindingId]
-  if not facetName then
-    return false
-  end
+  local facets = context:getFacets()
+	for _,facet in ipairs(facets) do 
+		if facet.bindingId == bindingId then	
+			local connector = context:getFacetByName(facet.name)
+			context:removeFacet(facet.name)
 
-  local connector = context:getFacetByName(facetName)
-  context:removeFacet(facetName)
-
-  local status, errMsg = pcall(orb.deactivate, orb, connector) -- será?
-  if not status then
-    Log:error("Erro ao desativar o servant",errMsg)
-    return false
-  end
-
-  return true
+			local status, errMsg = pcall(orb.deactivate, orb, connector)
+			if not status then
+				Log:error("Erro ao desativar o servant",errMsg)
+				return false
+			end
+			return true
+		end
+	end
+	
+	return false
 end
-
+  
 local function unbindReceptacle(self, bindingId)
   local context = self.context
 
-  local receptacleName = self.receptacleConnectorsMap[bindingId]
-  if not receptacleName then
-    return false
-  end
+	local receptacles = context:getReceptacles()
+	for _,receptacle in ipairs(receptacles) do 
+		if receptacle.bindingId == bindingId then	
+			context:removeReceptacle(receptacle.name)
+			return true
+		end
+	end
 
-  local receptacle = context:removeReceptacle(receptacleName)
-  if not receptacle then
-    return false
-  end
-
-  self.receptacleConnectorsMap[bindingId] = nil
-  return true
+	return false
 end
 
 function ContentController:unbind(bindingId)
@@ -284,61 +222,7 @@ function ContentController:unbind(bindingId)
   return true
 end
 
-function ContentController:bindReceptacle(subcomponents, internalReceptacleName, externalReceptacleName)
-  local context = self.context
-  local componentsList = {}
-  local interfaceName = nil
-  -- Se um componente não for multiplex o conector não será multiplex
-  local isMultiplex = false
-
-  for _,id in pairs(subcomponents) do
-
-    local ok, subcomponent = pcall(self.findComponent, self, id)
-    if not ok or not subcomponent then
-      error { _repid = compositeIdl.throw.ComponentNotFound, id = id }
-    end
-
-    local ireceptacleFacet = subcomponent:getFacetByName(utils.IRECEPTACLE_NAME)
-    if not ireceptacleFacet then
-      error { _repid = compositeIdl.throw.ReceptacleNotAvailableInComponent }
-    end
-    ireceptacleFacet = orb:narrow(ireceptacleFacet, utils.IRECEPTACLE_INTERFACE)
-
-    local metaFacet = subcomponent:getFacetByName(utils.IMETAINFERFACE_NAME)
-    if not metaFacet then
-      error { _repid = compositeIdl.throw.ReceptacleNotAvailableInComponent }
-    end
-    metaFacet = orb:narrow(metaFacet, utils.IMETAINFERFACE_INTERFACE)
-
-    local descriptions = metaFacet:getReceptaclesByName({internalReceptacleName})
-    if #descriptions < 1 then
-      error { _repid = compositeIdl.throw.ReceptacleNotFound }
-    end
-
-    local recptacleDescription = descriptions[1]
-    isMultiplex = isMultiplex and recptacleDescription.isMultiplex
-
-    if not interfaceName then
-      interfaceName = recptacleDescription.interface_name
-    elseif interfaceName ~= recptacleDescription.interface_name then
-      error { _repid = compositeIdl.throw.IncompatibleInterfaces }
-    end
-
-    table.insert(componentsList, ireceptacleFacet)
-  end
-
-  -- Cria o conector
-  local connector = ConnectorBuilder(componentsList)
-  context:addReceptacle(externalFacetName, interfaceName, connector)
-
-  local bindingId = self.bindingId
-  self.receptacleConnectorsMap[bindingId] = externalReceptacleName
-  self.bindingId  = bindingId + 1
-
-  return bindingId
-end
-
-function ContentController:bindConnectorReceptacles(connectorID, internalReceptacleName, externalReceptacleName)
+function ContentController:bindReceptacles(connectorID, internalReceptacleName, externalReceptacleName)
   local context = self.context
   local orb = context._orb
 
@@ -369,49 +253,9 @@ function ContentController:bindConnectorReceptacles(connectorID, internalRecepta
   interfaceName = recptacleDescription.interface_name
 
   context:registerFacet(externalReceptacleName, interfaceName, nil, facetRef, nil)
+  context:setReceptacleAsBind(externalReceptacleName, isubReceptacle)
 
-  local bindingId = self.bindingId
-  self.receptacleConnectorsMap[bindingId] = externalReceptacleName
-  self.bindingId  = bindingId + 1
-
-  return bindingId
-end
-
-
-function SetConnectorType(connector, connectorType)
-  if connectortype ==  utils.replication then
-    connector.opBool = function (a,b) return a end
-    connector.opNumber = connector.opBool
-    connector.opString = connector.opBool
-    function connector.opList(mainList, subList)
-      return mainList
-    end
-
-  elseif connectortype == utils.consensus then
-    connector.opBool = function (a,b) return a and b end
-    connector.opNumber = function (a,b,lenght) return (a + b)/lenght end
-    connector.opString = function (a,b) return a end
-    function connector.opList(mainList, subList, iteration) -- Média ponderada
-      for i,elements in ipairs(subList) do
-        mainList[i] = (mainList[i] * iteration + elements * 1)/(iteration + 1)
-      end
-      return mainList
-    end
-
-  elseif connectortype == utils.cooperation then
-    connector.opBool = function (a,b) return a or b end
-    connector.opNumber = function (a,b) return a end
-    connector.opString = function (a,b) return a end
-    function connector.opList(mainList, subList)
-      for _,elements in ipairs(subList) do
-        table.insert(mainList,elements)
-      end
-      return mainList
-    end
-  else
-    error { _repid = compositeIdl.throw.UnknownConnectorType }
-  end
-
+  return context:getReceptacleByName(externalReceptacleName).bind.id
 end
 
 return ContentController

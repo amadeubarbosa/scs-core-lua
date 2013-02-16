@@ -21,6 +21,21 @@ function Hello:sayHello()
   print("Hello " .. self.name .. "!")
 end
 
+-- Conector da faceta Hello
+local HelloConnector = oo.class()
+
+function HelloConnector:__new(helloFacets)
+  return oo.rawnew(self,{facets = helloFacets})
+end
+
+function HelloConnector:sayHello()
+  local orb = self.context._orb
+  for _,facet in ipairs(self.facets) do
+    facet = orb:narrow(facet, helloFacetInterface)
+    facet:sayHello()
+  end
+end
+
 -- OiL configuration
 local orb = oil.init({localrefs = "proxy"})
 local helloFacetInterface = "IDL:scs/demos/helloworld/Hello:1.0"
@@ -32,10 +47,11 @@ oil.main(function()
   orb:loadidlfile(idlPath .. "/hello.idl")
   oil.newthread(orb.run, orb)
 
-  --- Cria quatro componentes Hello
+  --- Cria cinco componentes Hello
   -- Component1 e Component2 = Componente Hello normal
   -- Component3 = Componente Hello com um Receptáculo
   -- Componnet4 = Componente do SCS-Core
+  -- HelloConector = Conector contendo as facetas Hello do Component1 e Component2
   local componentId = { name = "Hello1", major_version = 1, minor_version = 0, patch_version = 0, platform_spec = "" }
   local helloComponent1 = ComponentContext(orb, componentId)
   helloComponent1:addFacet("IHello1", helloFacetInterface, Hello("SubComponent One"))
@@ -53,6 +69,15 @@ oil.main(function()
   local helloComponent4 = CoreComponentContext(orb, componentId)
   helloComponent4:addFacet("IHello4", helloFacetInterface, Hello("SubComponent Three"))
 
+  -- Criando o conector
+  local helloFacets = {}
+  table.insert(helloFacets, helloComponent1:getIComponent():getFacetByName("IHello1"))
+  table.insert(helloFacets, helloComponent2:getIComponent():getFacetByName("IHello2"))
+
+  componentId = { name = "HelloConnector", major_version = 1, minor_version = 0, patch_version = 0, platform_spec = "" }
+  local helloConnector = ComponentContext(orb, componentId)
+  helloConnector:addFacet("IHello", helloFacetInterface, HelloConnector(helloFacets))
+
   -- Cria dois componentes compostos
   componentId = { name = "ComplexHello", major_version = 1, minor_version = 0, patch_version = 0, platform_spec = "" }
   local component = ComponentContext(orb, componentId)
@@ -66,6 +91,7 @@ oil.main(function()
   local membershipID1 = icontentController:addSubComponent(helloComponent1:getIComponent())
   local membershipID2 = icontentController:addSubComponent(helloComponent2:getIComponent())
   local membershipID3 = icontentController:addSubComponent(helloComponent3:getIComponent())
+  local membershipID4 = icontentController:addSubComponent(helloConnector:getIComponent())
 
   -- Tenta adicionar um componente do SCS-Core no Componente Composto
   local ok, errorMsg = pcall(icontentController.addSubComponent, icontentController, helloComponent4:getIComponent())
@@ -94,11 +120,7 @@ oil.main(function()
   local iComponent = icontentController:findComponent(membershipID2)
   print(utils:getNameVersion(iComponent:getComponentId()))
 
-  local internalFacetList = {
-      {id = membershipID1, name = "IHello1"},
-      {id = membershipID2, name = "IHello2"}
-      }
-  local bindingID = icontentController:bindFacet(internalFacetList, utils.replication,  "IHelloX")
+  icontentController:bindFacet(membershipID4, "IHello", "IHelloX")
 
   print "\nVerifica se o superComponente foi adicionado"
   local superCompList = helloComponent2.ISuperComponent:getSuperComponents()

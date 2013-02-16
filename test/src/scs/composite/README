@@ -3,11 +3,9 @@ Os teste do SCS-Composite estão organizados da seguinte forma:
 
 Testes LATT - O LATT sofreu uma pequena alteracao no modulo Check para permitir receber o erro como retorno da funcao.
   Para executar os testes unitários das interfaces do SCS-Composite execute os seguintes passos:
-  cd $SCS_PROJECT/test/src
+  cd $SCS_PROJECT/test
   lua src/scs/composite/BeforeCompositeTests.lua &
-  run_unit_test.sh ISuperComponentTest.lua
-  run_unit_test.sh IContentControllerTest.lua
-  run_unit_test.sh IReceptacleTest.lua
+  ./run_unit_test.sh src/scs/composite/IContentControllerTest.lua
 
 Por limitacao do LATT, foi criado um outro teste que exercita algumas funcoes que nao foram exercitadas no 'teste LATT'.
   cd $SCS_PROJECT/test/src/scs/composite/

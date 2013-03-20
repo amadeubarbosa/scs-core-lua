@@ -85,7 +85,7 @@ local function putFacet(self, name, interface, implementation, key)
       error(servant)
     end
   end
-  registerFacet(self, name, interface, impl, servant, key)
+  registerFacet(self, name, interface, servant, key)
   local msg = "Facet " .. name .. " with interface " .. interface .. " was added to the component."
   if key then
     msg = msg .. " The key " .. key .. " was used."
@@ -150,13 +150,13 @@ end
 -- Registra uma nova faceta no componente. Esse método leva em consideração que
 -- a faceta já está associada no ORB.
 ---
-function registerFacet(self, name, interface, implementation, servant, key)
+function registerFacet(self, name, interface, servant, key)
   if self._facets[name] ~= nil then
     error("Facet already exists.")
   end
-  
+
   self._facets[name] = {name = name, interface_name = interface,
-    facet_ref = servant, key = key, implementation = impl}
+      facet_ref = servant, key = key}
   self[name] = servant
 end
 

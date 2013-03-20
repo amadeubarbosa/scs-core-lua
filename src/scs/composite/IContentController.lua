@@ -27,13 +27,17 @@ function ContentController:__new()
   })
 end
 
-
+---
+--
+---
 function ContentController:getId()
   local componentIOR = self.context.IComponent
   return tostring(componentIOR) .. "--" .. self.creationDate
 end
 
-
+---
+--
+---
 function ContentController:addSubComponent(component)
   local context = self.context
   local orb = context._orb
@@ -71,7 +75,9 @@ function ContentController:addSubComponent(component)
   return membershipId
 end
 
--- Não possui exceção porque o usuário não quer ficar tratando falhas. Só quer remover o componente.
+---
+--
+---
 function ContentController:removeSubComponent(membershipId)
   local context = self.context
   local orb = context._orb
@@ -104,6 +110,9 @@ function ContentController:removeSubComponent(membershipId)
   return true
 end
 
+---
+--
+---
 function ContentController:getSubComponents()
   local subComponents = {}
 
@@ -114,6 +123,9 @@ function ContentController:getSubComponents()
   return subComponents
 end
 
+---
+--
+---
 function ContentController:retrieveBindings()
   local context = self.context
   local bindDesc = {}
@@ -133,6 +145,9 @@ function ContentController:retrieveBindings()
   return bindDesc
 end
 
+---
+--
+---
 function ContentController:findComponent(membershipId)
   if not self.componentSet[membershipId] then
     error { _repid = compositeIdl.throw.ComponentNotFound }
@@ -141,7 +156,9 @@ function ContentController:findComponent(membershipId)
   return self.componentSet[membershipId]
 end
 
-
+---
+--
+---
 function ContentController:bindFacet(connectorID, internalFacetName, externalFacetName)
   local context = self.context
   local orb = context._orb
@@ -179,6 +196,9 @@ function ContentController:bindFacet(connectorID, internalFacetName, externalFac
   return context:getFacetByName(externalFacetName).bindingId
 end
 
+---
+--
+---
 local function unbindFacet(self, bindingId)
   local context = self.context
   local orb = context._orb
@@ -201,6 +221,9 @@ local function unbindFacet(self, bindingId)
   return false
 end
 
+---
+--
+---
 local function unbindReceptacle(self, bindingId)
   local context = self.context
 
@@ -215,6 +238,9 @@ local function unbindReceptacle(self, bindingId)
   return false
 end
 
+---
+--
+---
 function ContentController:unbind(bindingId)
   if not unbindFacet(self, bindingId) then
     return unbindReceptacle(self, bindingId)
@@ -222,26 +248,29 @@ function ContentController:unbind(bindingId)
   return true
 end
 
-function ContentController:bindReceptacles(connectorID, internalReceptacleName, externalReceptacleName)
+---
+--
+---
+function ContentController:bindReceptacle(connectorID, internalReceptacleName, externalReceptacleName)
   local context = self.context
   local orb = context._orb
 
-  local ok, subcomponent = pcall(self.findComponent, self, id)
+  local ok, subcomponent = pcall(self.findComponent, self, connectorID)
    if not ok or not subcomponent then
-    error { _repid = compositeIdl.throw.ComponentNotFound, id = id }
+    error { _repid = compositeIdl.throw.ComponentNotFound, id = connectorID }
   end
 
-  local isubReceptacle = subcomponent:getFacetByName(utils.IRECEPTACLE_NAME)
-  if not ireceptacleFacet then
+  local isubReceptacle = subcomponent:getFacetByName(utils.IRECEPTACLES_NAME)
+  if not isubReceptacle then
     error { _repid = compositeIdl.throw.ReceptacleNotAvailableInComponent }
   end
-  isubReceptacle = orb:narrow(isubReceptacle, utils.IRECEPTACLE_INTERFACE)
+  isubReceptacle = orb:narrow(isubReceptacle, utils.IRECEPTACLES_INTERFACE)
 
-  local metaFacet = subcomponent:getFacetByName(utils.IMETAINFERFACE_NAME)
+  local metaFacet = subcomponent:getFacetByName(utils.IMETAINTERFACE_NAME)
   if not metaFacet then
     error { _repid = compositeIdl.throw.ReceptacleNotAvailableInComponent }
   end
-  metaFacet = orb:narrow(metaFacet, utils.IMETAINFERFACE_INTERFACE)
+  metaFacet = orb:narrow(metaFacet, utils.IMETAINTERFACE_INTERFACE)
 
   local descriptions = metaFacet:getReceptaclesByName({internalReceptacleName})
   if #descriptions < 1 then
@@ -252,8 +281,8 @@ function ContentController:bindReceptacles(connectorID, internalReceptacleName, 
   isMultiplex = recptacleDescription.isMultiplex
   interfaceName = recptacleDescription.interface_name
 
-  context:registerFacet(externalReceptacleName, interfaceName, nil, facetRef, nil)
-  context:setReceptacleAsBind(externalReceptacleName, isubReceptacle)
+  context:addReceptacle(externalReceptacleName, interfaceName, isMultiplex)
+  context:setReceptacleAsBind(externalReceptacleName, isubReceptacle, internalReceptacleName)
 
   return context:getReceptacleByName(externalReceptacleName).bind.id
 end

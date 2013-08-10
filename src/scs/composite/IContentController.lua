@@ -49,7 +49,7 @@ function ContentController:addSubComponent(component)
 
   local ok, superCompFacet = pcall(subIComponent.getFacetByName, subIComponent, utils.ISUPERCOMPONENT_NAME)
   if not ok or not superCompFacet then
-    error { _repid = compositeIdl.throw.InvalidComponent }
+    error { _repid = compositeIdl.throw.InvalidConnection }
   end
   superCompFacet = orb:narrow(superCompFacet, utils.ISUPERCOMPONENT_INTERFACE)
 
@@ -251,7 +251,7 @@ end
 ---
 --
 ---
-function ContentController:bindReceptacle(connectorID, internalReceptacleName, externalReceptacleName)
+function ContentController:bindReceptacle(connectorID, internalReceptacleName, externalReceptacleName, componentPermission)
   local context = self.context
   local orb = context._orb
 
@@ -260,11 +260,11 @@ function ContentController:bindReceptacle(connectorID, internalReceptacleName, e
     error { _repid = compositeIdl.throw.ComponentNotFound, id = connectorID }
   end
 
-  local isubReceptacle = subcomponent:getFacetByName(utils.IRECEPTACLES_NAME)
-  if not isubReceptacle then
+  local iSubReceptacle = subcomponent:getFacetByName(utils.IRECEPTACLES_NAME)
+  if not iSubReceptacle then
     error { _repid = compositeIdl.throw.ReceptacleNotAvailableInComponent }
   end
-  isubReceptacle = orb:narrow(isubReceptacle, utils.IRECEPTACLES_INTERFACE)
+  iSubReceptacle = orb:narrow(isubReceptacle, utils.IRECEPTACLES_INTERFACE)
 
   local metaFacet = subcomponent:getFacetByName(utils.IMETAINTERFACE_NAME)
   if not metaFacet then
@@ -278,11 +278,11 @@ function ContentController:bindReceptacle(connectorID, internalReceptacleName, e
   end
 
   local recptacleDescription = descriptions[1]
-  isMultiplex = recptacleDescription.isMultiplex
-  interfaceName = recptacleDescription.interface_name
+  local isMultiplex = recptacleDescription.isMultiplex
+  local interfaceName = recptacleDescription.interface_name
 
   context:addReceptacle(externalReceptacleName, interfaceName, isMultiplex)
-  context:setReceptacleAsBind(externalReceptacleName, isubReceptacle, internalReceptacleName)
+  context:setReceptacleAsBind(externalReceptacleName, iSubReceptacle, internalReceptacleName, componentPermission)
 
   return context:getReceptacleByName(externalReceptacleName).bind.id
 end

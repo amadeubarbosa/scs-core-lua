@@ -53,13 +53,13 @@ end
 ---
 -- Optei por colocar somente n-1, obrigando a utilização de um conector.
 ---
-function ComponentContext:setReceptacleAsBind(name, ireceptacle, internalReceptacleName)
+function ComponentContext:setReceptacleAsBind(name, ireceptacle, internalReceptacleName, permission)
   if not self._receptacles[name] then
     Log:error("O receptaculo nao existe")
     return
   end
 
-  self._receptacles[name].bind = {id = self.bindingId, facet = ireceptacle, internalName = internalReceptacleName }
+  self._receptacles[name].bind = { id = self.bindingId, facet = ireceptacle, internalName = internalReceptacleName, permission = permission }
   self.bindingId = self.bindingId + 1
 end
 

@@ -122,7 +122,7 @@ function readProperties (self, t, file)
     local t = type(var)
     if t == "boolean" then
       return self:getBoolean(tag, var)
-    elseif t == "number" then 
+    elseif t == "number" then
       return self:getNumber(tag, var)
     else
       return self:getString(tag, var)
@@ -174,7 +174,7 @@ function convertToArray(self, inputTable)
   end
   Log:debug("ConvertToArray : Finished.")
   return outputArray
-end
+end --ERRO NO CONVERT TO STRING? SÓ ESTOU RECEBENDO AS FACTAS BÁSICAS!
 
 --
 -- Description: Converts a string to a boolean.
@@ -204,6 +204,6 @@ end
 -- Return Value: A string containing the stringified version.
 --
 function getNameVersion(self, componentId)
-  return string.format("%s:%d.%d.%d",componentId.name, componentId.major_version, 
+  return string.format("%s:%d.%d.%d",componentId.name, componentId.major_version,
       componentId.minor_version, componentId.patch_version)
 end

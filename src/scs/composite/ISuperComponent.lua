@@ -11,7 +11,6 @@ utils = utils()
 local ISuperComponent = class()
 
 function ISuperComponent:__new()
-
   return oo.rawnew(self, {superComponents = {}})
 end
 

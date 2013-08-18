@@ -72,7 +72,7 @@ local function putFacet(self, name, interface, implementation, key)
   if type(impl._component) ~= "function" then
     impl._component = _get_component
   end
-  impl.context = impl.context or self
+  impl.context = self
   local success, servant = pcall(self._orb.newservant,
                                      self._orb,
                                      impl,
@@ -169,6 +169,10 @@ end
 -- @param name The existent facet's name.
 -- @param implementation The new facet implementation, not yet registered within the ORB.
 function updateFacet(self, name, implementation)
+  if not self:containsFacet(name) then
+    error("Facet does not exist.")
+  end
+
   local facet = self._facets[name]
   self:removeFacet(facet.name)
   self:addFacet(name, facet.interface_name, implementation, facet.key)
@@ -179,7 +183,7 @@ end
 --
 -- @param name The name of the facet to be removed.
 function removeFacet(self, name)
-  if self._facets[name] == nil then
+  if not self:containsFacet(name) then
     error("Facet does not exist.")
   end
   deactivateFacet(self, name)
@@ -187,6 +191,14 @@ function removeFacet(self, name)
   self[name] = nil
   Log:scs("Facet " .. name .. " was removed from the component.")
 end
+
+--- Determines whether a facet is in the component
+--
+-- @param name The name of the facet.
+function containsFacet(self, name)
+  return self._facets[name] ~= nil
+end
+
 
 --- Adds a new receptacle to the component instance.
 --

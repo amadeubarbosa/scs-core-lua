@@ -13,7 +13,6 @@ local class = oo.class
 local utils = require "scs.composite.Utils"
 local compositeIdl = require "scs.composite.Idl"
 local Log = require "scs.util.Log"
-local ComponentContext = require "scs.composite.ComponentContext"
 local Proxy = require "scs.composite.Proxy"
 utils = utils()
 ------------------------------------------------------------------------
@@ -46,16 +45,27 @@ function newConnect(self, name, connection)
     local permission = receptacleDesc.permission
     local bindIReceptacle = receptacleDesc.facet
     local receptacleName = receptacleDesc.internalName
+    local connectionInterface = context:getReceptacleByName(name).interface_name
 
-    local proxy = Proxy()
+    -- Cria o proxy
+    local proxy = Proxy(orb)
     local connIComponentFacet = orb:narrow(connection:_component(), utils.ICOMPONENT_INTERFACE)
     proxy:setProxyComponent(connIComponentFacet, permission)
-    local proxySuperComponent = proxy:getFacetByName(utils.ISUPERCOMPONENT_NAME).facetRef
 
-    proxySuperComponent:addSuperComponent(context.IComponent.facetRef)
-    bindIReceptacle:connect(receptacleName, proxy)
+    -- Preferi nao adicionar o proxy no supercomponente para o gerSubcomponets()
+    -- nao ficar cheio proxys. Mas de repente será necessário
+    -- Apenas defini que o pai do proxy é o superComponent.
+    local proxySuperComponent = proxy:getFacetByName(utils.ISUPERCOMPONENT_NAME).facet_ref
+    local iComponent =  orb:narrow(context.IComponent, utils.ICOMPONENT_INTERFACE)
+    proxySuperComponent:addSuperComponent(iComponent)
 
-    iCompConnection = proxy:_component()
+    -- Adicionar a faceta correta do proxy no receptaculo do componente interno.
+    local proxyFacet = proxy:getFacetByName(utils.ICOMPONENT_NAME).facet_ref
+    proxyFacet =  orb:narrow(proxyFacet, utils.ICOMPONENT_INTERFACE)
+    proxyFacet = proxyFacet:getFacetByName(utils.ICOMPONENT_NAME)
+    bindIReceptacle:connect(receptacleName, proxyFacet)
+
+    iCompConnection = proxy:getIComponent()
   end
 
   if not self:verifyCompatibility(name, iCompConnection)then

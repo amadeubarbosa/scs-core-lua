@@ -1,11 +1,12 @@
 
-local ComponentContext = require "scs.composite.ComponentContext"
+local ComponentContext = require "scs.core.ComponentContext"
 local compositeIdl = require "scs.composite.Idl"
 local Publisher = require "scs.composite.Publisher"
 local tabop = require "loop.table"
 local memoize = tabop.memoize
 local ISuperComponent = require "scs.composite.ISuperComponent"
 local utils = require "scs.composite.Utils"
+local Log = require "scs.util.Log"
 utils = utils()
 local oo = require "loop.simple"
 local class = oo.class
@@ -13,9 +14,15 @@ local class = oo.class
 ------------------------------------------------------------------------
 
 local Proxy = class({}, ComponentContext)
+local FacetProxy = class()
 
-function Proxy:__new(orb, id, basicKeys)
-  local component = ComponentContext.__new(self, orb, id, basicKeys)
+function Proxy:__new(orb)
+  local componentId = { name = "Proxy", major_version = 1,
+      minor_version = 0, patch_version = 0, platform_spec = "" }
+  local component = ComponentContext.__new(self, orb, componentId)
+  component:addFacet(utils.ISUPERCOMPONENT_NAME,
+      utils.ISUPERCOMPONENT_INTERFACE, ISuperComponent())
+
   component.isStartedUp = false
 
   return component
@@ -25,57 +32,51 @@ end
 --
 ---
 function Proxy:setProxyComponent(iComponent, permission)
-  local context = self.context
+  local orb = self._orb
 
-  self:setBasicFacets(iComponent)
+  self.isStartedUp = true
 
-  local metaFacet = component:getFacetByName(utils.IMETAINTERFACE_NAME).facet_ref
+  local metaFacet = iComponent:getFacetByName(utils.IMETAINTERFACE_NAME)
   metaFacet = orb:narrow(metaFacet, utils.IMETAINFERFACE_INTERFACE)
   local descriptions = metaFacet:getFacets()
 
-  for _,description in pairs(descriptions) do
+  if #descriptions < 1 then
+    Log:error("Erro ao buscar as facetas do componente solicitado.")
+    return
+  end
+
+  for _,description in ipairs(descriptions) do
     local facetName = description.name
     local interfaceName = description.interface_name
     local facetRef = description.facet_ref
 
     -- Não fazer o bind do ISuperComponent e criar um proxy separado.
-    if interfaceName == utils.ISUPERCOMPONENT_INTERFACE then
-      return
+    if interfaceName ~= utils.ISUPERCOMPONENT_INTERFACE then
+      local newFacet = orb:narrow(facetRef, interfaceName)
+      local facetProxy = FacetProxy(self, newFacet)
+
+      if permission == "CURRENT" then
+          facetProxy._component = function(self) return end
+      elseif permission == "ALL" then
+          facetProxy._component = function(self) return context.IComponent end
+      else
+          --throw exception
+      end
+
+      if self:containsFacet(facetName) then
+        self:updateFacet(facetName, facetProxy)
+      else
+        self:addFacet(facetName, interfaceName, facetProxy)
+      end
     end
-
-    local facetProxy = FacetProxy(self, facetRef)
-
-    if permission == "CURRENT" then
-        facetProxy._component = function(self) return end
-    elseif permission == "ALL" then
-        facetProxy._component = function(self) return context.IComponent end
-    else
-        --throw exception
-    end
-
-    context:addFacet(facetName, interfaceName, facetProxy)
   end
-
-  component.isStartedUp = true
 end
-
-function Proxy:setBasicFacets(iComponent)
-  iComponentFacet = iComponent:getFacetByName(utils.ICOMPONENT_NAME)
-  iReceptacleFAcet = iComponent:getFacetByName(utils.IRECEPTACLES_NAME)
-  iMetainterfaceFacet = iComponent:getFacetByName(utils.IMETAINTERFACE_NAME)
-
-  component:updateFacet(utils.ICOMPONENT_NAME, FacetProxy(iComponentFacet))
-  component:updateFacet(utils.IRECEPTACLES_NAME, FacetProxy(iReceptacleFAcet))
-  component:updateFacet(utils.IMETAINTERFACE_NAME, FacetProxy(iMetainterfaceFacet))
-end
-
 
 ------------------------------------------------------------------------
 -- Classe Proxy
 ------------------------------------------------------------------------
-local FacetProxy = class{}
 function FacetProxy:__new(facet)
-  self.facet = facet
+  return oo.rawnew(self, {facet = facet})
 end
 
 ---
@@ -84,9 +85,11 @@ end
 FacetProxy.__index = memoize(function(method)
   if string.sub(method,1,2) ~= "__" then
     return function(self, ...)
-      print ("calling: " .. method)
+      io.write("calling: " .. method .. " Params:  ")
+      print(...)
       if self.context.isStartedUp then
-        return self.facet[method](...)
+        local facet = self.facet
+        return facet[method](facet, ...)
       else
         print("Log: Componente não inicializado")
       end
@@ -94,3 +97,5 @@ FacetProxy.__index = memoize(function(method)
   end
 end, "k")
 
+
+return Proxy

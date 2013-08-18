@@ -264,7 +264,7 @@ function ContentController:bindReceptacle(connectorID, internalReceptacleName, e
   if not iSubReceptacle then
     error { _repid = compositeIdl.throw.ReceptacleNotAvailableInComponent }
   end
-  iSubReceptacle = orb:narrow(isubReceptacle, utils.IRECEPTACLES_INTERFACE)
+  iSubReceptacle = orb:narrow(iSubReceptacle, utils.IRECEPTACLES_INTERFACE)
 
   local metaFacet = subcomponent:getFacetByName(utils.IMETAINTERFACE_NAME)
   if not metaFacet then

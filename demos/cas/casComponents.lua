@@ -37,7 +37,7 @@ local class = oo.class
 
 local oil = require "oil"
 local ComponentContext = require "scs.composite.ComponentContext"
-
+oil.verbose:level(3)
 ------------------------------------------------------------------------
 -- 1. Implementacao das facetas
 ------------------------------------------------------------------------
@@ -256,7 +256,7 @@ function AddConectors(orb, roomIContent)
   checkerConnComponent:addFacet("IActivitiesListener", "IDL:cas/monitoring/IActivitiesListener:1.0", ActivitiesListenerConnector())
   checkerConnComponent:addReceptacle("IActivitiesListener", "IDL:cas/monitoring/IActivitiesListener:1.0", true)
   membershipIdMap.IActivitiesListener = roomIContent:addSubComponent(checkerConnComponent.IComponent)
-  roomIContent:bindReceptacle(membershipIdMap.IActivitiesListener, "IActivitiesListener", "IActivitiesListener")
+  roomIContent:bindReceptacle(membershipIdMap.IActivitiesListener, "IActivitiesListener", "IActivitiesListener", "ALL")
 
   return membershipIdMap
 end

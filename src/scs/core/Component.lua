@@ -57,7 +57,6 @@ function getFacetByName(self, name)
   self = self.context
   for _, desc in pairs(self._facets) do
     if desc.name == name then
-      print(desc.facet_ref)
       return desc.facet_ref
     end
   end

@@ -37,7 +37,11 @@ local class = oo.class
 
 local oil = require "oil"
 local ComponentContext = require "scs.composite.ComponentContext"
-oil.verbose:level(3)
+local scsLog = require "scs.util.Log"
+
+oil.verbose:level(0)
+scsLog:level(1)
+
 ------------------------------------------------------------------------
 -- 1. Implementacao das facetas
 ------------------------------------------------------------------------

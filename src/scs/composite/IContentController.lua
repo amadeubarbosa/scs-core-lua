@@ -13,7 +13,7 @@ utils = utils()
 local Log = require "scs.util.Log"
 
 local compositeIdl = require "scs.composite.Idl"
-local ConnectorBuilder = require "scs.composite.Publisher"
+
 ------------------------------------------------------------------------
 
 local ContentController = class()

@@ -52,24 +52,24 @@ function newConnect(self, name, connection)
     local connIComponentFacet = orb:narrow(connection:_component(), utils.ICOMPONENT_INTERFACE)
     proxy:setProxyComponent(connIComponentFacet, permission)
 
-    -- Preferi nao adicionar o proxy no supercomponente para o gerSubcomponets()
-    -- nao ficar cheio proxys. Mas de repente será necessário
+    -- Preferi nao adicionar o proxy no supercomponente para o getSubcomponets()
+    -- nao ficar cheio proxys. Mas de repente será necessário.
     -- Apenas defini que o pai do proxy é o superComponent.
     local proxySuperComponent = proxy:getFacetByName(utils.ISUPERCOMPONENT_NAME).facet_ref
     local iComponent =  orb:narrow(context.IComponent, utils.ICOMPONENT_INTERFACE)
     proxySuperComponent:addSuperComponent(iComponent)
 
     -- Adicionar a faceta correta do proxy no receptaculo do componente interno.
-    local proxyFacet = proxy:getFacetByName(utils.ICOMPONENT_NAME).facet_ref
-    proxyFacet =  orb:narrow(proxyFacet, utils.ICOMPONENT_INTERFACE)
-    proxyFacet = proxyFacet:getFacetByName(utils.ICOMPONENT_NAME)
+    local proxyICompFacet = proxy:getFacetByName(utils.ICOMPONENT_NAME).facet_ref
+    proxyICompFacet =  orb:narrow(proxyICompFacet, utils.ICOMPONENT_INTERFACE)
+    local proxyFacet = proxyICompFacet:getFacet(connectionInterface)
     bindIReceptacle:connect(receptacleName, proxyFacet)
 
-    iCompConnection = proxy:getIComponent()
-  end
-
-  if not self:verifyCompatibility(name, iCompConnection)then
-    error { _repid = compositeIdl.throw.InvalidComponent }
+  else
+    -- Para componente que seja o próprio componente, verificar a compatibilidade entre eles.
+    if not verifyCompatibility(self, name, iCompConnection)then
+      error { _repid = compositeIdl.throw.InvalidComponent }
+    end
   end
 
   return SuperIReceptacles.connect(self, name, connection)
@@ -100,17 +100,19 @@ function verifyCompatibility(self, name, iComponent)
   local context = self.context
   local orb = context._orb
 
+  -- Obeter a SuperComponentList do próprio componente.
   local superComponentFacet = context:getFacetByName(utils.ISUPERCOMPONENT_NAME).facet_ref
   superComponentFacet = orb:narrow(superComponentFacet, utils.ISUPERCOMPONENT_INTERFACE)
   local superComponentList = superComponentFacet:getSuperComponents()
 
-  -- Obter a SuperComponentList da conexão
+  -- Obter a SuperComponentList da conexão.
   local connIComponentFacet = orb:narrow(iComponent, utils.ICOMPONENT_INTERFACE)
   local ok, connISuperCompFacet = pcall(connIComponentFacet.getFacetByName,
       connIComponentFacet, utils.ISUPERCOMPONENT_NAME)
   if not ok or not connISuperCompFacet then
     error { _repid = compositeIdl.throw.InvalidConnection }
   end
+
   connISuperCompFacet = orb:narrow(connISuperCompFacet, utils.ISUPERCOMPONENT_INTERFACE)
   local connSuperComponentList = connISuperCompFacet:getSuperComponents()
 
@@ -120,6 +122,8 @@ function verifyCompatibility(self, name, iComponent)
 
   if ((#superComponentList > 0 and #connSuperComponentList == 0)
       or (#superComponentList == 0 and #connSuperComponentList > 0)) then
+    Log:error(string.format("Componententes não compativeis: #SuperComponent = %s | Componente do Receptaculo = %s ",
+        #superComponentList, #connSuperComponentList))
     error { _repid = compositeIdl.throw.InvalidConnection }
   end
 

@@ -1,7 +1,6 @@
 
 local ComponentContext = require "scs.core.ComponentContext"
 local compositeIdl = require "scs.composite.Idl"
-local Publisher = require "scs.composite.Publisher"
 local tabop = require "loop.table"
 local memoize = tabop.memoize
 local ISuperComponent = require "scs.composite.ISuperComponent"
@@ -75,8 +74,8 @@ end
 ------------------------------------------------------------------------
 -- Classe Proxy
 ------------------------------------------------------------------------
-function FacetProxy:__new(facet)
-  return oo.rawnew(self, {facet = facet})
+function FacetProxy:__new(component, facet)
+  return oo.rawnew(self, {component = component, facet = facet})
 end
 
 ---
@@ -86,7 +85,7 @@ FacetProxy.__index = memoize(function(method)
   if string.sub(method,1,2) ~= "__" then
     return function(self, ...)
       io.write("calling: " .. method .. " Params:  ") print(...)
-      if self.context.isStartedUp then
+      if self.component.isStartedUp then
         local facet = self.facet
         return facet[method](facet, ...)
       else

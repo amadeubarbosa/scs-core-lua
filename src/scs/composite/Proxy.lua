@@ -85,8 +85,7 @@ end
 FacetProxy.__index = memoize(function(method)
   if string.sub(method,1,2) ~= "__" then
     return function(self, ...)
-      io.write("calling: " .. method .. " Params:  ")
-      print(...)
+      io.write("calling: " .. method .. " Params:  ") print(...)
       if self.context.isStartedUp then
         local facet = self.facet
         return facet[method](facet, ...)

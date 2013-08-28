@@ -7,12 +7,14 @@
 
 local oo    = require "loop.base"
 local oil   = require "oil"
+local Log = require "scs.util.Log"
 local utils = require "scs.core.utils"
 utils = utils()
 
 local error = error
 local pcall = pcall
 local type = type
+local string = string
 
 --------------------------------------------------------------------------------
 
@@ -77,6 +79,8 @@ function connect(self, receptacle, object)
 
   self._numConnections = self._numConnections + 1
 
+  local componentId = context:stringifiedComponentId()
+  Log:info(string.format("Faceta adicionada ao receptaculo %s [%s]", receptacle, componentId))
   return self._nextConnId
 end
 

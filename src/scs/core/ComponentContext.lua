@@ -238,6 +238,20 @@ function getFacetByName(self, name)
   return self._facets[name]
 end
 
+--- Provides a specific interface's object. If more than one facet
+-- implements this interface, the first to be found will be returned.
+--
+-- @param interface The interface of the facet.
+--
+-- @return The facet metadata.
+function getFacet(self, interface)
+  for name, desc in pairs(self._facets) do
+    if desc.interface_name == interface then
+      return desc
+    end
+  end
+end
+
 --- Provides metadata about the component's receptacles.
 --
 -- @return A table with the receptacle metadata.

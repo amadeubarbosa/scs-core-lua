@@ -40,12 +40,8 @@ end
 -- Return Value: The CORBA object that implements the interface.
 --
 function getFacet(self, interface)
-  self = self.context
-  for name, desc in pairs(self._facets) do
-    if desc.interface_name == interface then
-      return desc.facet_ref
-    end
-  end
+  local facet = self.context:getFacet(interface)
+  return facet and facet.facet_ref or nil
 end
 
 --
@@ -54,12 +50,8 @@ end
 -- Return Value: The CORBA object that implements the interface.
 --
 function getFacetByName(self, name)
-  self = self.context
-  for _, desc in pairs(self._facets) do
-    if desc.name == name then
-      return desc.facet_ref
-    end
-  end
+  local facet = self.context:getFacetByName(name)
+  return facet and facet.facet_ref or nil
 end
 
 --

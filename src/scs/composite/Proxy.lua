@@ -86,7 +86,6 @@ function Proxy:createIComponentWrapper(iComponent)
   local iSuperComponentFacet = self:getFacetByName(utils.ISUPERCOMPONENT_NAME).facet_ref
 
   function iComponentWrapper:getFacetByName(name)
-    print "---- Proxy:createIComponentWrapper:getFacetByName"
     if name == utils.ISUPERCOMPONENT_NAME then
       return iSuperComponentFacet
     else
@@ -95,7 +94,6 @@ function Proxy:createIComponentWrapper(iComponent)
   end
 
   function iComponentWrapper:getFacet(interface)
-    print "---- Proxy:createIComponentWrapper:getFacet" print(interface)
     if interface == utils.ISUPERCOMPONENT_INTERFACE then
       return iSuperComponentFacet
     else
@@ -118,9 +116,9 @@ end
 --
 ---
 FacetProxy.__index = memoize(function(method)
-  if string.sub(method,1,2) ~= "__" then
+  if not string.match(method,"^__") then
     return function(self, ...)
-      io.write("calling: " .. method .. " Params:  ") print(...)
+      Log:debug("Proxy: calling method " .. method)
       if self.component.isStartedUp then
         local facet = self.facet
         return facet[method](facet, ...)

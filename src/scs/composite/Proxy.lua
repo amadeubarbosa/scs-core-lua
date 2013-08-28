@@ -9,6 +9,7 @@ local Log = require "scs.util.Log"
 utils = utils()
 local oo = require "loop.simple"
 local class = oo.class
+local Wrapper = require "loop.object.Wrapper"
 
 ------------------------------------------------------------------------
 
@@ -52,12 +53,18 @@ function Proxy:setProxyComponent(iComponent, permission)
     -- Não fazer o bind do ISuperComponent e criar um proxy separado.
     if interfaceName ~= utils.ISUPERCOMPONENT_INTERFACE then
       local newFacet = orb:narrow(facetRef, interfaceName)
-      local facetProxy = FacetProxy(self, newFacet)
+      local facetProxy
+
+      if interfaceName == utils.ICOMPONENT_INTERFACE then
+        facetProxy = self:createIComponentWrapper(newFacet)
+      else
+        facetProxy = FacetProxy(self, newFacet)
+      end
 
       if permission == "CURRENT" then
           facetProxy._component = function(self) return end
       elseif permission == "ALL" then
-          facetProxy._component = function(self) return context.IComponent end
+          facetProxy._component = function(self) return self.context.IComponent end
       else
           --throw exception
       end
@@ -70,6 +77,35 @@ function Proxy:setProxyComponent(iComponent, permission)
     end
   end
 end
+
+---
+--
+---
+function Proxy:createIComponentWrapper(iComponent)
+  local iComponentWrapper =  Wrapper{ __object = iComponent}
+  local iSuperComponentFacet = self:getFacetByName(utils.ISUPERCOMPONENT_NAME).facet_ref
+
+  function iComponentWrapper:getFacetByName(name)
+    print "---- Proxy:createIComponentWrapper:getFacetByName"
+    if name == utils.ISUPERCOMPONENT_NAME then
+      return iSuperComponentFacet
+    else
+      return self.__object:getFacetByName(name)
+    end
+  end
+
+  function iComponentWrapper:getFacet(interface)
+    print "---- Proxy:createIComponentWrapper:getFacet" print(interface)
+    if interface == utils.ISUPERCOMPONENT_INTERFACE then
+      return iSuperComponentFacet
+    else
+      return self.__object:getFacet(interface)
+    end
+  end
+
+  return iComponentWrapper
+end
+
 
 ------------------------------------------------------------------------
 -- Classe Proxy

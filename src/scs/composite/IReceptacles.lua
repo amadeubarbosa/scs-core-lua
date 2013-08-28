@@ -60,9 +60,7 @@ function newConnect(self, name, connection)
     proxySuperComponent:addSuperComponent(iComponent)
 
     -- Adicionar a faceta correta do proxy no receptaculo do componente interno.
-    local proxyICompFacet = proxy:getFacetByName(utils.ICOMPONENT_NAME).facet_ref
-    proxyICompFacet =  orb:narrow(proxyICompFacet, utils.ICOMPONENT_INTERFACE)
-    local proxyFacet = proxyICompFacet:getFacet(connectionInterface)
+    local proxyFacet = proxy:getFacet(connectionInterface).facet_ref
     bindIReceptacle:connect(receptacleName, proxyFacet)
 
   else
@@ -122,7 +120,7 @@ function verifyCompatibility(self, name, iComponent)
 
   if ((#superComponentList > 0 and #connSuperComponentList == 0)
       or (#superComponentList == 0 and #connSuperComponentList > 0)) then
-    Log:error(string.format("Componententes não compativeis: #SuperComponent = %s | Componente do Receptaculo = %s ",
+    Log:error(string.format("Componententes não compativeis: #SuperComponent = %s | Componente do receptaculo a ser conectado = %s ",
         #superComponentList, #connSuperComponentList))
     error { _repid = compositeIdl.throw.InvalidConnection }
   end

@@ -40,7 +40,7 @@ local ComponentContext = require "scs.composite.ComponentContext"
 local scsLog = require "scs.util.Log"
 
 oil.verbose:level(0)
-scsLog:level(1)
+scsLog:level(3)
 
 ------------------------------------------------------------------------
 -- 1. Implementacao das facetas

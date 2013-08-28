@@ -25,6 +25,7 @@ function Proxy:__new(orb)
 
   component.isStartedUp = false
 
+  Log:info("Proxy craido")
   return component
 end
 
@@ -36,6 +37,7 @@ function Proxy:setProxyComponent(iComponent, permission)
 
   self.isStartedUp = true
 
+  Log:info("Proxy inicializado. permission=" .. permission)
   local metaFacet = iComponent:getFacetByName(utils.IMETAINTERFACE_NAME)
   metaFacet = orb:narrow(metaFacet, utils.IMETAINFERFACE_INTERFACE)
   local descriptions = metaFacet:getFacets()

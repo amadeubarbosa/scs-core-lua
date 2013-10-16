@@ -131,15 +131,15 @@ function ContentController:retrieveBindings()
   local bindDesc = {}
 
   for _, facet in pairs(context:getFacets()) do
-  if facet.bindingId then
-    table.insert(bindDesc, { id = facet.bindingId, name = facet.name, isFacet = true })
-  end
+		if facet.bindingId then
+			table.insert(bindDesc, { id = facet.bindingId, name = facet.name, isFacet = true })
+		end
   end
 
   for _, receptacle in pairs(context:getReceptacles()) do
-  if facet.bindingId then
-    table.insert(bindDesc, { id = receptacle.bindingId, name = receptacle.name, isFacet = false })
-  end
+		if facet.bindingId then
+			table.insert(bindDesc, { id = receptacle.bindingId, name = receptacle.name, isFacet = false })
+		end
   end
 
   return bindDesc

@@ -68,14 +68,20 @@ local function deactivateFacet(self, name)
 end
 
 local function putFacet(self, name, interface, implementation, key)
-  local impl = implementation
-  if type(impl._component) ~= "function" then
-    impl._component = _get_component
+	if not name then 
+		error("Nao foi possivel adicionar a faceta. Nome faltando.")
+	end
+	if not interface then
+		error("Nao foi possivel adicionar a faceta. Interface faltando.")
+	end	
+
+  if type(implementation._component) ~= "function" then
+    implementation._component = _get_component
   end
-  impl.context = self
+  implementation.context = implementation.context or self
   local success, servant = pcall(self._orb.newservant,
                                      self._orb,
-                                     impl,
+                                     implementation,
                                      key,
                                      interface)
   if not success then

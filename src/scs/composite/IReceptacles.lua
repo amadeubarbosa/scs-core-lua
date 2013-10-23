@@ -125,12 +125,12 @@ function verifyCompatibility(self, name, iComponent)
     error { _repid = compositeIdl.throw.InvalidConnection }
   end
 
-  for _,superComponent in pairs(superComponentList) do
+  for _,superComponent in ipairs(superComponentList) do
     local superComponentFacet = orb:narrow(superComponent, utils.ICOMPONENT_INTERFACE)
     local superContentFacet = superComponentFacet:getFacetByName(utils.ICONTENTCONTROLLER_NAME)
     superContentFacet = orb:narrow(superContentFacet, utils.ICONTENTCONTROLLER)
 
-    for _,connSuperComponent in pairs(connSuperComponentList) do
+    for _,connSuperComponent in ipairs(connSuperComponentList) do
       local connSuperComponentFacet = orb:narrow(connSuperComponent, utils.ICOMPONENT_INTERFACE)
       local connSuperContentFacet = connSuperComponentFacet:getFacetByName(utils.ICONTENTCONTROLLER_NAME)
       connSuperContentFacet = orb:narrow(connSuperContentFacet, utils.ICONTENTCONTROLLER)

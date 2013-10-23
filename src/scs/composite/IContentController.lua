@@ -32,7 +32,7 @@ end
 ---
 function ContentController:getId()
   local componentIOR = self.context.IComponent
-  return tostring(componentIOR) .. "--" .. self.creationDate
+  return self.context:getComponentId().name .. "--" .. self.creationDate
 end
 
 ---
@@ -117,7 +117,7 @@ function ContentController:getSubComponents()
   local subComponents = {}
 
   for id,component in pairs (self.componentSet) do
-    table.insert(subComponents, {id = id, iComponent = component})
+    table.insert(subComponents, {id = id, icomponent = component})
   end
 
   return subComponents

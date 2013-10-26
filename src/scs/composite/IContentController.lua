@@ -12,6 +12,8 @@ local utils = require "scs.composite.Utils"
 utils = utils()
 local Log = require "scs.util.Log"
 
+local Proxy = require "scs.composite.Proxy"
+Proxy = Proxy.facetProxy
 local compositeIdl = require "scs.composite.Idl"
 
 ------------------------------------------------------------------------
@@ -68,6 +70,8 @@ function ContentController:addSubComponent(component)
     error { _repid = compositeIdl.throw.ComponentFailure }
   end
 
+  Log:info(string.format("Componente '%s' foi adicionado no supercomponente '%s'",
+      subIComponent:getComponentId().name, context:getComponentId().name))
   local membershipId = self.membershipId
   self.membershipId = membershipId + 1
 
@@ -131,15 +135,15 @@ function ContentController:retrieveBindings()
   local bindDesc = {}
 
   for _, facet in pairs(context:getFacets()) do
-		if facet.bindingId then
-			table.insert(bindDesc, { id = facet.bindingId, name = facet.name, isFacet = true })
-		end
+    if facet.bindingId then
+      table.insert(bindDesc, { id = facet.bindingId, name = facet.name, isFacet = true })
+    end
   end
 
   for _, receptacle in pairs(context:getReceptacles()) do
-		if facet.bindingId then
-			table.insert(bindDesc, { id = receptacle.bindingId, name = receptacle.name, isFacet = false })
-		end
+    if facet.bindingId then
+      table.insert(bindDesc, { id = receptacle.bindingId, name = receptacle.name, isFacet = false })
+    end
   end
 
   return bindDesc
@@ -188,9 +192,11 @@ function ContentController:bindFacet(connectorID, internalFacetName, externalFac
 
   local facetDescription = descriptions[1]
   local interfaceName = facetDescription.interface_name
-  local facetRef = facetDescription.facet_ref
+  local proxyFacetRef = Proxy(facetDescription.facet_ref)
+  proxyFacetRef.superComp = context.IComponent
+  proxyFacetRef._component = function(self) return self.superComp end
 
-  context:registerFacet(externalFacetName, interfaceName, facetRef, nil)
+  context:registerFacet(externalFacetName, interfaceName, proxyFacetRef, nil)
   context:setFacetAsBind(externalFacetName)
 
   return context:getFacetByName(externalFacetName).bindingId

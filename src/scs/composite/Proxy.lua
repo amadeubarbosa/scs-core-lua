@@ -13,10 +13,12 @@ local Wrapper = require "loop.object.Wrapper"
 
 ------------------------------------------------------------------------
 
-local Proxy = class({}, ComponentContext)
-local FacetProxy = class()
 
-function Proxy:__new(orb)
+local ProxyComponent = class({}, ComponentContext)
+local FacetProxy = class()
+local Proxy = { proxyComponent = ProxyComponent, facetProxy = FacetProxy }
+
+function ProxyComponent:__new(orb)
   local componentId = { name = "Proxy", major_version = 1,
       minor_version = 0, patch_version = 0, platform_spec = "" }
   local component = ComponentContext.__new(self, orb, componentId)
@@ -25,14 +27,14 @@ function Proxy:__new(orb)
 
   component.isStartedUp = false
 
-  Log:info("Proxy craido")
+  Log:info("Component Proxy criado")
   return component
 end
 
 ---
 --
 ---
-function Proxy:setProxyComponent(iComponent, permission)
+function ProxyComponent:setProxyComponent(iComponent, permission)
   local orb = self._orb
 
   self.isStartedUp = true
@@ -60,15 +62,17 @@ function Proxy:setProxyComponent(iComponent, permission)
       if interfaceName == utils.ICOMPONENT_INTERFACE then
         facetProxy = self:createIComponentWrapper(newFacet)
       else
-        facetProxy = FacetProxy(self, newFacet)
+        canCallFunction = function(self) return self.component.isStartedUp end
+        facetProxy = FacetProxy(newFacet, canCallFunction)
+        facetProxy.component = self
       end
 
       if permission == "CURRENT" then
-          facetProxy._component = function(self) return end
+        facetProxy._component = function(self) return end
       elseif permission == "ALL" then
-          facetProxy._component = function(self) return self.context.IComponent end
+        facetProxy._component = function(self) return self.context.IComponent end
       else
-          --throw exception
+        --throw exception
       end
 
       if self:containsFacet(facetName) then
@@ -83,7 +87,7 @@ end
 ---
 --
 ---
-function Proxy:createIComponentWrapper(iComponent)
+function ProxyComponent:createIComponentWrapper(iComponent)
   local iComponentWrapper =  Wrapper{ __object = iComponent}
   local iSuperComponentFacet = self:getFacetByName(utils.ISUPERCOMPONENT_NAME).facet_ref
 
@@ -110,26 +114,39 @@ end
 ------------------------------------------------------------------------
 -- Classe Proxy
 ------------------------------------------------------------------------
-function FacetProxy:__new(component, facet)
-  return oo.rawnew(self, {component = component, facet = facet})
-end
 
 ---
---
+-- function(self) return <boolean> end
 ---
-FacetProxy.__index = memoize(function(method)
-  if not string.match(method,"^__") then
-    return function(self, ...)
-      Log:debug("Proxy: calling method " .. method)
-      if self.component.isStartedUp then
-        local facet = self.facet
-        return facet[method](facet, ...)
-      else
-        print("Log: Componente não inicializado")
-      end
-    end
+function FacetProxy:__new(facet, canCallFunction)
+  canCallFunction = canCallFunction or function(self) return true end
+  Log:info("Facet Proxy criado")
+  return oo.rawnew(self, {
+  canCall = canCallFunction,
+  facet = facet, 
+  __type = facet:_interface() })
+end
+
+local methods = memoize(function(method)
+  return function(self, ...)
+    return method(self.facet, ...)
   end
 end, "k")
 
+FacetProxy.__index = function(self, key)
+  local value = self.facet[key]  
+  if self.canCall() then    
+    if type(key) == "string" and not key:match("^__") then
+      Log:debug("Proxy: calling method " .. key)
+      if type(value) == "function" then 
+        return methods[value]
+      else 
+        return value
+      end
+    end
+  else
+    Log:error("Log: Componente não inicializado")
+  end
+end
 
 return Proxy

@@ -14,7 +14,9 @@ local utils = require "scs.composite.Utils"
 local compositeIdl = require "scs.composite.Idl"
 local Log = require "scs.util.Log"
 local Proxy = require "scs.composite.Proxy"
+Proxy = Proxy.proxyComponent
 utils = utils()
+
 ------------------------------------------------------------------------
 
 local IReceptacles = class({}, SuperIReceptacles)
@@ -35,7 +37,6 @@ end
 function newConnect(self, name, connection)
   local context = self.context
   local orb = context._orb
-
   local iCompConnection = connection:_component()
 
   if isBinded(context, name) then
@@ -64,8 +65,9 @@ function newConnect(self, name, connection)
     bindIReceptacle:connect(receptacleName, proxyFacet)
 
   else
-    -- Para componente que seja o próprio componente, verificar a compatibilidade entre eles.
-    if not verifyCompatibility(self, name, iCompConnection)then
+    Log:debug("Verifica compatibilidade entre a faceta e o receptaculo.")
+
+    if not verifyCompatibility(self, name, iCompConnection) then
       error { _repid = compositeIdl.throw.InvalidComponent }
     end
   end
@@ -108,6 +110,7 @@ function verifyCompatibility(self, name, iComponent)
   local ok, connISuperCompFacet = pcall(connIComponentFacet.getFacetByName,
       connIComponentFacet, utils.ISUPERCOMPONENT_NAME)
   if not ok or not connISuperCompFacet then
+    Log:error(string.format("A conexao nao eh compativel com o receptaculo '%s'.",name), connISuperCompFacet)
     error { _repid = compositeIdl.throw.InvalidConnection }
   end
 
@@ -120,7 +123,7 @@ function verifyCompatibility(self, name, iComponent)
 
   if ((#superComponentList > 0 and #connSuperComponentList == 0)
       or (#superComponentList == 0 and #connSuperComponentList > 0)) then
-    Log:error(string.format("Componententes não compativeis: #SuperComponent = %s | Componente do receptaculo a ser conectado = %s ",
+    Log:error(string.format("Componententes nao compativeis: #SuperComponent = %s | Componente do receptaculo a ser conectado = %s ",
         #superComponentList, #connSuperComponentList))
     error { _repid = compositeIdl.throw.InvalidConnection }
   end
@@ -141,6 +144,7 @@ function verifyCompatibility(self, name, iComponent)
     end
   end
 
+  Log:debug(string.format("Os componentes nao estao dentro de um mesmo supercomponente com o receptaculo '%s'.",name))
   return false
 end
 

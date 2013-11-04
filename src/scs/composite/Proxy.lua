@@ -122,9 +122,10 @@ function FacetProxy:__new(facet, canCallFunction)
   canCallFunction = canCallFunction or function(self) return true end
   Log:info("Facet Proxy criado")
   return oo.rawnew(self, {
-  canCall = canCallFunction,
-  facet = facet, 
-  __type = facet:_interface() })
+      canCall = canCallFunction,
+      facet = facet, 
+      __type = facet:_interface() 
+  })
 end
 
 local methods = memoize(function(method)

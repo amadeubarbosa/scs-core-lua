@@ -192,7 +192,9 @@ function ContentController:bindFacet(connectorID, internalFacetName, externalFac
 
   local facetDescription = descriptions[1]
   local interfaceName = facetDescription.interface_name
-  local proxyFacetRef = Proxy(facetDescription.facet_ref)
+  local facet = facetDescription.facet_ref
+  facet = orb:narrow(facet, interfaceName)
+  local proxyFacetRef = Proxy(facet)
   proxyFacetRef.superComp = context.IComponent
   proxyFacetRef._component = function(self) return self.superComp end
 

@@ -5,13 +5,13 @@ local os = os
 
 local oop = require "loop.base"
 
-module("latt.ConsoleResultViewer", oop.class)
+local ConsoleResultViewer = oop.class()
 
-function __new(self, result)
+function ConsoleResultViewer.__new(self, result)
   return oop.rawnew(self, { result = result, })
 end
 
-function show(self)
+function ConsoleResultViewer.show(self)
   print("==============================================")
   print("LATT (Lua Automated Testing Tool) version 1.0\n")
   print("Time: "..os.difftime(self.result.stopTime, self.result.startTime).." second(s)\n")
@@ -29,7 +29,7 @@ function show(self)
   print("==============================================")
 end
 
-function showAsError(self)
+function ConsoleResultViewer.showAsError(self)
   if self.result.failureCounter ~= 0 then
     io.stderr:write("==============================================\n")
     io.stderr:write("LATT (Lua Automated Testing Tool) version 1.0\n")
@@ -44,3 +44,5 @@ function showAsError(self)
     io.stderr:write("==============================================\n")
   end
 end
+
+return ConsoleResultViewer

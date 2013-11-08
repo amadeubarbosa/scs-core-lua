@@ -10,14 +10,12 @@ local oil = require "oil"
 local utils = require "scs.core.utils"
 local OilUtilities = require "scs.util.OilUtilities"
 
-module("scs.adaptation.AdaptiveReceptacle")
-
 --
 -- Receptacles Class
 -- Implementation of the IReceptacles Interface from scs.idl
 --
 
-AdaptiveReceptacleFacet = oop.class({}, Receptacles)
+local AdaptiveReceptacleFacet = oop.class({}, Receptacles)
 
 --The first of the list always starts as the leader
 
@@ -128,3 +126,12 @@ function AdaptiveReceptacleFacet:updateConnections(receptacle)
     end
   end
 end
+
+local module = {
+  AdaptiveReceptacleFacet = AdaptiveReceptacleFacet
+}
+
+return module
+
+
+

@@ -1,3 +1,6 @@
+-- caso o script não seja dispardo via console, é necessário capturar os argumentos
+-- local arg = {...}
+
 if #arg == 0 or #arg > 2 then
   io.stderr:write("Use: lua OiLTestRunner.lua <test_suite_file_name>\n")
   os.exit(1)

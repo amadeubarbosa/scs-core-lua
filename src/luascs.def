@@ -1,0 +1,16 @@
+LIBRARY   luascs
+EXPORTS
+	luapreload_luascs
+	luaopen_scs_auxiliar_componentproperties
+	luaopen_scs_adaptation_PersistentReceptacle
+	luaopen_scs_core_MetaInterface
+	luaopen_scs_adaptation_AdaptiveReceptacle
+	luaopen_scs_util_Log
+	luaopen_scs_auxiliar_componenthelp
+	luaopen_scs_util_OilUtilities
+	luaopen_scs_core_Receptacles
+	luaopen_scs_core_builder_XMLComponentBuilder
+	luaopen_scs_util_TableDB
+	luaopen_scs_core_ComponentContext
+	luaopen_scs_core_utils
+	luaopen_scs_core_Component

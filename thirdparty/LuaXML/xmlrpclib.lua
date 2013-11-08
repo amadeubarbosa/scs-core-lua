@@ -29,9 +29,9 @@ xmlrpclib = function()
                                 local res = ""
                                 if tag(x) == self._BOOL then
                                     return "<value><boolean>"..x[1].."</boolean></value>"
-                                elseif table.getn(x) > 0 then
+                                elseif #x > 0 then
                                     res = res.."<value><array><data>"
-                                    for i=1,table.getn(x) do
+                                    for i=1,#x do
                                         res = res..self._TOXML[type(x[i])](self,x[i])
                                     end
                                     res = res.."</data></array></value>"
@@ -76,7 +76,7 @@ xmlrpclib = function()
         if type(t) ~= 'table' then
             t = {t}
         end
-        for i=1,table.getn(t) do
+        for i=1,#t do
             res = res.."<param>"..self._TOXML[type(t[i])](self,t[i]).."</param>".."\n"
         end
         return res
@@ -97,7 +97,7 @@ xmlrpclib = function()
         elseif element.struct then
             local struct = {}
             if element.struct.member then
-                for i=1,table.getn(element.struct.member) do
+                for i=1,#element.struct.member do
                     local name = element.struct.member[i].name
                     local value = self:parseParam(element.struct.member[i])
                     struct[name] = value
@@ -108,12 +108,12 @@ xmlrpclib = function()
             local array = {}
             local values
             if element.array.data.value then
-                if table.getn(element.array.data.value) == 0 then
+                if #element.array.data.value == 0 then
                     values = {element.array.data.value}
                 else
                     values = element.array.data.value
                 end
-                for i=1,table.getn(values) do
+                for i=1,#values do
                     table.insert(array,self:parseParam({value = values[i]}))
                 end
                 array.n = nil
@@ -138,7 +138,7 @@ xmlrpclib = function()
         local methodName = methodCall.methodName
         local params = {}
         if methodCall.params then
-            for i=1,table.getn(methodCall.params.param) do 
+            for i=1,#methodCall.params.param do 
                 table.insert(params,self:parseParam(methodCall.params.param[i]))
             end
         end

@@ -8,18 +8,12 @@ local os     = require "os"
 local io     = require "io"
 local string = require "string"
 
-local pairs    = pairs
-local error    = error
-local assert   = assert
-local pcall    = pcall
-local setfenv  = setfenv
-local loadfile = loadfile
 --
 -- Classe que gerencia dados em disco.  Esses dados são tuplas
 -- <chave,valor> -- abstração de tabela em Lua.  Ao atribuir um novo
 -- valor a um chave, o valor antigo é sobrescrito.
 --
-module("scs.util.TableDB", oo.class)
+local TableDB = oo.class()
 
 ---
 -- Constrói um objeto do banco de dados.
@@ -27,7 +21,7 @@ module("scs.util.TableDB", oo.class)
 -- @param dbfile Arquivo para armazenar as informações. Esse arquivo é
 -- criado caso não exista.
 --
-function __new(self, dbfile)
+function TableDB.__new(self, dbfile)
    local mode = lfs.attributes(dbfile, "mode")
    if not mode then
       local f = assert(io.open(dbfile, "w"))
@@ -48,7 +42,7 @@ end
 -- @return  Retorna true  se  o  valor foi  salvo  com sucesso. Caso
 -- contrário false e uma mensagem de erro.
 --
-function save(self, key, value)
+function TableDB.save(self, key, value)
    local data, msg = self:loadAll()
    if not data then
       return false, msg
@@ -65,7 +59,7 @@ end
 -- @return  Retorna true  se o  par  foi removido  com sucesso.   Caso
 -- contrário retorna false e uma mensagem de erro.
 --
-function remove(self, key)
+function TableDB.remove(self, key)
    local data, msg = self:loadAll()
    if not data then
       return false, msg
@@ -81,7 +75,7 @@ end
 -- chaves.  Em  caso de erro, retorna  nil seguido de  uma mensagem de
 -- erro.
 --
-function getValues(self)
+function TableDB.getValues(self)
    local data, msg = self:loadAll()
    if not data then
       return nil, msg
@@ -100,7 +94,7 @@ end
 --   contrário, retorna o valor da chave. Nota: se a chave não existe,
 --   retorna apenas nil.
 --
-function get(self, key)
+function TableDB.get(self, key)
    local data, msg = self:loadAll()
    if not data then
       return nil, msg
@@ -114,14 +108,13 @@ end
 -- @return  Retorna uma  tabela contendo  os dados.  Em caso  de erro,
 -- retorna nil seguido de uma mensagem de erro.
 --
-function loadAll(self)
-   local reader, msg = loadfile(self.dbfile)
+function TableDB.loadAll(self)
+   -- Sandbox
+   local reader, msg = loadfile(self.dbfile, "t", {})
    if not reader then
       msg = string.format("Erro ao carregar dados do disco: %s", msg)
       return nil, msg
    end
-   -- Sandbox
-   setfenv(reader, {})
    local succ, data = pcall(reader)
    if not succ then
       data = string.format("Erro ao carregar dados do disco: %s", data)
@@ -142,7 +135,7 @@ end
 --
 -- @return Retorna true se os dados foram salvos com sucesso.
 --
-function saveAll(self, data)
+function TableDB.saveAll(self, data)
    local f, msg, succ
    local tmp = string.format("%s-%s.tmp", self.dbfile, uuid.new("time"))
    f, msg = io.open(tmp, "w")
@@ -176,3 +169,5 @@ function saveAll(self, data)
    end
    return true
 end
+
+return TableDB

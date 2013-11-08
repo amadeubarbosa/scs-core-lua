@@ -1,16 +1,14 @@
-local ipairs = ipairs
-
 local oop = require "loop.base"
 
 local TestResult = require "latt.TestResult"
 
-module("latt.TestSuite", oop.class)
+local TestSuite = oop.class()
 
-function __new(self, name, testCases)
+function TestSuite.__new(self, name, testCases)
   return oop.rawnew(self, { name = name, testCases = testCases, })
 end
 
-function run(self)
+function TestSuite.run(self)
   local result = TestResult(self.name)
   result:startTestSuite()
   for _, testCase in ipairs(self.testCases) do
@@ -19,3 +17,5 @@ function run(self)
   result:stopTestSuite()
   return result
 end
+
+return TestSuite

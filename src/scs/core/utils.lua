@@ -9,24 +9,11 @@ local oo  = require "loop.base"
 local oil = require "oil"
 local Log = require "scs.util.Log"
 
-local module    = module
-local tostring  = tostring
-local tonumber  = tonumber
-local type      = type
-local io        = io
-local string    = string
-local assert    = assert
-local os        = os
-local print     = print
-local pairs     = pairs
-
 --------------------------------------------------------------------------------
 
-module ("scs.core.utils", oo.class)
+local Utils = oo.class()
 
---------------------------------------------------------------------------------
-
-function __new(self)
+function Utils.__new(self)
   local instance = oo.rawnew(self, {fileName = "",
                           verbose = false,
                           fileVerbose = false,
@@ -46,7 +33,7 @@ end
 -- Description: Prints a message to the standard output and/or to a file.
 -- Parameter message: Message to be delivered.
 --
-function verbosePrint(self, ...)
+function Utils.verbosePrint(self, ...)
   if self.verbose then
     print(...)
   end
@@ -74,7 +61,7 @@ end
 -- Parameter t: Table that will receive the properties.
 -- Parameter file: File to be read.
 --
-function readProperties (self, t, file)
+function Utils.readProperties (self, t, file)
   local f = assert(io.open(file, "r"), "Error opening properties file!")
   while true do
     prop = f:read("*line")
@@ -133,7 +120,7 @@ end
 --
 -- Description: Prints a table recursively.
 --
-function print_r (self, t, indent, done)
+function Utils.print_r (self, t, indent, done)
   done = done or {}
   indent = indent or 0
   if type(t) == "table" then
@@ -161,7 +148,7 @@ end
 -- Parameter message: Table to be converted.
 -- Return Value: The array.
 --
-function convertToArray(self, inputTable)
+function Utils.convertToArray(self, inputTable)
   Log:utils("ConvertToArray: Begin")
   local outputArray = {}
   local i = 1
@@ -181,7 +168,7 @@ end
 -- Parameter str: String to be converted.
 -- Return Value: The boolean.
 --
-function toBoolean(self, inputString)
+function Utils.toBoolean(self, inputString)
   Log:utils("StringToBoolean: Begin")
   local toBool = {
     ["true"] = true,
@@ -203,7 +190,9 @@ end
 -- Parameter componentId: ComponentId to be converted.
 -- Return Value: A string containing the stringified version.
 --
-function getNameVersion(self, componentId)
+function Utils.getNameVersion(self, componentId)
   return componentId.name .. componentId.major_version .. componentId.minor_version ..
   componentId.patch_version
 end
+
+return Utils

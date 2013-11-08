@@ -3,6 +3,9 @@ local ComponentContext = require "scs.core.ComponentContext"
 local Log = require "scs.util.Log"
 Log:level(1)
 
+-- caso o script não seja dispardo via console, é necessário capturar os argumentos
+-- local arg = {...}
+
 -- OiL configuration
 local orb = oil.init()
 

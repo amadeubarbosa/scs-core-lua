@@ -9,20 +9,7 @@ local oo    = require "loop.base"
 local utils = require "scs.core.utils"
 utils = utils()
 
-local pairs  = pairs
-local ipairs = ipairs
-local error  = error
-local table  = table
-
 --------------------------------------------------------------------------------
-
-module ("scs.core.MetaInterface", oo.class)
-
---------------------------------------------------------------------------------
-
-function __new(self)
-  return oo.rawnew(self, {})
-end
 
 --
 -- Description: Provides descriptions for one or more ports.
@@ -76,11 +63,17 @@ local function getDescriptions(self, portType, selected)
 end
 
 
+local MetaInterface = oo.class()
+
+function MetaInterface.__new(self)
+  return oo.rawnew(self, {})
+end
+
 --
 -- Description: Provides descriptions for all the facets.
 -- Return Value: The descriptions.
 --
-function getFacets(self)
+function MetaInterface.getFacets(self)
   return getDescriptions(self, "facet")
 end
 
@@ -89,7 +82,7 @@ end
 -- Parameter names: Names of the facets.
 -- Return Value: The descriptions that apply.
 --
-function getFacetsByName(self, names)
+function MetaInterface.getFacetsByName(self, names)
   return getDescriptions(self, "facet", names)
 end
 
@@ -97,7 +90,7 @@ end
 -- Description: Provides descriptions for all the receptacles.
 -- Return Value: The descriptions.
 --
-function getReceptacles(self)
+function MetaInterface.getReceptacles(self)
   return getDescriptions(self, "receptacle")
 end
 
@@ -106,7 +99,8 @@ end
 -- Parameter names: Names of the receptacles.
 -- Return Value: The descriptions that apply.
 --
-function getReceptaclesByName(self, names)
+function MetaInterface.getReceptaclesByName(self, names)
   return getDescriptions(self, "receptacle", names)
 end
 
+return MetaInterface

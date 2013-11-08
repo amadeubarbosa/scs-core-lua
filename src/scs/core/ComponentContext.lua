@@ -16,19 +16,7 @@ local Log           = require "scs.util.Log"
 local utils         = require "scs.core.utils"
 utils = utils()
 
-local module = module
-local pairs  = pairs
-local pcall  = pcall
-local table  = table
-local type   = type
-local error  = error
-local string = string
 
---------------------------------------------------------------------------------
-
-module ("scs.core.ComponentContext", oo.class)
-
---------------------------------------------------------------------------------
 local unknownInterfaceErrorMessage = "Unknown interface. Try loading the correspondent IDL file or code on the ORB first."
 
 local function addBasicFacet(self, name, interface, object, key)
@@ -94,6 +82,9 @@ local function putFacet(self, name, interface, implementation, key)
   Log:scs(msg)
 end
 
+
+local ComponentContext = oo.class()
+
 --- Primary constructor. The returned component instance will always have the
 -- three basic facets (IComponent, IReceptacles, IMetaInterface) instantiated.
 -- If the user wishes to use his own implementation of one of these facets,
@@ -108,7 +99,7 @@ end
 -- @param id The type of this component.
 -- @param basicKeys A table associating the name of a basic facet with a string key to be registered for it with the ORB.
 -- @return The new component instance.
-function __new(self, orb, id, basicKeys)
+function ComponentContext.__new(self, orb, id, basicKeys)
   if not id then
     return nil, "ERROR: Missing ComponentId parameter"
   end
@@ -123,7 +114,7 @@ end
 -- specification.
 --
 -- @return The component's ComponentId
-function getComponentId(self)
+function ComponentContext.getComponentId(self)
   return self._componentId
 end
 
@@ -138,7 +129,7 @@ end
 -- @param interface The facet's IDL interface.
 -- @param implementation The facet implementation, not yet activated within the POA.
 -- @param key (optional) A string to be registered as the object's key within the ORB. This is used for the creation of persistent references.
-function addFacet(self, name, interface, implementation, key)
+function ComponentContext.addFacet(self, name, interface, implementation, key)
   if self._facets[name] ~= nil then
     error("Facet already exists.")
   end
@@ -153,7 +144,7 @@ end
 --
 -- @param name The existent facet's name.
 -- @param implementation The new facet implementation, not yet registered within the ORB.
-function updateFacet(self, name, implementation)
+function ComponentContext.updateFacet(self, name, implementation)
   local facet = self._facets[name]
   self:removeFacet(facet.name)
   self:addFacet(name, facet.interface_name, implementation, facet.key)
@@ -163,7 +154,7 @@ end
 -- component's ORB before being removed.
 --
 -- @param name The name of the facet to be removed.
-function removeFacet(self, name)
+function ComponentContext.removeFacet(self, name)
   if self._facets[name] == nil then
     error("Facet does not exist.")
   end
@@ -178,7 +169,7 @@ end
 -- @param name The receptacle's name. This acts as the receptacle identifier within the component.
 -- @param interface The receptacle's IDL interface.
 -- @param multiplex True if the receptacle accepts more than one connection, false otherwise.
-function addReceptacle(self, name, interface, multiplex)
+function ComponentContext.addReceptacle(self, name, interface, multiplex)
   if self._receptacles[name] ~= nil then
     error("Receptacle already exists.")
   end
@@ -190,14 +181,14 @@ end
 --- Removes a receptacle from the component.
 --
 -- @param name The name of the receptacle to be removed.
-function removeReceptacle(self, name)
+function ComponentContext.removeReceptacle(self, name)
   self._receptacles[name] = nil
   Log:scs("Receptacle " .. name .. " was removed from the component. If it had active connections, access to them may be lost.")
 end
 
 --- Activates all of the component's facets.
 -- @return Table containing the names(indexes) and error messages(values) of the facets that could not be activated.
-function activateComponent(self)
+function ComponentContext.activateComponent(self)
   local errFacets = {}
   for name, facet in pairs(self._facets) do
     local status, err = pcall(self._orb.newservant, self._orb,
@@ -217,7 +208,7 @@ end
 -- it can be reactivated later. Local calls of IDL methods may still work,
 -- depending on the ORB configuration.
 -- @return Table containing the names(indexes) and error messages(values) of the facets that could not be deactivated.
-function deactivateComponent(self)
+function ComponentContext.deactivateComponent(self)
   local errFacets = {}
   for name, facet in pairs(self._facets) do
     local status, err = pcall(self._orb.deactivate, self._orb,
@@ -235,7 +226,7 @@ end
 --- Provides metadata about the component's facets.
 --
 -- @return A table with the facet metadata.
-function getFacets(self)
+function ComponentContext.getFacets(self)
   return self._facets
 end
 
@@ -244,14 +235,14 @@ end
 -- @param name The name of the facet.
 --
 -- @return The facet metadata.
-function getFacetByName(self, name)
+function ComponentContext.getFacetByName(self, name)
   return self._facets[name]
 end
 
 --- Provides metadata about the component's receptacles.
 --
 -- @return A table with the receptacle metadata.
-function getReceptacles(self)
+function ComponentContext.getReceptacles(self)
   return self._receptacles
 end
 
@@ -260,14 +251,14 @@ end
 -- @param name The name of the receptacle.
 --
 -- @return The receptacle metadata.
-function getReceptacleByName(self, name)
+function ComponentContext.getReceptacleByName(self, name)
   return self._receptacles[name]
 end
 
 --- Provides a direct reference to the IComponent facet.
 --
 -- @return The IComponent facet.
-function getIComponent(self)
+function ComponentContext.getIComponent(self)
   return self[utils.ICOMPONENT_NAME]
 end
 
@@ -275,13 +266,15 @@ end
 -- with the version number and its platform spec.
 --
 -- @return The stringified component's id.
-function stringifiedComponentId(self)
+function ComponentContext.stringifiedComponentId(self)
   return utils:getNameVersion(self._componentId)
 end
 
 --- Returns the ORB.
 --
 -- @return The ORB.
-function getORB(self)
+function ComponentContext.getORB(self)
   return self._orb
 end
+
+return ComponentContext

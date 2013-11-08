@@ -6,33 +6,35 @@ local Verbose = require "loop.debug.Verbose"
 ---
 --Mecanismo para debug do SCS baseado no módulo Verbose provido pelo LOOP
 ---
-module ("scs.util.Log", Verbose)
+local Log = Verbose()
 
 -- Coloca data e hora no log
-timed = "%d/%m/%Y %H:%M:%S"
+Log.timed = "%d/%m/%Y %H:%M:%S"
 
 -- Usa uma instância própria do Viewer para não interferir com o do OiL
-viewer = Viewer{
+Log.viewer = Viewer{
   maxdepth = 2,
   indentation = "|  ",
   -- output = io.output()
 }
 
 -- Definição dos tags que compõem cada grupo
-groups.fatal = {"error"}
-groups.basic = {"init", "warn"}
-groups.service = {"execution_node", "container", "info"}
-groups.core = {"scs", "utils", "config"}
-groups.mechanism = {"interceptor", "conn", "debug"}
-groups.all = {"fatal", "basic", "service", "core", "mechanism"}
+Log.groups.fatal = {"error"}
+Log.groups.basic = {"init", "warn"}
+Log.groups.service = {"execution_node", "container", "info"}
+Log.groups.core = {"scs", "utils", "config"}
+Log.groups.mechanism = {"interceptor", "conn", "debug"}
+Log.groups.all = {"fatal", "basic", "service", "core", "mechanism"}
 
 -- Definição dos níveis de debug (em ordem crescente)
-_M:newlevel{"fatal"}
-_M:newlevel{"basic"}
-_M:newlevel{"service"}
-_M:newlevel{"core"}
-_M:newlevel{"mechanism"}
+Log:newlevel{"fatal"}
+Log:newlevel{"basic"}
+Log:newlevel{"service"}
+Log:newlevel{"core"}
+Log:newlevel{"mechanism"}
 
 -- Caso seja necessário exibir o horário do registro
 -- timed.basic =  "%d/%m %H:%M:%S"
 -- timed.all =  "%d/%m %H:%M:%S"
+
+return Log

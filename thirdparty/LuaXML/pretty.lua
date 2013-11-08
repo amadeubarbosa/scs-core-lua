@@ -22,7 +22,7 @@ local askeystr=
 local horizvec=
   function (x,n)
     local o,e='',''
-    for i=1,table.getn(x) do
+    for i=1,#x do
       if type(x[i])=='table' then return end
       o=o..e..displayvalue(x[i])
       if string.len(o)>n then return end
@@ -54,9 +54,9 @@ function pretty(p,x,h,q)
       h[x]=q
       local s={}
       for k,v in pairs(x) do table.insert(s,k) end
-      if table.getn(s)>0 then
+      if #s>0 then
         local n=75-string.len(p)
-        local f=table.getn(s)==table.getn(x) and horizvec(x,n)
+        local f=#s)==table.getn(x) and horizvec(x,n
         if not f then f=horizmap(x,n) end
         if not f then
           table.sort(s,function (a,b)
@@ -64,7 +64,7 @@ function pretty(p,x,h,q)
                    if type(a)~=type(b) then a,b=type(b),type(a) end
                    return a<b
                  end)
-          for i=1,table.getn(s) do
+          for i=1,#s do
             if s[i] then
               local u=askeystr(s[i],'.')
               pretty(p..u,x[s[i]],h,q..u)

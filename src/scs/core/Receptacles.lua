@@ -10,17 +10,11 @@ local oil   = require "oil"
 local utils = require "scs.core.utils"
 utils = utils()
 
-local error = error
-local pcall = pcall
-local type = type
-
 --------------------------------------------------------------------------------
 
-module ("scs.core.Receptacles", oo.class)
+local Receptacles = oo.class()
 
---------------------------------------------------------------------------------
-
-function __new(self)
+function Receptacles.__new(self)
   return oo.rawnew(self, {_nextConnId = 0, _maxConnections = 100,
                           _numConnections = 0, _receptsByConId = {}})
 end
@@ -32,7 +26,7 @@ end
 -- Parameter object: The CORBA object that implements the expected interface.
 -- Return Value: The connection's identifier.
 --
-function connect(self, receptacle, object)
+function Receptacles.connect(self, receptacle, object)
   local context = self.context
   local desc = context._receptacles[receptacle]
   if not desc then
@@ -84,7 +78,7 @@ end
 -- Description: Disconnects an object from a receptacle.
 -- Parameter connId: The connection's identifier.
 --
-function disconnect(self, connId)
+function Receptacles.disconnect(self, connId)
   local context = self.context
   local desc = self._receptsByConId[connId]
 
@@ -107,7 +101,7 @@ end
 -- Parameter receptacle: The receptacle's name.
 -- Return Value: All current connections of the specified receptacle.
 --
-function getConnections(self, receptacle)
+function Receptacles.getConnections(self, receptacle)
   self = self.context
   if self._receptacles[receptacle] then
     return utils:convertToArray(self._receptacles[receptacle].connections)
@@ -115,3 +109,4 @@ function getConnections(self, receptacle)
   error{ "IDL:scs/core/InvalidName:1.0", name = receptacle }
 end
 
+return Receptacles

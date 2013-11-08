@@ -1,11 +1,8 @@
-local os = os
-local table = table
-
 local oop = require "loop.base"
 
-module("latt.TestResult", oop.class)
+local TestResult = oop.class()
 
-function __new(self, suiteName)
+function TestResult.__new(self, suiteName)
   return oop.rawnew(self, {
     suiteName = suiteName,
     testCounter = 0,
@@ -14,27 +11,27 @@ function __new(self, suiteName)
   })
 end
 
-function startTestSuite(self)
+function TestResult.startTestSuite(self)
   self.startTime = os.time()
 end
 
-function stopTestSuite(self)
+function TestResult.stopTestSuite(self)
   self.stopTime = os.time()
 end
 
-function startTestCase(self, testCaseName)
+function TestResult.startTestCase(self, testCaseName)
   self.currentTestCaseName = testCaseName
 end
 
-function stopTestCase(self)
+function TestResult.stopTestCase(self)
   self.currentTestCaseName = nil
 end
 
-function startTest(self, testName)
+function TestResult.startTest(self, testName)
   self.currentTestName = testName
 end
 
-function stopTest(self, errorMessage)
+function TestResult.stopTest(self, errorMessage)
   self.testCounter = self.testCounter + 1
   if errorMessage then
     self.failureCounter = self.failureCounter + 1
@@ -42,3 +39,5 @@ function stopTest(self, errorMessage)
   end
   self.currentTestName = nil
 end
+
+return TestResult

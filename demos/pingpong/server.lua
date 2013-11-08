@@ -5,6 +5,9 @@ local utils  = require "scs.core.utils"
 utils = utils()
 Log:level(3)
 
+-- caso o script não seja dispardo via console, é necessário capturar os argumentos
+-- local arg = {...}
+
 -- OiL configuration
 local orb = oil.init()
 

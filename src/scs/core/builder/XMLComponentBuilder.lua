@@ -26,25 +26,9 @@ local RECEPTACLE_INTERFACE_NAME = "interfaceName"
 local RECEPTACLE_MULTIPLEX = "isMultiplex"
 local VERSION_DELIMITER = "%."
 
-local module = module
-local ipairs = ipairs
-local type   = type
-local io     = io
-local string = string
-local require = require
-local error  = error
-
 local idlpath = os.getenv("IDL_PATH")
 
 --------------------------------------------------------------------------------
-
-module ("scs.core.builder.XMLComponentBuilder", oo.class)
-
---------------------------------------------------------------------------------
-
-function __new(self)
-  return oo.rawnew(self, {})
-end
 
 local function getComponentId(self, idTag)
   if not idTag then
@@ -138,6 +122,13 @@ local function readAndPutReceptacles(self, receptsTag, component)
   end
 end
 
+--------------------------------------------------------------------------------
+
+local XMLComponentBuilder = oo.class()
+
+function XMLComponentBuilder.__new(self)
+  return oo.rawnew(self, {})
+end
 
 --- Builds a component, based on a XML file. The component will be composed of
 -- the basic facets, plus all facets and receptacles present on the XML file.
@@ -145,7 +136,7 @@ end
 -- @param orb The orb that shall be associated to this component and its CORBA objects.
 -- @param file The XML file.
 -- @return A fully assembled component, with working facets, as described by the XML file.
-function build(self, orb, file)
+function XMLComponentBuilder.build(self, orb, file)
   local component
   local xml = simpleTreeHandler()
   local f, e = io.open(file, "r")
@@ -166,3 +157,5 @@ function build(self, orb, file)
   end
   return component
 end
+
+return XMLComponentBuilder

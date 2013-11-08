@@ -1,23 +1,16 @@
-local error = error
-local pairs = pairs
-local type = type
-
-local string = string
-local table = table
-
 local oop = require "loop.base"
 
 local Test = require "latt.Test"
 local TestCase = require "latt.TestCase"
 local TestSuite = require "latt.TestSuite"
 
-module("latt.TestRunner", oop.class)
+local TestRunner =oop.class()
 
-function __new(self, suite)
+function TestRunner.__new(self, suite)
   return oop.rawnew(self, { suite = suite, })
 end
 
-function run(self)
+function TestRunner.run(self)
   local testCases = {}
   for testCaseName, testCase in pairs(self.suite) do
     if (string.sub(testCaseName, 1, 4) == "Test") and (type(testCase) == "table") then
@@ -34,3 +27,5 @@ function run(self)
   local suite = TestSuite(self.suite.name, testCases)
   return suite:run()
 end
+
+return TestRunner

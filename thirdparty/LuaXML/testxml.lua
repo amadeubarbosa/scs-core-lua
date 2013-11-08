@@ -45,6 +45,9 @@ Options:
     file            : XML File (parse stdin in nil)
 ]]
 
+-- caso o script não seja dispardo via console, é necessário capturar os argumentos
+-- local arg = {...}
+
 index = 1
 
 function setOptions(x)

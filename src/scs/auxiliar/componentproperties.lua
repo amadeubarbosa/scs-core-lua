@@ -12,16 +12,10 @@ local utils   = require "scs.core.utils"
 local assert = assert
 
 --------------------------------------------------------------------------------
-
-module "scs.auxiliar.componentproperties"
-
---------------------------------------------------------------------------------
-
---------------------------------------------------------------------------------
 -- ComponentProperties Class
 --------------------------------------------------------------------------------
 
-CpnProperties = oo.class{
+local CpnProperties = oo.class{
   componentName = "",
 }
 
@@ -83,3 +77,10 @@ function CpnProperties:setProperty(property)
   Log:info(self.componentName .. "::ComponentProperties::SetProperty : Finished.")
 end
 
+--------------------------------------------------------------------------------
+
+local module = {
+  CpnProperties = CpnProperties
+}
+
+return module

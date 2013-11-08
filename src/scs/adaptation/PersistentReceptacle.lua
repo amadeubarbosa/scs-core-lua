@@ -15,14 +15,12 @@ local tonumber = tonumber
 local error = error
 
 
-module("scs.adaptation.PersistentReceptacle")
-
 --
 -- PersistentReceptacle Class
 -- Implementation of the IReceptacles Interface from scs.idl
 --
 
-PersistentReceptacleFacet = oop.class({}, AdaptiveReceptacle.AdaptiveReceptacleFacet)
+local PersistentReceptacleFacet = oop.class({}, AdaptiveReceptacle.AdaptiveReceptacleFacet)
 
 
 -- Description: Creates an instance of the receptacle.
@@ -110,3 +108,9 @@ function PersistentReceptacleFacet:getConnections(receptacle)
   end
   return AdaptiveReceptacle.AdaptiveReceptacleFacet.getConnections(self,receptacle) -- calling inherited method
 end
+
+local module = {
+  PersistentReceptacleFacet = PersistentReceptacleFacet
+}
+
+return module

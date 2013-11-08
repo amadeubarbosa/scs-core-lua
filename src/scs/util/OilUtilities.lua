@@ -8,12 +8,11 @@ local oil = require "oil"
 local utils     = require "scs.core.utils"
 
 local DATA_DIR = os.getenv("OPENBUS_DATADIR")
-
-module ("scs.util.OilUtilities", oop.class)
-
 local utils = utils()
 
-function existent(self, proxy)
+local OilUtilities = oop.class()
+
+function OilUtilities.existent(self, proxy)
 
   --recarregar timeouts de erro (para tempo ser dinâmico em tempo de execução)
   local timeOut = assert(loadfile(DATA_DIR .."/conf/FTTimeOutConfiguration.lua"))()
@@ -48,4 +47,4 @@ function existent(self, proxy)
   end
 end
 
-
+return OilUtilities

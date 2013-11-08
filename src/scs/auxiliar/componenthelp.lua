@@ -10,16 +10,10 @@ local Log = require "scs.util.Log"
 local assert = assert
 
 --------------------------------------------------------------------------------
-
-module "scs.auxiliar.componenthelp"
-
---------------------------------------------------------------------------------
-
---------------------------------------------------------------------------------
 -- ComponentHelp Class
 --------------------------------------------------------------------------------
 
-CpnHelp = oo.class{
+local CpnHelp = oo.class{
   componentName = "",
   helpInfo = "",
 }
@@ -46,3 +40,10 @@ function CpnHelp:getHelpInfo(componentId)
   return self.helpInfo
 end
 
+--------------------------------------------------------------------------------
+
+local module = {
+  CpnHelp = CpnHelp
+}
+
+return module

@@ -1,14 +1,12 @@
-local pairs = pairs
-
 local oop = require "loop.base"
 
-module("latt.TestCase", oop.class)
+local TestCase = oop.class()
 
-function __new(self, name, testCase, tests)
+function TestCase.__new(self, name, testCase, tests)
   return oop.rawnew(self, { name = name, testCase = testCase, tests = tests, })
 end
 
-function run(self, result)
+function TestCase.run(self, result)
   result:startTestCase(self.name)
   if self.testCase.beforeTestCase then
     self.testCase:beforeTestCase()
@@ -27,3 +25,5 @@ function run(self, result)
   end
   result:stopTestCase()
 end
+
+return TestCase

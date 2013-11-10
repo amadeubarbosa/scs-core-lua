@@ -47,9 +47,9 @@ end
 local Inspector = class()
 
 function Inspector:__new(config, orb)
-  return oo.rawnew(self, 
+  return oo.rawnew(self,
       {
-      config = config
+      config = config,
       orb = orb,
       root = {},
       })

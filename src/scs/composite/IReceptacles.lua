@@ -68,7 +68,7 @@ function newConnect(self, name, connection)
     Log:debug("Verifica compatibilidade entre a faceta e o receptaculo.")
 
     if not verifyCompatibility(self, name, iCompConnection) then
-      error { _repid = compositeIdl.throw.InvalidComponent }
+      error( orb:newexcept{ _repid = compositeIdl.throw.InvalidComponent })
     end
   end
 
@@ -111,7 +111,7 @@ function verifyCompatibility(self, name, iComponent)
       connIComponentFacet, utils.ISUPERCOMPONENT_NAME)
   if not ok or not connISuperCompFacet then
     Log:error(string.format("A conexao nao eh compativel com o receptaculo '%s'.",name), connISuperCompFacet)
-    error { _repid = compositeIdl.throw.InvalidConnection }
+    error( orb:newexcept{ _repid = compositeIdl.throw.InvalidConnection })
   end
 
   connISuperCompFacet = orb:narrow(connISuperCompFacet, utils.ISUPERCOMPONENT_INTERFACE)
@@ -125,7 +125,7 @@ function verifyCompatibility(self, name, iComponent)
       or (#superComponentList == 0 and #connSuperComponentList > 0)) then
     Log:error(string.format("Componententes nao compativeis: #SuperComponent = %s | Componente do receptaculo a ser conectado = %s ",
         #superComponentList, #connSuperComponentList))
-    error { _repid = compositeIdl.throw.InvalidConnection }
+    error( orb:newexcept{ _repid = compositeIdl.throw.InvalidConnection })
   end
 
   for _,superComponent in ipairs(superComponentList) do

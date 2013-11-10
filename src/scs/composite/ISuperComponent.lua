@@ -20,7 +20,7 @@ function ISuperComponent:addSuperComponent(iComponent)
   local composite = context._orb:narrow(iComponent:getFacetByName(utils.ICONTENTCONTROLLER_NAME))
 
   if not iComponent:_is_a(utils.ICOMPONENT_INTERFACE) then
-    error { compositeIdl.throw.InvalidComponent }
+    error( orb:newexcept{ _repid = compositeIdl.throw.InvalidComponent })
   end
 
   self.superComponents[composite:getId()] = iComponent

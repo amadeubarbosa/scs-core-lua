@@ -46,28 +46,28 @@ function ContentController:addSubComponent(component)
 
   local subIComponent = orb:narrow(component, utils.ICOMPONENT_INTERFACE)
   if not subIComponent then
-    error { _repid = compositeIdl.throw.InvalidComponent }
+    error( orb:newexcept{ _repid = compositeIdl.throw.InvalidComponent })
   end
 
   local ok, superCompFacet = pcall(subIComponent.getFacetByName, subIComponent, utils.ISUPERCOMPONENT_NAME)
   if not ok or not superCompFacet then
-    error { _repid = compositeIdl.throw.InvalidConnection }
+    error( orb:newexcept{ _repid = compositeIdl.throw.InvalidConnection })
   end
   superCompFacet = orb:narrow(superCompFacet, utils.ISUPERCOMPONENT_INTERFACE)
 
   ok, metaInterfaceFacet = pcall(subIComponent.getFacetByName, subIComponent, utils.IMETAINTERFACE_NAME)
   if not ok or not metaInterfaceFacet then
-    error { _repid = compositeIdl.throw.InvalidComponent }
+    error( orb:newexcept{ _repid = compositeIdl.throw.InvalidComponent })
   end
   metaInterfaceFacet = orb:narrow(metaInterfaceFacet, utils.IMETAINTERFACE_INTERFACE)
 
   if #metaInterfaceFacet:getReceptacles() > 0 and #superCompFacet:getSuperComponents() > 0 then
-    error { _repid = compositeIdl.throw.UnshareableComponent }
+    error( orb:newexcept{ _repid = compositeIdl.throw.UnshareableComponent })
   end
 
   ok = pcall(superCompFacet.addSuperComponent, superCompFacet, context.IComponent)
   if not ok then
-    error { _repid = compositeIdl.throw.ComponentFailure }
+    error( orb:newexcept{ _repid = compositeIdl.throw.ComponentFailure })
   end
 
   Log:info(string.format("Componente '%s' foi adicionado no supercomponente '%s'",
@@ -153,8 +153,10 @@ end
 --
 ---
 function ContentController:findComponent(membershipId)
+  local orb = self.context._orb
+
   if not self.componentSet[membershipId] then
-    error { _repid = compositeIdl.throw.ComponentNotFound }
+    error( orb:newexcept{ _repid = compositeIdl.throw.ComponentNotFound })
   end
 
   return self.componentSet[membershipId]
@@ -169,17 +171,17 @@ function ContentController:bindFacet(connectorID, internalFacetName, externalFac
 
   local ok, subcomponent = pcall(self.findComponent, self, connectorID)
   if not ok or not subcomponent then
-    error { _repid = compositeIdl.throw.ComponentNotFound, id = connectorID }
+    error( orb:newexcept{ _repid = compositeIdl.throw.ComponentNotFound, id = connectorID })
   end
 
   local internalFacet = subcomponent:getFacetByName(internalFacetName)
   if not internalFacet then
-    error { _repid = compositeIdl.throw.FacetNotFound }
+    error( orb:newexcept{ _repid = compositeIdl.throw.FacetNotFound })
   end
 
   local facetInComposite = context:getFacetByName(externalFacetName)
   if facetInComposite then
-    error { _repid = compositeIdl.throw.FacetAlreadyExists }
+    error( orb:newexcept{ _repid = compositeIdl.throw.FacetAlreadyExists })
   end
 
   local metaFacet = subcomponent:getFacetByName(utils.IMETAINTERFACE_NAME)
@@ -187,7 +189,7 @@ function ContentController:bindFacet(connectorID, internalFacetName, externalFac
 
   local descriptions = metaFacet:getFacetsByName({internalFacetName})
   if #descriptions < 1 then
-    error { _repid = compositeIdl.throw.FacetNotFound }
+    error( orb:newexcept{ _repid = compositeIdl.throw.FacetNotFound })
   end
 
   local facetDescription = descriptions[1]
@@ -265,24 +267,24 @@ function ContentController:bindReceptacle(connectorID, internalReceptacleName, e
 
   local ok, subcomponent = pcall(self.findComponent, self, connectorID)
    if not ok or not subcomponent then
-    error { _repid = compositeIdl.throw.ComponentNotFound, id = connectorID }
+    error( orb:newexcept{ _repid = compositeIdl.throw.ComponentNotFound, id = connectorID })
   end
 
   local iSubReceptacle = subcomponent:getFacetByName(utils.IRECEPTACLES_NAME)
   if not iSubReceptacle then
-    error { _repid = compositeIdl.throw.ReceptacleNotAvailableInComponent }
+    error( orb:newexcept{ _repid = compositeIdl.throw.ReceptacleNotAvailableInComponent })
   end
   iSubReceptacle = orb:narrow(iSubReceptacle, utils.IRECEPTACLES_INTERFACE)
 
   local metaFacet = subcomponent:getFacetByName(utils.IMETAINTERFACE_NAME)
   if not metaFacet then
-    error { _repid = compositeIdl.throw.ReceptacleNotAvailableInComponent }
+    error( orb:newexcept{ _repid = compositeIdl.throw.ReceptacleNotAvailableInComponent })
   end
   metaFacet = orb:narrow(metaFacet, utils.IMETAINTERFACE_INTERFACE)
 
   local descriptions = metaFacet:getReceptaclesByName({internalReceptacleName})
   if #descriptions < 1 then
-    error { _repid = compositeIdl.throw.ReceptacleNotFound }
+    error( orb:newexcept{ _repid = compositeIdl.throw.ReceptacleNotFound })
   end
 
   local recptacleDescription = descriptions[1]

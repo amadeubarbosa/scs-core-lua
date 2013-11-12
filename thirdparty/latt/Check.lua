@@ -1,11 +1,14 @@
-local table = table
-local error = error
-local tostring = tostring
-local type = type
+local _G = require "_G"
+local table = _G.table
+local pack = table.pack or _G.pack
+local unpack = table.unpack or _G.unpack
+local error = _G.error
+local tostring = _G.tostring
+local type = _G.type
 
 local oop = require "loop.base"
 
-local latt = latt
+local latt = _G.latt
 
 local function assertBoolean(condition)
   if type(condition) ~= "boolean" then
@@ -16,8 +19,8 @@ end
 local Check = oop.class()
 
 function Check.assertError(f, ...)
-  local arg = table.pack(...)
-  local success = latt.pcall(f, table.unpack(arg))
+  local arg = pack(...)
+  local success = latt.pcall(f, unpack(arg))
   if success then
     error("Function shouldn't run successfully.", 2)
   end

@@ -4,19 +4,18 @@
 -- 
 -- Exemplo de arquivo de configuração:
 --  config = {
---    F = true,
---    R = true,
---    CONN = true,
+--    F = {},
+--    R = {},
+--    CONN = {},
 --
---    C = "connector",
---    S = "space",
---    SP = "speedcar",
+--    C = {"connector"},
+--    S = {"space"},
+--    SP = {"speedcar"},
 --  }
 -- 
 -- Autor: Mauricio Arieira
 ----------------------------------------------------------------------------------
 
-local IDENT_NUM = 2
 
 local oil = require "oil"
 local oo = require "loop.base"
@@ -39,16 +38,16 @@ end
 function string.findMatch(s, pattern)
   local st, en = string.find (s:upper(), pattern:upper())
   return st ~= nil
-  --return string.sub (s, st, en)
 end
 
 ----------------------------------------------------------------------------------
 
 local Inspector = class()
 
-function Inspector:__new(config, orb)
+function Inspector:__new(config, orb, printer)
   return oo.rawnew(self,
       {
+      printer = printer or require "scs.auxiliar.textPrinter",
       config = config,
       orb = orb,
       root = {},
@@ -73,10 +72,10 @@ end
 ---
 --
 ---
-function Inspector:getGroup(componentId)
-  for group, value in pairs(self.config) do
-    if type(value) == "string" and string.findMatch(componentId.name, value) then
-      return group
+function Inspector:getType(componentId)
+  for _, t in pairs(self.config) do
+    if type(t) == "table" and t.pattern and string.findMatch(componentId.name, t.pattern) then
+      return t
     end
   end
   
@@ -92,13 +91,13 @@ function Inspector:getComponentData(component)
   local facets, receptacles = self:getMembersData(component)
   local componentId = component:getComponentId()
   local componentIdStr = scsUtils:getNameVersion(componentId)
-  local group = self:getGroup(componentId)
+  local compConfig = self:getType(componentId)
   
   local componentDesc = { 
       facets = facets, 
       receptacles = receptacles,
       componentId = componentIdStr,
-      group = group,
+      config = compConfig,
   }
 
   return componentDesc
@@ -145,6 +144,8 @@ function Inspector:print()
   for _,node in ipairs(self.root) do
     self:printInterno(node, 0)
   end
+  
+  self.printer:flush()
 end
 
 ---
@@ -153,41 +154,41 @@ end
 function Inspector:printInterno(component, ident)
   local orb = self.orb
   local config = self.config
-  local spaces = string.rep(" ", ident)
+  local printer = self.printer
   
-  
-  if component.group then print(string.format("%s(%s) %s", spaces,  component.group , component.componentId )) end
+  if component.config then printer:write(ident, component.config, component.componentId, true) end
 
-  local spaces = string.rep(" ", ident + IDENT_NUM)
+  ident = ident + 1
   if #component.facets > 0 then
     for _, facet in ipairs(component.facets) do
-      if config.F then print(string.format("%s(F) %s", spaces, facet.name)) end
+      if config.F then printer:write(ident, config.F, facet.name, false) end
     end
   end
 
   local receptacles = component.receptacles
   if # receptacles > 0 then
     for _, receptacle in ipairs(receptacles) do
-      if config.R then print(string.format("%s(R) %s", spaces, receptacle.name)) end
+      local hasChild = (receptacle.connections == true)
+      if config.R then printer:write(ident, config.R, receptacle.name, hasChild) end
       
       if receptacle.connections then
         for _, connection in ipairs(receptacle.connections) do
           local component = connection.objref:_component()
           component = orb:narrow(component, scsUtils.ICOMPONENT_INTERFACE)
           local connId = scsUtils:getNameVersion(component:getComponentId())
-          if config.CONN then print(string.format("%s(Conn) %s", spaces .. string.rep(" ", 2), connId)) end
+          if config.CONN then printer:write(ident + 1, config.CONN, connId, false) end
         end
       end
     end
   end
   
   if #component.subComponentes > 0 then
-    print(string.format("%sSubComponents:", spaces))
+    printer:write(ident, {}, "SubComponents", true)
     for _, subComponent in ipairs(component.subComponentes) do
-      self:printInterno(subComponent, ident + 2*IDENT_NUM)
+      self:printInterno(subComponent, ident + 1)
     end
   end
 end
 
-    
+
 return Inspector

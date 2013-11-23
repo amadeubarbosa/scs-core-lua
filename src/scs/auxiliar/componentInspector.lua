@@ -183,7 +183,7 @@ function Inspector:printInterno(component, ident)
   end
   
   if #component.subComponentes > 0 then
-    printer:write(ident, {}, "SubComponents", true)
+    printer:write(ident, config.SUBCC, "SubComponents", true)
     for _, subComponent in ipairs(component.subComponentes) do
       self:printInterno(subComponent, ident + 1)
     end

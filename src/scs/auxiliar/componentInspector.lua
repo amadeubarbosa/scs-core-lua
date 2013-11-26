@@ -166,12 +166,12 @@ function Inspector:printInterno(component, ident)
   end
 
   local receptacles = component.receptacles
-  if # receptacles > 0 then
+  if config.R and #receptacles > 0 then
     for _, receptacle in ipairs(receptacles) do
       local hasChild = (receptacle.connections == true)
-      if config.R then printer:write(ident, config.R, receptacle.name, hasChild) end
+      printer:write(ident, config.R, receptacle.name, hasChild)
       
-      if receptacle.connections then
+      if config.CONN and receptacle.connections then
         for _, connection in ipairs(receptacle.connections) do
           local component = connection.objref:_component()
           component = orb:narrow(component, scsUtils.ICOMPONENT_INTERFACE)
@@ -182,7 +182,7 @@ function Inspector:printInterno(component, ident)
     end
   end
   
-  if #component.subComponentes > 0 then
+  if config.SUBCC and #component.subComponentes > 0 then
     printer:write(ident, config.SUBCC, "SubComponents", true)
     for _, subComponent in ipairs(component.subComponentes) do
       self:printInterno(subComponent, ident + 1)

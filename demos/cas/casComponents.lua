@@ -58,10 +58,10 @@ function IRecord:startRecord()
   self.state = "recording"
 
   print " - Informando aos Listeners conectados"
-  local receptacle = context:getReceptacleByName("IActivitiesListener")
+  local receptacle = context:getReceptacleByName("IComponentListener")
   for _, connection in pairs(receptacle.connections) do
-    connection = orb:narrow(connection.objref, "IDL:cas/monitoring/IActivitiesListener:1.0")
-    connection:recordingStarted(self.name)
+    connection = orb:narrow(connection.objref, "IDL:cas/monitoring/IComponentListener:1.0")
+    connection:connected(self.name)
   end
 end
 
@@ -69,12 +69,12 @@ local IConfigurable =  class()
 
 local IDataTransfer = class()
 
-local IActivitiesListener = class()
-IActivitiesListener.recordingStarted  = function(self, name)
+local IComponentListener = class()
+IComponentListener.connected  = function(self, name)
   print(string.format(" [ControlPainel] O SpeedCar %s foi conectado com sucesso.", name))
   return ""
 end
-IActivitiesListener.recordingStopped  = function(self, name)
+IComponentListener.recordingStopped  = function(self, name)
   print(string.format(" [ControlPainel] O SpeedCar %s foi desconectado com sucesso.", name))
   return ""
 end
@@ -122,19 +122,19 @@ function IRoomConfigurator:connectComponent(speedCarComponent)
   dataTransfReceptacles = orb:narrow(dataTransfReceptacles, "IDL:scs/core/IReceptacles:1.0")
   dataTransfReceptacles:connect("IDataTransfer", scDataTransf)
 
-  -- Conectar a faceta do Speedcar no conector IActivitiesListener
-  local checkerConn = contentController:findComponent(connectorsIdMap.IActivitiesListener)
-  local connectorFacet = checkerConn:getFacetByName("IActivitiesListener")
+  -- Conectar a faceta do Speedcar no conector IComponentListener
+  local checkerConn = contentController:findComponent(connectorsIdMap.IComponentListener)
+  local connectorFacet = checkerConn:getFacetByName("IComponentListener")
   local scChecker = speedCarComponent:getFacetByName("IReceptacles")
   scChecker = orb:narrow(scChecker, "IDL:scs/core/IReceptacles:1.0")
-  scChecker:connect("IActivitiesListener", connectorFacet)
+  scChecker:connect("IComponentListener", connectorFacet)
 
 --[[
-  local scChecker = speedCarComponent:getFacetByName("IActivitiesListener")
-  local checkerConn = contentController:findComponent(connectorsIdMap.IActivitiesListener)
+  local scChecker = speedCarComponent:getFacetByName("IComponentListener")
+  local checkerConn = contentController:findComponent(connectorsIdMap.IComponentListener)
   checkerReceptacles = checkerConn:getFacetByName("IReceptacles")
   checkerReceptacles = orb:narrow(checkerReceptacles, "IDL:scs/core/IReceptacles:1.0")
-  checkerReceptacles:connect("IActivitiesListener", scChecker)
+  checkerReceptacles:connect("IComponentListener", scChecker)
 ]]--
   return 1
 end
@@ -145,16 +145,16 @@ end
 
 -- Connector ActivitiesListenerConnector
 local ActivitiesListenerConnector = class()
-function ActivitiesListenerConnector:recordingStarted(name)
+function ActivitiesListenerConnector:connected(name)
   local context = self.context
   local orb = context._orb
 
-  print " - ListenterConnector chamando 'recordingStarted'"
+  print " - ListenterConnector chamando 'connected'"
 
-  local receptacle = context:getReceptacleByName("IActivitiesListener")
+  local receptacle = context:getReceptacleByName("IComponentListener")
   for _, connection in pairs(receptacle.connections) do
-    connection = orb:narrow(connection.objref, "IDL:cas/monitoring/IActivitiesListener:1.0")
-    connection:recordingStarted(name)
+    connection = orb:narrow(connection.objref, "IDL:cas/monitoring/IComponentListener:1.0")
+    connection:connected(name)
   end
 end
 
@@ -164,9 +164,9 @@ function ActivitiesListenerConnector:recordingStopped(name)
 
   print " - ListenterConnector chamando 'recordingStopped'"
 
-  local receptacle = context:getReceptacleByName("IActivitiesListener")
+  local receptacle = context:getReceptacleByName("IComponentListener")
   for _, connection in pairs(receptacle.connections) do
-    connection = orb:narrow(connection.objref, "IDL:cas/monitoring/IActivitiesListener:1.0")
+    connection = orb:narrow(connection.objref, "IDL:cas/monitoring/IComponentListener:1.0")
     connection:recordingStopped(name)
   end
 end
@@ -257,10 +257,10 @@ function AddConectors(orb, roomIContent)
   -- ActivitiesListener Connector
   connectorCompId = { name = "ActivitiesListenerConnector", major_version = 1, minor_version = 0, patch_version = 0, platform_spec = "" }
   local checkerConnComponent = ComponentContext(orb, connectorCompId)
-  checkerConnComponent:addFacet("IActivitiesListener", "IDL:cas/monitoring/IActivitiesListener:1.0", ActivitiesListenerConnector())
-  checkerConnComponent:addReceptacle("IActivitiesListener", "IDL:cas/monitoring/IActivitiesListener:1.0", true)
-  membershipIdMap.IActivitiesListener = roomIContent:addSubComponent(checkerConnComponent.IComponent)
-  roomIContent:bindReceptacle(membershipIdMap.IActivitiesListener, "IActivitiesListener", "IActivitiesListener", "ALL")
+  checkerConnComponent:addFacet("IComponentListener", "IDL:cas/monitoring/IComponentListener:1.0", ActivitiesListenerConnector())
+  checkerConnComponent:addReceptacle("IComponentListener", "IDL:cas/monitoring/IComponentListener:1.0", true)
+  membershipIdMap.IComponentListener = roomIContent:addSubComponent(checkerConnComponent.IComponent)
+  roomIContent:bindReceptacle(membershipIdMap.IComponentListener, "IComponentListener", "IComponentListener", "CURRENT")
 
   return membershipIdMap
 end
@@ -271,7 +271,7 @@ function CreateSpeedCar(orb, name)
   speedCar:addFacet("IRecord", "IDL:cas/recorder/IRecord:1.0", IRecord(name))
   speedCar:addFacet("IConfigurable", "IDL:cas/configuration/IConfigurable:1.0", IConfigurable())
   speedCar:addFacet("IDataTransfer", "IDL:cas/transfer/IDataTransfer:1.0", IDataTransfer())
-  speedCar:addReceptacle("IActivitiesListener", "IDL:cas/monitoring/IActivitiesListener:1.0", true)
+  speedCar:addReceptacle("IComponentListener", "IDL:cas/monitoring/IComponentListener:1.0", true)
   return speedCar.IComponent
 end
 
@@ -310,20 +310,20 @@ oil.main(function()
 
 ---- 4.3 Simula o painel de controles recebendo informacoes sobre o componente Room e os SpeedCars
   local controlPainer = ComponentContext(orb, componentId)
-  controlPainer:addFacet("IActivitiesListener", "IDL:cas/monitoring/IActivitiesListener:1.0", IActivitiesListener())
-  local controlPainelListener = controlPainer.IComponent:getFacetByName("IActivitiesListener")
-  local controlPainelListener = orb:narrow(controlPainelListener, "IDL:cas/monitoring/IActivitiesListener:1.0")
+  controlPainer:addFacet("IComponentListener", "IDL:cas/monitoring/IComponentListener:1.0", IComponentListener())
+  local controlPainelListener = controlPainer.IComponent:getFacetByName("IComponentListener")
+  local controlPainelListener = orb:narrow(controlPainelListener, "IDL:cas/monitoring/IComponentListener:1.0")
   local roomRecepacles = roomIComponent:getFacetByName("IReceptacles")
-  roomRecepacles:connect("IActivitiesListener", controlPainelListener)
+  roomRecepacles:connect("IComponentListener", controlPainelListener)
 
 ---- 4.4 Criar dois SpeedCars
   local speedCarComponent1 = CreateSpeedCar(orb, "sc1")
   local speedCarComponent2 = CreateSpeedCar(orb, "sc2")
 
----- 4.5 SpeedCars encontram o RoomConfigurator específico e pedem para serem adicionados no Room
+---- 4.5 SpeedCars encontram o RoomConfigurator especifico e pedem para serem adicionados no Room
   roomConfiguratorComponent = findSpeedCarRoom()
   if not roomConfiguratorComponent then
-    print "Room Configurator não foi encontrado"
+    print "Room Configurator nao foi encontrado"
     os.exit(1)
   end
 
@@ -334,7 +334,6 @@ oil.main(function()
 
 ---- 4.6 Verificar se os SpeedCars estao no estado 'ready'
   local roomRecord = roomIComponent:getFacetByName("IRecord")
-  roomRecord = orb:narrow(roomRecord, "IDL:cas/recorder/IRecord:1.0")
   local status = roomRecord:getStatus()
   print ("SpeedCar status: " .. status)
 

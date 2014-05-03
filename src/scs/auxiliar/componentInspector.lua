@@ -168,7 +168,7 @@ function Inspector:printInterno(component, ident)
   local receptacles = component.receptacles
   if config.R and #receptacles > 0 then
     for _, receptacle in ipairs(receptacles) do
-      local hasChild = (receptacle.connections == true)
+      local hasChild = (not receptacle.connections ~= true)
       printer:write(ident, config.R, receptacle.name, hasChild)
       
       if config.CONN and receptacle.connections then

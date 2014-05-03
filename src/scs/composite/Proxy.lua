@@ -60,21 +60,14 @@ function ProxyComponent:setProxyComponent(iComponent, permission)
       local facetProxy
 
       if interfaceName == utils.ICOMPONENT_INTERFACE then
-        facetProxy = self:createIComponentWrapper(newFacet)
+        facetProxy = self:createIComponentWrapper(newFacet, permission)
       else
         canCallFunction = function(self) return self.component.isStartedUp end
         facetProxy = FacetProxy(newFacet, canCallFunction)
         facetProxy.component = self
       end
 
-      if permission == "CURRENT" then
-        facetProxy._component = function(self) return end
-      elseif permission == "ALL" then
-        facetProxy._component = function(self) return self.context.IComponent end
-      else
-        --throw exception
-      end
-
+      facetProxy._component = function(self) return self.context.IComponent end
       if self:containsFacet(facetName) then
         self:updateFacet(facetName, facetProxy)
       else
@@ -87,15 +80,19 @@ end
 ---
 --
 ---
-function ProxyComponent:createIComponentWrapper(iComponent)
-  local iComponentWrapper =  Wrapper{ __object = iComponent}
+function ProxyComponent:createIComponentWrapper(iComponent, permission)
+  local iComponentWrapper =  Wrapper{ __object = iComponent, permission = permission}
   local iSuperComponentFacet = self:getFacetByName(utils.ISUPERCOMPONENT_NAME).facet_ref
 
   function iComponentWrapper:getFacetByName(name)
     if name == utils.ISUPERCOMPONENT_NAME then
       return iSuperComponentFacet
-    else
+    elseif self.permission == "ALL" then
       return self.__object:getFacetByName(name)
+    elseif self.pemission == "CURRENT" then
+      return
+    else
+      --throw exception
     end
   end
 
@@ -136,7 +133,7 @@ end, "k")
 
 FacetProxy.__index = function(self, key)
   local value = self.facet[key]  
-  if self.canCall() then    
+  if self:canCall() then
     if type(key) == "string" and not key:match("^__") then
       Log:debug("Proxy: calling method " .. key)
       if type(value) == "function" then 

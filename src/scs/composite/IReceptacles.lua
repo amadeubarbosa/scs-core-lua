@@ -54,8 +54,9 @@ function newConnect(self, name, connection)
     proxy:setProxyComponent(connIComponentFacet, permission)
 
     -- Preferi nao adicionar o proxy no supercomponente para o getSubcomponets()
-    -- nao ficar cheio proxys. Mas de repente será necessário.
-    -- Apenas defini que o pai do proxy é o superComponent.
+    -- nao ficar cheio proxys. Mas de repente sera necessario.
+    -- Apenas defini que o pai do proxy e o superComponent. Temos que guarda-los em
+    -- alguma estrutura de dados para depois conseguirmos destrui-los.
     local proxySuperComponent = proxy:getFacetByName(utils.ISUPERCOMPONENT_NAME).facet_ref
     local iComponent =  orb:narrow(context.IComponent, utils.ICOMPONENT_INTERFACE)
     proxySuperComponent:addSuperComponent(iComponent)
@@ -120,12 +121,12 @@ function verifyCompatibility(self, name, iComponent)
   if #superComponentList == 0 and #connSuperComponentList == 0 then
     return true
   end
-
+  
   if ((#superComponentList > 0 and #connSuperComponentList == 0)
       or (#superComponentList == 0 and #connSuperComponentList > 0)) then
     Log:error(string.format("Componententes nao compativeis: #SuperComponent = %s | Componente do receptaculo a ser conectado = %s ",
         #superComponentList, #connSuperComponentList))
-    error( orb:newexcept{ _repid = compositeIdl.throw.InvalidConnection })
+    return false
   end
 
   for _,superComponent in ipairs(superComponentList) do

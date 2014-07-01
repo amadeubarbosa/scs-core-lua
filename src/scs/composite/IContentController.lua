@@ -288,7 +288,7 @@ function ContentController:bindReceptacle(connectorID, internalReceptacleName, e
   end
 
   local recptacleDescription = descriptions[1]
-  local isMultiplex = recptacleDescription.isMultiplex
+  local isMultiplex = recptacleDescription.is_multiplex
   local interfaceName = recptacleDescription.interface_name
 
   context:addReceptacle(externalReceptacleName, interfaceName, isMultiplex)

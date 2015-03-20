@@ -1,0 +1,67 @@
+# -*- coding: iso-8859-1-unix -*-
+
+import os ;
+import modules ;
+
+path-constant here : . ;
+
+local lua-install-path = [ os.environ LUA_INSTALL_PATH ] ;
+if ! $(lua-install-path)
+{
+  lua-install-path = "$(here)/../../install/lua" ;
+}
+
+local loop-root-path = [ os.environ LOOP_ROOT_PATH ] ;
+if ! $(loop-root-path)
+{
+  loop-root-path = "$(here)/../loop" ;
+}
+
+modules.load preloader : : $(loop-root-path) ;
+import preloader ; 
+using preloader ;
+
+project luascs
+  : requirements
+    <target-os>windows:<pch>off
+    <target-os>windows,<link>shared:<runtime-link>shared
+    <target-os>windows,<link>static:<runtime-link>static
+    <target-os>windows:<debug-store>database
+    <target-os>windows:<define>_CRT_SECURE_NO_WARNINGS
+    <target-os>windows:<cxxflags>/FS
+    <debug-symbols>on
+  ;
+
+make luascs.c
+  : src/scs/core/utils.lua
+    src/scs/util/Log.lua
+    src/scs/util/OilUtilities.lua
+    src/scs/util/TableDB.lua
+    src/scs/core/Component.lua
+    src/scs/core/Receptacles.lua
+    src/scs/core/MetaInterface.lua
+    src/scs/core/ComponentContext.lua
+    src/scs/core/builder/XMLComponentBuilder.lua
+    src/scs/auxiliar/componentproperties.lua
+    src/scs/auxiliar/componenthelp.lua
+    src/scs/adaptation/AdaptiveReceptacle.lua
+    src/scs/adaptation/PersistentReceptacle.lua
+  : preloader.pre-compile
+  : <search>$(here)
+  ;
+
+lib luascs
+  : luascs.c
+    /lua//lua
+  : <include>src
+    <target-os>windows,<link>shared:<linkflags>"/def:$(here)/luascs.def"
+  :
+  : <include>.
+  ;
+explicit luascs ;
+
+install stage
+  : luascs
+  : <location>install
+  ;
+  

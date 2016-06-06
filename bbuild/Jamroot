@@ -1,0 +1,72 @@
+# -*- coding: iso-8859-1-unix -*-
+
+import os ;
+import modules ;
+
+path-constant here : . ;
+path-constant root : $(here)/.. ;
+path-constant deps : $(root)/.. ;
+
+local lua-jam-path = [ os.environ LUA_JAM_PATH ] ;
+if ! $(lua-jam-path)
+{
+  lua-jam-path = "$(deps)/lua.jam" ;
+}
+use-project lua : $(lua-jam-path) ; 
+
+local loop-root-path = [ os.environ LOOP_ROOT_PATH ] ;
+if ! $(loop-root-path)
+{
+  loop-root-path = "$(deps)/loop" ;
+}
+use-project loop : $(loop-root-path)/bbuild ; 
+
+modules.load preloader : : $(loop-root-path)/bbuild ;
+import preloader ; 
+using preloader ;
+
+project luascs
+  : requirements
+    <target-os>windows:<pch>off
+    <target-os>windows,<link>shared:<runtime-link>shared
+    <target-os>windows,<link>static:<runtime-link>static
+    <target-os>windows:<debug-store>database
+    <target-os>windows:<define>_CRT_SECURE_NO_WARNINGS
+    <toolset>msvc-12.0:<cxxflags>/FS
+    <debug-symbols>on
+  ;
+
+make luascs.c
+  : $(root)/src/scs/core/utils.lua
+    $(root)/src/scs/util/Log.lua
+    $(root)/src/scs/util/OilUtilities.lua
+    $(root)/src/scs/util/TableDB.lua
+    $(root)/src/scs/core/Component.lua
+    $(root)/src/scs/core/Receptacles.lua
+    $(root)/src/scs/core/MetaInterface.lua
+    $(root)/src/scs/core/ComponentContext.lua
+    $(root)/src/scs/core/builder/XMLComponentBuilder.lua
+    $(root)/src/scs/auxiliar/componentproperties.lua
+    $(root)/src/scs/auxiliar/componenthelp.lua
+    $(root)/src/scs/adaptation/AdaptiveReceptacle.lua
+    $(root)/src/scs/adaptation/PersistentReceptacle.lua
+  : preloader.pre-compile
+  : <search>$(root)
+    <location>$(here)
+  ;
+
+lib luascs
+  : luascs.c
+    /lua//lua
+  : <include>$(root)/src
+    <target-os>windows,<link>shared:<linkflags>"/def:$(here)/luascs.def"
+  :
+  : <include>$(here)
+  ;
+explicit luascs ;
+
+install stage
+  : luascs
+  : <location>install
+  ;
+  

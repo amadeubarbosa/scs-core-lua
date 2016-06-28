@@ -7,23 +7,23 @@ path-constant here : . ;
 path-constant root : $(here)/.. ;
 path-constant deps : $(root)/.. ;
 
-local lua-jam-path = [ os.environ LUA_JAM_PATH ] ;
-if ! $(lua-jam-path)
+local lua-package = [ os.environ LUA ] ;
+if ! $(lua-package)
 {
-  lua-jam-path = "$(deps)/lua.jam" ;
+  lua-package = "$(deps)/lua" ;
 }
-use-project lua : $(lua-jam-path) ; 
+use-project lua : $(lua-package)/bbuild ; 
 
-local loop-root-path = [ os.environ LOOP_ROOT_PATH ] ;
-if ! $(loop-root-path)
+local loop-package = [ os.environ LOOP ] ;
+if ! $(loop-package)
 {
-  loop-root-path = "$(deps)/loop" ;
+  loop-package = "$(deps)/loop" ;
 }
-use-project loop : $(loop-root-path)/bbuild ; 
+use-project loop : $(loop-package)/bbuild ; 
 
-modules.load preloader : : $(loop-root-path)/bbuild ;
+modules.load preloader : : $(loop-package)/bbuild ;
 import preloader ; 
-using preloader ;
+using preloader : $(lua-package) ;
 
 project luascs
   : requirements
@@ -51,15 +51,16 @@ make luascs.c
     $(root)/src/scs/adaptation/AdaptiveReceptacle.lua
     $(root)/src/scs/adaptation/PersistentReceptacle.lua
   : preloader.pre-compile
-  : <search>$(root)
+  : <dependency>/lua//stage
+    <search>$(root)
     <location>$(here)
   ;
 
 lib luascs
   : luascs.c
-    /lua//lua
   : <include>$(root)/src
     <target-os>windows,<link>shared:<linkflags>"/def:$(here)/luascs.def"
+    <library>/lua//lua
   :
   : <include>$(here)
   ;
